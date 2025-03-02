@@ -48,21 +48,15 @@ jobs:
   
  
     - name: Build and deploy Container App
-      uses: azure/container-apps-deploy-action@v1
-      env:
-        APP_NAME: ${{ vars.APP_NAME }}
-        REPOSITORY: ${{ vars.REPOSITORY }}  
-        RESOURCE_GROUP: ${{ vars.RESOURCE_GROUP }}   
-        REGISTRY_USER: ${{ secrets.REGISTRY_USER}}  
-        REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD}}  
+      uses: azure/container-apps-deploy-action@v1  
       with:
-        acrName: $REPOSITORY
-        containerAppName: $APP_NAME
-        resourceGroup: $RESOURCE_GROUP
-        imageToDeploy: $REPOSITORY/$APP_NAME-$BRANCH:$RELEASE_VERSION
-        registryUsername: $REGISTRY_USER
-        registryPassword: $REGISTRY_PASSWORD
-        acrUsername: $REGISTRY_USER
-        acrPassword: $REGISTRY_PASSWORD
+        acrName: ${{ vars.REPOSITORY }} 
+        containerAppName: ${{ vars.APP_NAME }}
+        resourceGroup: ${{ vars.RESOURCE_GROUP }} 
+        imageToDeploy: ${{ vars.REPOSITORY }}/${{ vars.APP_NAME }}-$BRANCH:$RELEASE_VERSION
+        registryUsername: ${{ secrets.REGISTRY_USER }} 
+        registryPassword: ${{ secrets.REGISTRY_PASSWORD }}
+        acrUsername: ${{ secrets.REGISTRY_USER }} 
+        acrPassword: ${{ secrets.REGISTRY_PASSWORD }}
     
  
