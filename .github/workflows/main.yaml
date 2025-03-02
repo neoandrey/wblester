@@ -43,20 +43,17 @@ jobs:
         REPOSITORY: ${{ vars.REPOSITORY }}
       run: docker tag $APP_NAME-$BRANCH "$APP_NAME-$BRANCH:$RELEASE_VERSION" 
 
-    - name: Tag Image with REPOSITORY Name
+    - name: Tag Image with Repository Name and push to ACR
       env:
         APP_NAME: ${{ vars.APP_NAME }}
         REPOSITORY: ${{ vars.REPOSITORY }}
-      run: docker tag $APP_NAME-$BRANCH:$RELEASE_VERSION $REPOSITORY/$APP_NAME-$BRANCH:$RELEASE_VERSION
-    
-    - name: Update Container Image in ACR
-      uses: azure/docker-login@v2
-      with:
-        login-server: ${{ secrets.LOGIN_SERVER }}
-        username: ${{ secrets.REGISTRY_USER }}
-        password: ${{ secrets.REGISTRY_PASSWORD }}
-    - run: |
-        docker push ${{ secrets.LOGIN_SERVER }}/${{ vars.APP_NAME }}-$BRANCH:$RELEASE_VERSION
+        LOGIN_SERVER: ${{ secrets.LOGIN_SERVER }}
+        USERNAME: ${{ secrets.REGISTRY_USER }}
+        PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+      run: |
+         docker tag $APP_NAME-$BRANCH:$RELEASE_VERSION $REPOSITORY/$APP_NAME-$BRANCH:$RELEASE_VERSION
+         docker login $LOGIN_SERVER --username $USERNAME --password-stdin <<< $PASSWORD
+         docker push $LOGIN_SERVER/$APP_NAME-$BRANCH:$RELEASE_VERSION
        
     - name: Log in to Azure
       uses: azure/login@v1
