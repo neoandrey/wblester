@@ -1,7 +1,7 @@
 name: Azure CI Workflow
 on:
   push:
-    branches: [ "production" ]  
+    branches: [ "prod" ]  
 jobs:
 
   build:
