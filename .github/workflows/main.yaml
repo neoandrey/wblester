@@ -52,7 +52,7 @@ jobs:
     - name: Update Container Image in ACR
       uses: azure/docker-login@v2
       with:
-        login-server: ${{ vars.LOGIN_SERVER }}
+        login-server: ${{ secrets.LOGIN_SERVER }}
         username: ${{ secrets.REGISTRY_USER }}
         password: ${{ secrets.REGISTRY_PASSWORD }}
     - run: |
