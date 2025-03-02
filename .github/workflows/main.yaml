@@ -1,7 +1,7 @@
 name: Azure CI Workflow
 on:
   push:
-    branches: [ "prod" ]  
+    branches: [ "production" ]  
 jobs:
 
   build:
@@ -9,7 +9,6 @@ jobs:
       id-token: write
       contents: read
     runs-on: ubuntu-latest
-    environment: prod
     steps:
     - name:  Get Branch Name
       shell: bash
