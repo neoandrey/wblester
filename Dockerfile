@@ -57,7 +57,7 @@ RUN  mkdir -p "/opt/$APP_NAME/app"  &&  mkdir -p "opt/$APP_NAME/settings" &&  ap
    procps \
    curl
 
-COPY [".flaskenv","./config.py","./$FLASK_APP","./Procfile","./redis_worker.py","./requirements.txt", "/opt/$APP_NAME/"]
+COPY ["./config.py","./$FLASK_APP","./Procfile","./redis_worker.py","./requirements.txt", "/opt/$APP_NAME/"]
 COPY ["./settings","/opt/$APP_NAME/settings"]
 COPY ["./app",  "/opt/$APP_NAME/app"]
 RUN  python -m pip install --upgrade pip &&  python -m pip install -r  /opt/$APP_NAME/requirements.txt && pip install -U setuptools && apk add bash &&  eval '(ls /usr/local/lib | grep python| tail -1 >/tmp/python)'  && sed -i -e 's/flask.json/json/g' "/usr/local/lib/$(cat /tmp/python)/site-packages/flask_mongoengine/json.py" &&  \

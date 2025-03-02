@@ -13,6 +13,7 @@ heroku_deploy.ps1
 app/static/uploads/keystore/
 *docker_*
 .vscode 
+.flaskenv
 docker-compose.yaml
 docker_build_prod.ps1
 build_docker_image.cmd
