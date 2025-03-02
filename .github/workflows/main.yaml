@@ -53,7 +53,7 @@ jobs:
       run: |
          docker tag $APP_NAME-$BRANCH:$RELEASE_VERSION $REPOSITORY/$APP_NAME-$BRANCH:$RELEASE_VERSION
          docker login $LOGIN_SERVER --username $USERNAME --password-stdin <<< $PASSWORD
-         docker push $LOGIN_SERVER/$APP_NAME-$BRANCH:$RELEASE_VERSION
+         docker push "$REPOSITORY.azurecr.io/$APP_NAME-$BRANCH:$RELEASE_VERSION"{}
        
     - name: Log in to Azure
       uses: azure/login@v1
