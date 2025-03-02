@@ -38,7 +38,7 @@ ENV REDIS_QUEUE_NAME=$REDIS_QUEUE_NAME
 ENV PORT=$PORT
 ENV GPG_KEY=$GPG_KEY
 
-RUN  mkdir -p "/opt/$FLASK_APP/app"  &&  mkdir -p "opt/$FLASK_APP/settings" &&  apk update && apk upgrade && apk add --no-cache --update bash \
+RUN  mkdir -p "/opt/$APP_NAME/app"  &&  mkdir -p "opt/$APP_NAME/settings" &&  apk update && apk upgrade && apk add --no-cache --update bash \
    gcc \
    libcurl \
    python3-dev \
@@ -57,15 +57,15 @@ RUN  mkdir -p "/opt/$FLASK_APP/app"  &&  mkdir -p "opt/$FLASK_APP/settings" &&  
    procps \
    curl
 
-COPY [".flaskenv","./config.py","./$FLASK_APP.py","./Procfile","./redis_worker.py","./requirements.txt", "/opt/$FLASK_APP/"]
-COPY ["./settings","/opt/$FLASK_APP/settings"]
-COPY ["./app",  "/opt/$FLASK_APP/app"]
-RUN  python -m pip install --upgrade pip &&  python -m pip install -r  /opt/$FLASK_APP/requirements.txt && pip install -U setuptools && apk add bash &&  eval '(ls /usr/local/lib | grep python| tail -1 >/tmp/python)'  && sed -i -e 's/flask.json/json/g' "/usr/local/lib/$(cat /tmp/python)/site-packages/flask_mongoengine/json.py" &&  \
-     for filename in /opt/$FLASK_APP/settings/*; do gpg --quiet --batch --yes --decrypt --passphrase=${GPG_KEY}  --output ${filename/.gpg/} "$filename" && rm -f "$filename"; done && \
-     chmod -R 0777 /opt/$FLASK_APP/settings/
-WORKDIR /opt/$FLASK_APP
+COPY ["./config.py","./$FLASK_APP","./Procfile","./redis_worker.py","./requirements.txt", "/opt/$APP_NAME/"]
+COPY ["./settings","/opt/$APP_NAME/settings"]
+COPY ["./app",  "/opt/$APP_NAME/app"]
+RUN  python -m pip install --upgrade pip &&  python -m pip install -r  /opt/$APP_NAME/requirements.txt && pip install -U setuptools && apk add bash &&  eval '(ls /usr/local/lib | grep python| tail -1 >/tmp/python)'  && sed -i -e 's/flask.json/json/g' "/usr/local/lib/$(cat /tmp/python)/site-packages/flask_mongoengine/json.py" &&  \
+     for filename in /opt/$APP_NAME/settings/*; do gpg --quiet --batch --yes --decrypt --passphrase=${GPG_KEY}  --output ${filename/.gpg/} "$filename" && rm -f "$filename"; done && \
+     chmod -R 0777 /opt/$APP_NAME/settings/
+WORKDIR /opt/$APP_NAME
 EXPOSE $PORT 6379 443 80
-#CMD python redis_worker.py & gunicorn -w 2 -b 0.0.0.0:$PORT  $FLASK_APP:app
+#CMD python redis_worker.py & gunicorn -w 2 -b 0.0.0.0:$PORT  $APP_NAME:app
 COPY entrypoint.sh .
 	
 ENTRYPOINT  ["./entrypoint.sh"]
