@@ -1,0 +1,69 @@
+name: Azure CI Workflow
+on:
+  push:
+    branches: [ "prod" ]  
+jobs:
+
+  build:
+    permissions:
+      id-token: write
+      contents: read
+    runs-on: ubuntu-latest
+    environment: prod
+    steps:
+    - name:  Get Branch Name
+      shell: bash
+      run:  |
+             echo "BRANCH=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+      
+    - name: Check Out Latest Commit
+      uses: actions/checkout@v4
+    - name: Get Docker Image Tag
+      env:
+        MAJOR_VERSION: ${{ vars.MAJOR_VERSION }}
+        MINOR_VERSION: ${{ vars.MINOR_VERSION }}
+      run: |
+           BUILD_NUMBER=(git rev-list --count HEAD ^$BRANCH) && echo "RELEASE_VERSION=$(MAJOR_VERSION).$(MINOR_VERSION).$(BUILD_NUMBER)" >> $GITHUB_ENV
+      shell: bash
+
+    - name: Create Docker Image
+      env:
+        APP_NAME: ${{ vars.APP_NAME }}
+        FLASK_ENV: ${{ vars.FLASK_ENV }}
+        GPG_KEY: ${{ secrets.GPG_KEY}}
+
+      run: |
+        docker build  --build-arg APP_NAME="$APP_NAME" --build-arg FLASK_ENV="$FLASK_ENV"  --build-arg GPG_KEY="$GPG_KEY  -t  $APP_NAME-$BRANCH .
+   
+    - name: Tag the image with release version
+      env:
+        APP_NAME: ${{ vars. APP_NAME }}
+        REPOSITORY: ${{ vars.REPOSITORY }}
+      run: docker tag $APP_NAME-$BRANCH "$APP_NAME-$BRANCH:$RELEASE_VERSION" 
+
+    - name: Tag Image with REPOSITORY Name
+      env:
+        APP_NAME: ${{ vars.APP_NAME }}
+        REPOSITORY: ${{ vars.REPOSITORY }}
+      run: docker tag $APP_NAME-$BRANCH:$RELEASE_VERSION $REPOSITORY/$APP_NAME-$BRANCH:$RELEASE_VERSION
+  
+ 
+    - name: Build and deploy Container App
+      uses: azure/container-apps-deploy-action@v1
+      env:
+        APP_NAME: ${{ vars.APP_NAME }}
+        REPOSITORY: ${{ vars.REPOSITORY }}  
+        RESOURCE_GROUP: ${{ vars.RESOURCE_GROUP }}   
+        REGISTRY_USER: ${{ secrets.REGISTRY_USER}}  
+        REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD}}  
+      with:
+        acrName: $REPOSITORY
+        containerAppName: $APP_NAME
+        resourceGroup: $RESOURCE_GROUP
+        imageToDeploy: $REPOSITORY/$APP_NAME-$BRANCH:$RELEASE_VERSION
+        registryUsername: $REGISTRY_USER
+        registryPassword: $REGISTRY_PASSWORD
+        acrUsername: $REGISTRY_USER
+        acrPassword: $REGISTRY_PASSWORD
+    
+ 

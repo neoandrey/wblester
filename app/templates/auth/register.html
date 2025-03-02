@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>{{ options.siteName }} | Admin Account Setup</title>
+	<!-- Tell the browser to be responsive to screen width -->
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	  <link rel="icon" href="{{ url_for('static', filename='favicon.ico')}}" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#000000" />
+  <meta name="description" content="Social Engineering Awareness Insight Tool " />
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='cpanel/logo192.png')}}" />
+  <link rel="manifest" href="{{ url_for('static', filename='cpanel/manifest.json')}}" />
+
+
+	<!-- Font Awesome -->
+	<link rel="stylesheet" href="{{ url_for('static', filename='cpanel/plugins/fontawesome-free/css/all.min.css') }}">
+	<!-- Ionicons -->
+	<link rel="stylesheet" href="{{ url_for('static', filename='cpanel/dist/css/ionicons.min.css') }}">
+	<!-- icheck bootstrap -->
+	<link rel="stylesheet" href="{{ url_for('static', filename='cpanel/plugins/icheck-bootstrap/icheck-bootstrap.min.css') }}">
+	<!-- Theme style -->
+	<link rel="stylesheet" href="{{ url_for('static', filename='cpanel/dist/css/adminlte.min.css', version='1.0.2') }}">
+	<!-- Theme style -->
+	<!-- Google Font: Source Sans Pro -->
+	<link href="{{ url_for('static', filename='cpanel/dist/css/sourcesanspro.css') }}" rel="stylesheet">
+</head>
+
+<body class="hold-transition register-page">
+	<div class="register-box">
+		<div class="register-logo">
+			<a href="{{ url_for('api.index') }}"><b>{{ options.siteName }}: </b>{{ options.siteTitle }} </a>
+		</div>
+
+		<div class="card card-secondary">
+			<div class="card-header text-center">
+				<a href="{{ url_for('api.index') }}"><b>Administrator Account Setup</a>
+			  </div>
+			<div class="card-body register-card-body">
+				
+				        {% with messages = get_flashed_messages() %}
+        {% if (messages[0]) %}
+        <div id='flash-message' class="alert alert-warning" role="alert" align="center">
+          <span type="button" class="close" data-dismiss="alert" aria-label="Close"><span
+              aria-hidden="true">&times;</span></span>
+          <p class="register-box-msg">{{ messages[0] }}</p>
+        </div>
+        {% elif (message) %}
+        <div id='flash-message' class="alert alert-light" role="alert" align="center">
+
+			<p class="register-box-msg">{{ message }}</p>
+        </div>
+        {% endif %}
+        {% endwith %}
+
+				<form class="form-horizontal" id="registration-form" method="post" novalidate>
+					{{ form.csrf_token }}
+					<div class="form-group row" id="name-div">
+						<div class="col-md-6 mb-3">
+							{{ form.firstName.label(class="control-label") }}
+							{{ form.firstName(id="firstName",class="form-control",placeholder="firstName") }}
+							<span style="color: red;" id="firstName-errors">
+								{% for error in form.firstName.errors %}
+								{{ error }}
+								{% endfor %}
+							</span>
+						</div>
+						<div class="col-md-6 mb-6">
+							{{ form.surname.label(class="control-label") }}
+							{{ form.surname(id="surname",class="form-control",placeholder="surname") }}
+							<span style="color: red;" id="surname-errors">
+								{% for error in form.surname.errors %}
+								{{ error }}
+								{% endfor %}
+							</span>
+						</div>
+					</div>
+
+			
+
+			<div class="form-group row" id="email-div">
+				<div class="col-sm-2"> {{ form.email.label(class="control-label",style="text-align: left") }}</div>
+				<div class="col-sm-10 mb-3">
+					{{ form.email(id="email",class="form-control",placeholder="johndoe@example.com",style="max-width:95%;margin-left: 15px;margin-right:5px;") }}
+					<span style="color: red;" id="email-errors">
+						{% for error in form.email.errors %}
+						{{ error }}
+						{% endfor %}
+					</span>
+				</div>
+			</div>
+			<div class="form-group row" id="username-div">
+				<div class="col-sm-2">{{ form.username.label(class="control-label ",style="text-align: left")}}</div>
+				<div class="col-sm-10 mb-3">
+					{{ form.username(id="username",class="form-control",placeholder="username", style="max-width:95%;margin-left: 15px;margin-right:5px;") }}
+					<span style="color: red;" id="username-errors"
+						style="max-width: 95%;margin-left: 15px;margin-right:5px;">
+						{% for error in form.username.errors %}
+						{{ error }}
+						{% endfor %}
+					</span>
+				</div>
+			</div>
+
+			<div class="form-group row" id="password-div">
+				<div class="col-sm-2">	{{ form.password.label(class="control-label",style="text-align: left") }}</div>
+				<div class="col-sm-10 mb-3">
+					{{ form.password(id="password",class="form-control",placeholder="", style="max-width: 95%;margin-left:15px;margin-right:5px;") }}
+					<span style="color: red;" id="password-errors"
+						style="max-width: 95%;margin-left: 15px;margin-right:5px;">
+						{% for error in form.password.errors %}
+						{{ error }}
+						{% endfor %}
+					</span>
+				</div>
+			</div>
+
+			<div class="form-group row" id="confirm-password-div">
+				<div class="col-sm-2">{{ form.confirmPassword.label(class="control-label",style="text-align: left")}}</div>
+				<div class="col-sm-10 mb-3">
+					{{ form.confirmPassword(id="confirmPassword",class="form-control",placeholder="", style="max-width:95%;margin-left: 15px;margin-right:5px;") }}
+					<span style="color: red;" id="confirm-password-errors" style="max-width: 95%;margin-left: 15px;margin-right:5px;">
+						{% for error in form.confirmPassword.errors %}
+						{{ error }}
+						{% endfor %}
+					</span>
+				</div>
+
+			</div>
+
+			<div class="row">
+				<div class="col-4">
+					<a href="{{ url_for('auth.login') }}" class="btn btn-secondary btn-block btn-flat" id="user-cancel-bttn"
+						style="width: 100%">Cancel</a>
+				</div>
+				<div class="col-4">
+
+				</div>
+				<!-- /.col -->
+				<div class="col-4">
+					{{ form.submit(class="btn btn-primary btn-block btn-flat",id="user-submit-bttn") }}
+				</div>
+				<!-- /.col -->
+			</div>
+		</div>
+
+			</form>
+		</div>
+		<!-- /.form-box -->
+	</div><!-- /.card -->
+	</div>
+	<!-- /.register-box -->
+
+	<!-- jQuery -->
+	<script src="{{ url_for('static', filename='cpanel/plugins/jquery/jquery.min.js') }}"></script>
+	<!-- Bootstrap 4 -->
+	<script src="{{ url_for('static', filename='cpanel/plugins/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+	<!-- AdminLTE App -->
+	<script src="{{ url_for('static', filename='cpanel/dist/js/adminlte.min.js') }}"></script>
+	<script type="module" src="{{ url_for('static', filename='cpanel/dist/js/custom/base.js', version='1.0.0.1') }}"></script>
+	<!--<script src="{{ url_for('static', filename='dist/js/custom/csap.js') }}"></script> -->
+	<script src="{{ url_for('static', filename='cpanel/dist/js/custom/register.js', version='1.0.0.1') }}"></script>
+	{% include "main/modal.html" %}
+</body>
+
+</html>

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+
+  {% if options.siteSettings.site_icon  is defined %}
+      <link rel="icon" href="{{ options.siteSettings.site_icon }}" />
+  {% endif %}
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#000000" />
+  <meta name="description" content="Social Engineering Awareness Insight Tool " />
+  {% if options.siteSettings.site_icon  is defined %}
+      <link rel="apple-touch-icon" href="{{options.siteSettings.site_icon}}" />
+  {% endif %}
+
+  <link rel="manifest" href="{{ url_for('static', filename='cpanel/manifest.json')}}" />
+
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>{{ options.siteName }}| Log in</title>
+  <meta http-equiv='cache-control' content='no-cache'>
+  <meta http-equiv='expires' content='0'>
+  <meta http-equiv='pragma' content='no-cache'>
+  <!-- Tell the browser to be responsive to screen width -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet"
+    href="{{ url_for('static', filename='cpanel/plugins/fontawesome-free/css/all.min.css', version='1.0.0.0') }}" />
+  <!-- Ionicons -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='cpanel/dist/css/ionicons.min.css', version='1.0.0.0') }}">
+  <!-- icheck bootstrap -->
+  <link rel="stylesheet"
+    href="{{ url_for('static', filename='cpanel/plugins/icheck-bootstrap/icheck-bootstrap.min.css', version='1.0.0.0') }}">
+  <!-- Theme style -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='cpanel/dist/css/adminlte.min.css', version='1.0.2.0') }}">
+  <!-- Google Font: Source Sans Pro -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='cpanel/dist/css/sourcesanspro.css', version='1.0.0.0') }}">
+</head>
+
+<body class="hold-transition login-page">
+  <div class="login-box">
+<div class="login-logo">
+    {% if options.siteSettings.login_image  is defined and  options.siteSettings.login_image != None %}
+    <img src="{{ options.siteSettings.login_image if options.siteSettings.login_image !='null' else '/static/logo192.png'  }}" alt="Login Image" />
+    {% endif %}
+  </div>
+    <div class="card card-primary">
+      <div class="card-header text-center">
+        <a href="#"><b>{{ options.siteName }}: </b>{{ options.siteTitle }} </a>
+      </div>
+      <div class="card-body login-card-body">
+        <!--<p class="login-box-msg"></p> -->
+        {% with messages = get_flashed_messages() %}
+          {% if (messages[0]) %}
+            {% if 'success' in messages[0] %}
+            <div id='flash-message' class="alert alert-success" role="alert" align="center">
+              <span type="button" class="close" data-dismiss="alert" aria-label="Close"><span
+                  aria-hidden="true">&times;</span></span>
+              {{ messages[0] }}
+            </div>
+            {% else %}
+            <div id='flash-message' class="alert alert-warning" role="alert" align="center">
+              <span type="button" class="close" data-dismiss="alert" aria-label="Close"><span
+                  aria-hidden="true">&times;</span></span>
+              {{ messages[0] }}
+            </div>
+            {% endif %}
+          {% elif (message) %}
+          <div id='flash-message' class="alert alert-light" role="alert" align="center">
+            {{ message }}
+          </div>
+          {% endif %}
+        {% endwith %}
+
+        <form id="login-form" method="post" novalidate>
+          {{ form.csrf_token }}
+
+          <div class="input-group mb-3">
+            {{ form.username(id="username",class="form-control",placeholder="Username") }}
+            <div class="input-group-append">
+              <div class="input-group-text">
+                <span class="fas fa-user"></span>
+              </div>
+            </div>
+          </div>
+          <span style="color: red;" id="username-errors">
+            {% for error in form.username.errors %}
+            {{ error }}
+            {% endfor %}
+          </span>
+          <div class="input-group mb-3">
+            {{ form.password(id="password",class="form-control",placeholder="Password") }}
+            <div class="input-group-append">
+              <div class="input-group-text">
+                <span class="fas fa-lock"></span>
+              </div>
+            </div>
+          </div>
+          <span style="color: red;" id="password-errors">
+            {% for error in form.password.errors %}
+            {{ error }}
+            {% endfor %}
+          </span>
+          <div class="row">
+            <div class="col-10">
+              <div class="icheck-primary">
+                <p> {{ form.remember_me(id="remember-me",value="remember-me" ) }} {{ form.remember_me.label }}</p>
+              </div>
+            </div>
+            <!-- /.col -->
+
+            <!-- /.col -->
+          </div>
+
+          <div class="row d-flex">
+              {% if options.user_count == 0 %}
+                  <div class="col-6"><a href="{{ url_for('auth.register_user') }}" class="btn btn-primary btn-block btn-flat pull-right">Register</a></div>
+              {% else %}  
+                  <div class="col-6"></div>
+              {% endif %}
+                  <div class="col-6">
+              <p>{{ form.submit(class="btn btn-success btn-block btn-flat pull-right",id="login-submit-bttn") }}</p>
+            </div>
+          </div>
+
+        </form>
+
+
+      </div>
+      <!-- /.login-card-body -->
+    </div>
+  </div>
+  <!-- /.login-box -->
+
+  <!-- jQuery -->
+  <script src="{{ url_for('static', filename='cpanel/plugins/jquery/jquery.min.js') }}"></script>
+  <!-- Bootstrap 4 -->
+  <script src="{{ url_for('static', filename='cpanel/plugins/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+  <!-- AdminLTE App -->
+  <script src="{{ url_for('static', filename='cpanel/dist/js/adminlte.min.js') }}"></script>
+  <script type="module" src="{{ url_for('static', filename='cpanel/dist/js/custom/base.js') }}"></script>
+  <script type="module" src="{{ url_for('static', filename='cpanel/dist/js/custom/login.js') }}"></script>
+  {% include "main/modal.html" %}
+</body>
+
+</html>

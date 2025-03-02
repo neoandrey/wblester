@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+{% include "main/head.html" %}
+
+{% if options.current_page is defined and options.current_page.page_name == 'index' or  options.current_page.page_name == 'home'%}
+   {% set bodyClass='class="page1"' %}
+{% endif %}
+
+<body {{ bodyClass }}>
+  {% include "main/nav_header.html" %}
+
+  {% if options.current_page   is defined  and options.current_page.page_name == 'index' or  options.current_page.page_name == 'home' %}
+  {% include "main/slider.html" %}
+  {% endif %}
+
+  <div class="content">
+    {% if options.current_page is not defined or options.current_page.page_name is not defined %}
+      {% include "main/content.html" %}
+    {% else %}
+      {{options.current_page.contents|safe}}
+    {% endif %}
+  </div>
+
+ {% include "main/footer.html" %}
+  {% include "/main/modal.html" %}
+    <!-- Javascript Files
+    ================================================== -->
+    
+    <!-- jQuery -->
+    <script src="{{ url_for('static', filename='cpanel/plugins/jquery/jquery.min.js')}}"></script>
+    <!-- jQuery UI 1.11.4 -->
+    <script src="{{ url_for('static', filename='cpanel/plugins/jquery-ui/jquery-ui.min.js')}}"></script>
+      <!-- Resolve conflict in jQuery UI tooltip with Bootstrap tooltip -->
+    <script>
+      $.widget.bridge('uibutton', $.ui.button)
+    </script>
+
+    <!-- Bootstrap 4 -->
+    <script src="{{ url_for('static', filename='cpanel/plugins/bootstrap/js/bootstrap.bundle.min.js')}}"></script>
+    <!-- ChartJS -->
+    <script src="{{ url_for('static', filename='cpanel/plugins/chart.js/Chart.min.js')}}"></script>
+    <!-- Sparkline -->
+    <script src="{{ url_for('static', filename='cpanel/plugins/sparklines/sparkline.js')}}"></script>
+    <!-- JQVMap -->
+    <script src="{{ url_for('static', filename='cpanel/plugins/jqvmap/jquery.vmap.min.js')}}"></script>
+    <script src="{{ url_for('static', filename='cpanel/plugins/jqvmap/maps/jquery.vmap.usa.js')}}"></script>
+    <!-- jQuery Knob Chart -->
+    <script src="{{ url_for('static', filename='cpanel/plugins/jquery-knob/jquery.knob.min.js')}}"></script>
+    <!-- daterangepicker -->
+    <script src="{{ url_for('static', filename='cpanel/plugins/moment/moment.min.js')}}"></script>
+    <script src="{{ url_for('static', filename='cpanel/plugins/daterangepicker/daterangepicker.js')}}"></script>
+    <!-- Tempusdominus Bootstrap 4 -->
+    <script src="{{ url_for('static', filename='cpanel/plugins/tempusdominus-bootstrap-4/js/tempusdominus-bootstrap-4.min.js')}}"></script>
+    <!-- Summernote -->
+    <script src="{{ url_for('static', filename='cpanel/plugins/summernote/summernote-bs4.min.js')}}"></script>
+    <!-- overlayScrollbars -->
+    <script src="{{ url_for('static', filename='cpanel/plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js')}}"></script>
+    
+    <script src="{{ url_for('static', filename='cpanel/plugins/datatables/jquery.dataTables.min.js')}}"></script>
+    <script src="{{ url_for('static', filename='cpanel/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js')}}"></script>
+    <script src="{{ url_for('static', filename='cpanel/plugins/datatables-responsive/js/dataTables.responsive.min.js')}}"></script>
+    <script src="{{ url_for('static', filename='cpanel/plugins/datatables-responsive/js/responsive.bootstrap4.min.js')}}"></script>
+    <script src="{{ url_for('static', filename='cpanel/plugins/datatables-buttons/js/dataTables.buttons.min.js')}}"></script>
+    <script src="{{ url_for('static', filename='cpanel/plugins/datatables-buttons/js/buttons.bootstrap4.min.js')}}"></script>
+    <script src="{{ url_for('static', filename='cpanel/plugins/datatables-buttons/js/buttons.bootstrap4.min.js')}}"></script>
+    <script src="{{ url_for('static', filename='cpanel/plugins/jszip/jszip.min.js')}}"></script>
+    <script src="{{ url_for('static', filename='cpanel/plugins/pdfmake/pdfmake.min.js')}}"></script>
+    <script src="{{ url_for('static', filename='cpanel/plugins/pdfmake/vfs_fonts.js')}}"></script>
+    <script src="{{ url_for('static', filename='cpanel/plugins/datatables-buttons/js/buttons.html5.min.js')}}"></script>
+    <script src="{{ url_for('static', filename='cpanel/plugins/datatables-buttons/js/buttons.print.min.js')}}"></script>
+    <script src="{{ url_for('static', filename='cpanel/plugins/datatables-buttons/js/buttons.colVis.min.js')}}"></script>
+    <script src="{{ url_for('static', filename='cpanel/plugins/select2/js/select2.full.min.js')}}"></script>
+    <script src="{{ url_for('static', filename='cpanel/plugins/bootstrap4-duallistbox/jquery.bootstrap-duallistbox.min.js')}}"></script>
+    <script src="{{ url_for('static', filename='cpanel/plugins/moment/moment.min.js')}}"></script>
+    <script src="{{ url_for('static', filename='cpanel/plugins/inputmask/jquery.inputmask.min.js')}}"></script>
+
+<script src="{{ url_for('static', filename='js/jquery.js')}}"></script>
+<script src="{{ url_for('static', filename='js/jquery-migrate-1.1.1.js') }}"></script>
+<script src="{{ url_for('static', filename='js/superfish.js')}}"></script>
+<script src="{{ url_for('static', filename='js/sForm.js')}}"></script>
+<script src="{{ url_for('static', filename='js/forms.js')}}"></script>
+<script src="{{ url_for('static', filename='js/jquery.equalheights.js')}}"></script>
+<script src="{{ url_for('static', filename='js/jquery.easing.1.3.js')}}"></script>
+{% if  options.current_page.page_name == 'home' or options.current_page.banner_type==1 %}
+  <script src="{{ url_for('static', filename='js/tms-0.4.1.js')}}"></script>
+  <script src="{{ url_for('static', filename='js/jquery.carouFredSel-6.1.0-packed.js')}}"></script>
+  <script	src="{{ url_for('static', filename='js/jquery.touchSwipe.min.js')}}"></script>
+  <script>
+  $(window).load(function () {
+      $('.slider')._TMS({
+          show: 0,
+          pauseOnHover: false,
+          prevBu: '.prev',
+          nextBu: '.next',
+          playBu: false,
+          duration: 800,
+          preset: 'fade',
+          pagination: false, //'.pagination',true,'<ul></ul>'
+          pagNums: false,
+          slideshow: 8000,
+          numStatus: false,
+          banners: true,
+          waitBannerAnimation: false,
+          progressBar: false
+      })
+  });
+  $(window).load(
+      function () {
+          $('.carousel1').carouFredSel({
+              auto: false,
+              prev: '.prev1',
+              next: '.next1',
+              width: 1030,
+              items: {
+                  visible: {
+                      min: 1,
+                      max: 4
+                  },
+                  height: 'auto',
+                  width: 157,
+              },
+              responsive: true,
+              scroll: 1,
+              mousewheel: false,
+              swipe: {
+                  onMouse: true,
+                  onTouch: true
+              }
+          });
+      });
+  </script>
+{% endif %}
+{% if  options.current_page.page_name == 'contact' %}
+
+  <script>
+$(window).load(function () {
+  let mapLocation = `{{options.siteSettings.google_map if 'google_map' in options.siteSettings and options.siteSettings.google_map != '' else  'http://maps.google.com/maps?f=q&amp;source=s_q&amp;hl=en&amp;geocode=&amp;q=Brooklyn,+New+York,+NY,+United+States&amp;aq=0&amp;sll=37.0625,-95.677068&amp;sspn=61.282355,146.513672&amp;ie=UTF8&amp;hq=&amp;hnear=Brooklyn,+Kings,+New+York&amp;ll=40.649974,-73.950005&amp;spn=0.01628,0.025663&amp;z=14&amp;iwloc=A&amp;output=embed'}}`
+  $('#gmap-location').html(`<iframe src="${mapLocation}"></iframe>`)
+   
+   $('#contact-form').html(`<form id="form" action="#">
+          <div class="success_wrapper">
+            <div class="success">Contact form submitted!<br>
+              <strong>We will be in touch soon.</strong> </div>
+          </div>
+          <fieldset>
+            <label class="name">
+              <input type="text" value="Name:">
+              <br class="clear">
+              <span class="error error-empty">*This is not a valid name.</span><span class="empty error-empty">*This field is required.</span> </label>
+            <label class="email">
+              <input type="text" value="E-mail:">
+              <br class="clear">
+              <span class="error error-empty">*This is not a valid email address.</span><span class="empty error-empty">*This field is required.</span> </label>
+            <label class="phone">
+              <input type="tel" value="Phone:">
+              <br class="clear">
+              <span class="error error-empty">*This is not a valid phone number.</span><span class="empty error-empty">*This field is required.</span> </label>
+            <label class="message">
+              <textarea>Message:</textarea>
+              <br class="clear">
+              <span class="error">*The message is too short.</span> <span class="empty">*This field is required.</span> </label>
+            <div class="clear"></div>
+            <div class="btns"><a data-type="reset" class="btn">Clear</a><span></span><a data-type="submit" class="btn">Send</a>
+              <div class="clear"></div>
+            </div>
+          </fieldset>
+        </form>`)
+        });
+        </script>
+
+{% endif %}
+</body>
+</html>

@@ -1,0 +1,8 @@
+configure email alerts
+password recovery
+Dashboard
+background tasks:
+  - Dashboard population
+  - email notifications
+  - configure backup and restore of mongodb
+login with facebook, google, etc

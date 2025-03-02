@@ -1,0 +1,36 @@
+<footer>
+  <div class="container_12">
+    <div class="grid_2">
+      <div class="copy"> <a href="/pages/home" class="footer_logo"><img src="{{options.siteSettings.site_logo}}"	alt=""></a> &copy;<span id="current-year">{{ options.year }}</span>  <a href="#">Privacy Policy</a> </div>
+    </div>
+    <div class="grid_2">
+      <ul>
+        {% for page in options.navPages %}
+            <li><a href="/pages/{{ page.href |replace('#','')}}">{{ page.page_name.replace("_", " ")|title }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+    <div class="grid_2">
+      <ul>
+        {% for service in options.services %}
+            <li><a href="/pages/{{ service.href |replace('#','')}}">{{ service.page_name.replace("_", " ")|title }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+    <div class="grid_3 prefix_1">
+      <h4>Newsletter</h4>
+      <form id="newsletter" action="#">
+        <div class="success">Your subscription request has been sent!</div>
+        <label class="email"> <span>Enter e-mail address</span>
+          <input type="email" value="" >
+          <a href="#" class="btn" data-type="submit">Subscribe</a> <span class="error">*This is not a valid email address.</span> </label>
+      </form>
+    </div>
+    <div class="clear"></div>
+  </div>
+  <div class="f_bot">
+    <div class="container_12">
+      <div class="grid_12">Developed by:<a href="https://www.upwork.com/freelancers/~01f96789ff8e26368c">neoandrey</a> <br/> Design by: <a href="http://www.templatemonster.com/">TemplateMonster.com</a></div>
+    </div>
+  </div>
+</footer>

@@ -1,0 +1,87 @@
+<header>
+  <div class="container_12">
+    <div class="grid_12">
+      <div class="h_phone">Need Help? Call Us  {{ options.siteSettings.phone_number}}</div>
+      <h1><a href="/pages/home"><img class="img-fluid" style="height:90%;max-width:100%" src="{{options.siteSettings.site_icon}}" alt=""></a> </h1>
+      <div class="clear"></div>
+    </div>
+    <div class="clear"></div>
+  </div>
+  <div class="menu_block">
+    <div class="container_12">
+      <div class="grid_12">
+        <div class="socials"><a href="#"></a><a href="#"></a></div>
+        <div class="autor"> <!--<a href="#">User Login</a>--> Social </div>
+{% if options.navPages is defined and options.navPages | length   > 0 %}	
+	<nav>
+		 <ul class="sf-menu">		
+		{% for page in options.navPages %}
+
+			{% if page.is_parent %}
+				{% if options.current_page == page.page_name %}
+					<li class="current"><a href="/pages/{{ page.href|replace('#','') }}"> {{ page.page_name.replace("_", " ")|title  }}</a>
+				{% else %}
+					<li><a href="/pages/{{ page.href|replace('#','') }}">  {{ page.page_name.replace("_", " ")|title }}</a>
+				{% endif %}	
+					<ul>
+					 {% for sub_page in options.sub_pages  %}
+							{% if sub_page.is_parent ==  True  and sub_page.parent_page.page_id == page.page_id %}	 
+									 <li><a href="/pages/{{sub_page.href|replace('#','')}}"> {{sub_page.page_name.replace("_", " ")|title}} </a>
+									  <ul>
+										{% for sub_page_2 in options.sub_pages %}
+											{% if  sub_page_2.parent_page.page_id ==sub_page.page_id %} 
+												<li><a href="/pages/{{ sub_page_2.href |replace('#','') }}">{{ sub_page_2.page_name.replace("_", " ")|title }} </a></li>
+											{% endif %}
+										{% endfor %}
+									  </ul>
+									</li>
+						  
+							{% elif  sub_page.parent_page.page_id == page.page_id %}
+								<li><a href="/pages/{{ sub_page.href|replace('#','') }}">{{sub_page.page_name.replace("_", " ")|title }} </a></li>
+							{% endif %}
+					 {% endfor %}
+					 </ul>
+				 </li>
+		{% else %} 
+				{% if options.current_page == page.page_name %}
+					<li class="current"><a href="/pages/{{ page.href |replace('#','') }}">{{page.page_name.replace("_", " ")|title}}</a></li>
+				{% else %}
+					 <li><a href="/pages/{{ page.href |replace('#','') }}"> {{page.page_name.replace("_", " ")|title}}</a></li>
+				{% endif %}				 
+			{% endif %}
+		{% endfor %}
+			  </ul>
+	</nav>
+				 
+{% else %}
+	   <nav>
+          <ul class="sf-menu">
+            <li><a href="index.html">Home</a></li>
+            <li class="current"><a href="about.html">About</a></li>
+            <li><a href="services.html">Services</a>
+              <ul>
+                <li><a href="#"> Services List</a>
+                  <ul>
+                    <li><a href="#">Seeds</a></li>
+                    <li><a href="#">Traits</a></li>
+                    <li><a href="#">Safety Control</a></li>
+                  </ul>
+                </li>
+                <li><a href="#">Overview</a></li>
+                <li><a href="#">FAQS</a></li>
+              </ul>
+            </li>
+            <li><a href="products.html">Products</a></li>
+            <li><a href="blog.html">Blog</a></li>
+            <li><a href="contacts.html">Contacts</a></li>
+          </ul>
+        </nav>
+	 
+	 
+	 {% endif %}
+        <div class="clear"></div>
+      </div>
+      <div class="clear"></div>
+    </div>
+  </div>
+</header>

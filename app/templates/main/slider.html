@@ -1,0 +1,49 @@
+{% if options.sliders is defined and options.sliders | length   > 0 %}	
+
+<div class="slider-relative">
+  <div class="slider-block">
+    <div class="slider"> <a href="#" class="prev"></a> <a href="#" class="next"></a>
+      <ul class="items">
+        {% for slider in options.sliders %}
+
+            <li> <img src="{{ slider.google_url }}" alt="{{slider.name}}">
+            <div class="banner">{{slider.line1}}<br>
+                <br>
+               {{slider.line2}}</div>
+            </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+
+{% else %}
+<div class="slider-relative">
+  <div class="slider-block">
+    <div class="slider"> <a href="#" class="prev"></a> <a href="#" class="next"></a>
+      <ul class="items">
+        <li> <img src="static/images/slide.jpg" alt="">
+          <div class="banner">Healthy life <br>
+            <br>
+            tastes delicious</div>
+        </li>
+        <li> <img src="static/images/slide1.jpg" alt="">
+          <div class="banner">A new generation <br>
+            <br>
+            of farming</div>
+        </li>
+        <li> <img src="static/images/slide2.jpg" alt="">
+          <div class="banner">Best food is<br>
+            <br>
+            natural food</div>
+        </li>
+        <li> <img src="static/images/slide3.jpg" alt="">
+          <div class="banner">New agricultural <br>
+            <br>
+            technologies only</div>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+{% endif %}

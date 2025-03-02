@@ -1,0 +1,5 @@
+{% for page in options.navPages %}
+		   {% if options.current_page == page.page_name %}
+              {{page.contents|safe}}
+           {% endif %}
+        {% endfor %}
