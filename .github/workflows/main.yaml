@@ -16,6 +16,9 @@ jobs:
     
     - name: Check Out Latest Commit
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 
+
     - name: Get Docker Image Tag
       env:
         MAJOR_VERSION: ${{ vars.MAJOR_VERSION }}
@@ -49,7 +52,7 @@ jobs:
     - name: Update Container Image in ACR
       uses: azure/docker-login@v2
       with:
-        login-server: "${{ vars.REPOSITORY }}.azurecr.io"
+        login-server: ${{ vars.LOGIN_SERVER }}
         username: ${{ secrets.REGISTRY_USER }}
         password: ${{ secrets.REGISTRY_PASSWORD }}
     - run: |
