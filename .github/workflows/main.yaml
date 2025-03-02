@@ -3,7 +3,6 @@ on:
   push:
     branches: [ "prod" ]  
 jobs:
-
   build:
     permissions:
       id-token: write
@@ -14,6 +13,7 @@ jobs:
       shell: bash
       run:  |
              echo "BRANCH=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_ENV   
+    
     - name: Check Out Latest Commit
       uses: actions/checkout@v4
     - name: Get Docker Image Tag
@@ -22,7 +22,7 @@ jobs:
         MINOR_VERSION: ${{ vars.MINOR_VERSION }}
       run: |
            echo "branch: $BRANCH"
-           BUILD_NUMBER=(git rev-list --count HEAD ^$BRANCH) && echo "RELEASE_VERSION=$MAJOR_VERSION.$MINOR_VERSION.$BUILD_NUMBER" >> $GITHUB_ENV
+           BUILD_NUMBER=$(git rev-list --count HEAD $BRANCH) && echo "RELEASE_VERSION=$MAJOR_VERSION.$MINOR_VERSION.$BUILD_NUMBER" >> $GITHUB_ENV
       shell: bash
 
     - name: Create Docker Image
