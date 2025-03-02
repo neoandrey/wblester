@@ -22,7 +22,7 @@ jobs:
         MINOR_VERSION: ${{ vars.MINOR_VERSION }}
       run: |
            echo "branch: $BRANCH"
-           BUILD_NUMBER=$(git rev-list --count HEAD $BRANCH) && echo "RELEASE_VERSION=$MAJOR_VERSION.$MINOR_VERSION.$BUILD_NUMBER" >> $GITHUB_ENV
+           BUILD_NUMBER=$(git rev-list --count HEAD ^$BRANCH) && echo "RELEASE_VERSION=$MAJOR_VERSION.$MINOR_VERSION.$BUILD_NUMBER" >> $GITHUB_ENV
       shell: bash
 
     - name: Create Docker Image
@@ -55,7 +55,8 @@ jobs:
         repository: ${{ vars.REPOSITORY }}
         app_name:   ${{ vars.APP_NAME }}
     - run: |
-        docker push $repository/$app_name-$BRANCH:$RELEASE_VERSION
+        echo pushing  "$repository/$app_name-$BRANCH:$RELEASE_VERSION"
+        docker push "$repository/$app_name-$BRANCH:$RELEASE_VERSION"
        
     - name: Log in to Azure
       uses: azure/login@v1
