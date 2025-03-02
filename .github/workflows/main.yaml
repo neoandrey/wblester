@@ -22,7 +22,7 @@ jobs:
         MINOR_VERSION: ${{ vars.MINOR_VERSION }}
       run: |
            echo "branch: $BRANCH"
-           BUILD_NUMBER=(git rev-list --count HEAD ^$BRANCH) && echo "RELEASE_VERSION=$(MAJOR_VERSION).$(MINOR_VERSION).$(BUILD_NUMBER)" >> $GITHUB_ENV
+           BUILD_NUMBER=(git rev-list --count HEAD ^$BRANCH) && echo "RELEASE_VERSION=$MAJOR_VERSION.$MINOR_VERSION.$BUILD_NUMBER" >> $GITHUB_ENV
       shell: bash
 
     - name: Create Docker Image
