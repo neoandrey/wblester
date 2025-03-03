@@ -64,10 +64,14 @@ jobs:
     - name: Build and deploy Container App
       uses: azure/container-apps-deploy-action@v1  
       with:
-        acrName: ${{ vars.REPOSITORY }} 
+        acrName: ${{ vars.LOGIN_SERVER }} 
         containerAppName: ${{ vars.APP_NAME }}
         resourceGroup: ${{ vars.RESOURCE_GROUP }} 
         imageToDeploy: ${{ vars.REPOSITORY }}/${{ vars.APP_NAME }}-$BRANCH:$RELEASE_VERSION
+        registryUsername: ${{ secrets.REGISTRY_USER }} 
+        registryPassword: ${{ secrets.REGISTRY_PASSWORD }}
+        acrUsername: ${{ secrets.REGISTRY_USER }} 
+        acrPassword: ${{ secrets.REGISTRY_PASSWORD }}
 
     
  
