@@ -23,18 +23,19 @@ from app.models import (
     Banners,
     Sliders,
     Files,
-    MailTemplates
+    MailTemplates,
+    Messages,
+    IMAPAccounts,
+    GMailAccounts,
     # Sections,
     # TeamMembers,
-    # IMAPAccounts,
-    # GMailAccounts,
     # Clients,
-
     #
-    # Events,
-    # EventTypes,
-    # Schedules,
-    # EventTriggers,
+    Events,
+    EventTypes,
+    Schedules,
+    EventTriggers,
+    Jobs,
 )
 
 import traceback, json, time, re, json, rq, os, re, random, inspect, stat
@@ -1365,8 +1366,8 @@ def add_record(data_type):
 
             name = request.form.get("schedule_name")
             description = request.form.get("schedule_description")
-            startTime = request.form.get("startTime")
-            status = request.form.get("scheduleStatus")
+            start_time = request.form.get("start_time")
+            status = request.form.get("schedule_status")
             repeat = request.form.get("schedule_repeat")
             months = request.form.get("months")
             weeks = request.form.get("weeks")
@@ -1404,8 +1405,8 @@ def add_record(data_type):
                     schedule_id=id,
                     name=name,
                     description=description,
-                    startTime=startTime,
-                    scheduleStatus=status,
+                    start_time=start_time,
+                    schedule_status=status,
                     repeat=repeat,
                     months=months,
                     weeks=weeks,
@@ -1465,6 +1466,10 @@ def add_record(data_type):
                 parameters = json.loads(parameters)
 
             is_existing_trigger = True if trigger else False
+
+            for data in request.form:
+                print(data)
+                print(request.form.get(data))
 
             if not is_existing_trigger:
                 trigger_id = EventTriggers.get_next("trigger_id")
@@ -2429,8 +2434,8 @@ def add_record(data_type):
         elif data_type == "schedules":
             name = request.form.get("schedule_name")
             description = request.form.get("schedule_description")
-            startTime = request.form.get("startTime")
-            status = request.form.get("scheduleStatus")
+            start_time = request.form.get("start_time")
+            status = request.form.get("schedule_status")
             repeat = request.form.get("schedule_repeat")
             months = request.form.get("months")
             weeks = request.form.get("weeks")
@@ -2475,8 +2480,8 @@ def add_record(data_type):
             if is_editable:
                 schedule.name = name
                 schedule.description = description
-                schedule.startTime = startTime
-                schedule.scheduleStatus = status
+                schedule.start_time = start_time
+                schedule.schedule_status = status
                 schedule.repeat = repeat
                 schedule.months = months
                 schedule.weeks = weeks
@@ -3095,3 +3100,107 @@ def logout():
         pass
         # return jsonify({"error": True, "message": str(e)})
     return redirect(url_for("auth.admin_login"))
+
+
+@csrf.exempt
+@bp.route("/cpanel/messages/update", methods=["POST"])
+# @login_required
+def update_message():
+    """
+    Update Message Status
+    """
+    check_key = request.form.get("acky")
+    if should_have_access(check_key) is False:
+        return jsonify({"message": "Invalid Session Information"})
+    if "client_info" in session:
+        client_info =  get_client_info(request)
+        if( 
+        (client_info['REMOTE_ADDR'] != session['client_info']['REMOTE_ADDR']) ):
+            return jsonify({"message": "Invalid Session Information"})
+    message_id = request.form.get("message_id")
+    message_status =  request.form.get("message_status")
+    message_notes = request.form.get("message_notes")
+
+    message =  Messages.get({"message_id": int(message_id)})
+    old_message= message
+    if message:
+        message.message_status = int(message_status)
+        message.current_version = int(message.current_version)+1
+        if message_notes:
+            message.message_notes =  message_notes
+        message.last_modified_date = datetime.now()
+        message.save()
+        user_id = (
+            session["current_user"].user_id
+            if "current_user" in session.keys()
+            and session["current_user"].user_id
+            else 0
+        )
+        user_name = (
+            current_user.username
+            if "current_user" in session.keys() and current_user.username
+            else "system"
+        )
+        AuditTrail.log_to_trail(
+            {
+                "old_object":  old_message,
+                "new_object":  message,
+                "description": "Message record updated",
+                "change_type": "UPDATE",
+                "object_type": "Event",
+                "user_id": str(user_id),
+                "username": user_name,
+            }
+        )
+        return jsonify({"message": "Event successfully updated and scheduled."})
+    return jsonify({"message": "Message could not be found."})
+
+
+@csrf.exempt
+@bp.route("/cpanel/events", methods=["POST"])
+# @login_required
+def rerun_events():
+    """
+    Update Message Status
+    """
+    check_key = request.form.get("acky")
+    if should_have_access(check_key) is False:
+        return jsonify({"message": "Invalid Session Information"})
+    if "client_info" in session:
+        client_info = get_client_info(request)
+        if client_info["REMOTE_ADDR"] != session["client_info"]["REMOTE_ADDR"]:
+            return jsonify({"message": "Invalid Session Information"})
+    event_id = request.form.get("event_id")
+    event_status = request.form.get("event_status")
+
+    event = Events.get({"event_id": int(event_id)})
+    old_event= event
+    if event and event.event_status == event_status and (event.job.jobStatus !=Jobs.SUCCEEDED or event.job.jobStatus !=Jobs.RUNNING):
+        event.current_version = int(event.current_version) + 1
+        event.last_modified_date = datetime.now()
+        event.job_history.append(event.job)
+        event.job= event.start()
+        event.save()
+        user_id = (
+            session["current_user"].user_id
+            if "current_user" in session.keys() and session["current_user"].user_id
+            else 0
+        )
+        user_name = (
+            current_user.username
+            if "current_user" in session.keys() and current_user.username
+            else "system"
+        )
+        AuditTrail.log_to_trail(
+            {
+                "old_object": old_event,
+                "new_object": event,
+                "description": "Event record updated",
+                "change_type": "UPDATE",
+                "object_type": "Event",
+                "user_id": str(user_id),
+                "username": user_name,
+            }
+        )
+        return jsonify({"message": "Event successfully updated and scheduled."})
+    return jsonify({"message": "Event could not be found."})

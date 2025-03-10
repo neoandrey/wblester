@@ -15,7 +15,6 @@ from flask_login import UserMixin
 import sqlalchemy as sa, sqlalchemy.orm as so
 from mongoengine import ReferenceField, CASCADE  # connect, Document,
 
-
 class SearchableMixin(object):
 
     last_modified_date = db.DateTimeField(default=datetime.now())
@@ -1067,6 +1066,7 @@ class Events(SearchableMixin, PaginatedAPIMixin, db.DynamicDocument):
     mail_template = ReferenceField(MailTemplates, reverse_delete_rule=CASCADE)
     notification_status = db.IntField()
     job = ReferenceField(Jobs, reverse_delete_rule=CASCADE)
+    job_history =  db.ListField()
 
     meta = {
         "db_alias": "default",
@@ -1102,6 +1102,7 @@ class Events(SearchableMixin, PaginatedAPIMixin, db.DynamicDocument):
                 "parameters": "parameters",
                 "created_datetime": "Created Datetime",
                 "last_modified_date": "Last Modified Datetime",
+                "job_history": "Job History",
             },
             "sc": 0,
             "order": [
@@ -1113,7 +1114,8 @@ class Events(SearchableMixin, PaginatedAPIMixin, db.DynamicDocument):
                 "mail_template",
                 "notification_status",
                 "job",
-                "created_datetime",
+                "job_history",
+                  "created_datetime",
                 "last_modified_date",
             ],
         }
@@ -1191,12 +1193,18 @@ class Events(SearchableMixin, PaginatedAPIMixin, db.DynamicDocument):
         event_name = ""
         description = ""
         if trigger:
-            trigger_count = int(trigger.trigger_count) + 1
+
             current_time = datetime.now()
             temp = {}
             temp[current_time] = event_id
-            name_suffix = f" 0{trigger_count}"
+            trigger_count = int(trigger.trigger_count) + 1
+            name_suffix = f"_0{trigger_count}"
             event_name = event_type.type_name + name_suffix
+            temp_event = Events.get({"event_name": event_name})
+            if temp_event:
+                trigger_count+=1
+                name_suffix = f"_0{trigger_count}"
+                event_name = event_type.type_name + name_suffix
             description = f"A new  run of the {event_type.type_name} event"
         else:
             event_name = parameters["event_name"]
@@ -1206,9 +1214,8 @@ class Events(SearchableMixin, PaginatedAPIMixin, db.DynamicDocument):
         handler = event_type.handler
         parameters["job_name"] = f"app.tasks.{handler}"
 
-        print("parameters: ", parameters)
         event = Events(
-            event_id=event_id,
+            event_id=int(event_id),
             event_name=event_name,
             description=description,
             event_type=event_type,
@@ -1219,8 +1226,12 @@ class Events(SearchableMixin, PaginatedAPIMixin, db.DynamicDocument):
         )
 
         if "start" in parameters and parameters["start"]:
-            event.job = event.start()
+            # print("Saving event")
+            # print(event_id)
+            # print(event_name)
             event.save()
+            event.job = event.start()
+            event.save()     
 
         return event
 
@@ -1230,7 +1241,8 @@ class Events(SearchableMixin, PaginatedAPIMixin, db.DynamicDocument):
 class Schedules(SearchableMixin, PaginatedAPIMixin, db.DynamicDocument):
     schedule_id = db.IntField(index=True, unique=True)
     name = db.StringField(index=True, unique=True)
-    startTime = db.DateTimeField(default=datetime.now())
+    start_time = db.DateTimeField(default=datetime.now())
+    end_time = db.DateTimeField(default=datetime.now())
     description = db.StringField()
     repeat = db.IntField()
     months = db.IntField(default=0)
@@ -1239,7 +1251,7 @@ class Schedules(SearchableMixin, PaginatedAPIMixin, db.DynamicDocument):
     hours = db.IntField(default=0)
     minutes = db.IntField(default=0)
     seconds = db.IntField(default=0)
-    scheduleStatus = db.IntField(default=0)
+    schedule_status = db.IntField(default=0)
     DISABLED = 0
     ACTIVE = 1
     meta = {
@@ -1270,7 +1282,7 @@ class Schedules(SearchableMixin, PaginatedAPIMixin, db.DynamicDocument):
                 "id": "ID",
                 "name": "Name",
                 "createdtime": "Created Time",
-                "startTime": "Start Time",
+                "start_time": "Start Time",
                 "description": "Description",
                 "repeat": "Repeat",
                 "months": "Months",
@@ -1279,15 +1291,15 @@ class Schedules(SearchableMixin, PaginatedAPIMixin, db.DynamicDocument):
                 "hours": "Hours",
                 "minutes": "Minutes",
                 "seconds": "Seconds",
-                "scheduleStatus": "Schedule Status",
+                "schedule_status": "Schedule Status",
                 "last_modified_date": "Last Modified Date",
             },
             "sc": 0,
             "order": [
                 "id",
                 "name",
-                "createdtime",
-                "startTime",
+                "created_datetime",
+                "start_time",
                 "description",
                 "repeat",
                 "months",
@@ -1296,7 +1308,7 @@ class Schedules(SearchableMixin, PaginatedAPIMixin, db.DynamicDocument):
                 "hours",
                 "minutes",
                 "seconds",
-                "scheduleStatus",
+                "schedule_status",
                 "last_modified_date",
             ],
         }

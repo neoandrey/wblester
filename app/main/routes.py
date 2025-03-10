@@ -20,25 +20,13 @@ from app.models import (
     Users,
     SiteSettings,
     Images,
-    Roles,
+    Events,
+    EventTriggers,
     PageTemplates,
     Pages,
     Sliders,
-    # Sections,
-    # TeamMembers,
-    # IMAPAccounts,
-    # GMailAccounts,
-    # Clients,
-    Banners,
+    Messages,
     Files,
-    # Partners,
-    # ServiceTypes,
-    # Services,
-    # Faqs,
-    # Ratings,
-    # ClientPersonalInformation,
-    # ClientTravelInformation,
-    # Timelines,
 )
 from app.main import bp
 from jinja2 import (
@@ -376,7 +364,12 @@ def index():
             else "/static/logo_mini.png"
         )
         opts["siteSettings"]["site_icon"] = (
-            "/static/favico.ico" if not siteSettings else siteSettings.site_icon
+            "/static/favico.ico" if not siteSettings.site_icon or siteSettings.site_icon==''  else siteSettings.site_icon
+        )
+        opts["siteSettings"]["google_map"] = (
+            siteSettings.google_map
+            if siteSettings.google_map or siteSettings.google_map != ""
+            else "http://maps.google.com/maps?f=q&amp;source=s_q&amp;hl=en&amp;geocode=&amp;q=Brooklyn,+New+York,+NY,+United+States&amp;aq=0&amp;sll=37.0625,-95.677068&amp;sspn=61.282355,146.513672&amp;ie=UTF8&amp;hq=&amp;hnear=Brooklyn,+Kings,+New+York&amp;ll=40.649974,-73.950005&amp;spn=0.01628,0.025663&amp;z=14&amp;iwloc=A&amp;output=embed"
         )
 
     else:
@@ -418,11 +411,11 @@ def index():
     # partners = Partners.objects()
     # if len(partners) > 0:
     #    opts["partners"] = partners
-    
+
     version = str(round(time.time() * 1000))
     page_contents = {}
     opts["pages"] = []
-  
+
     basedir = os.path.dirname(os.path.abspath(os.path.dirname(__file__)))
     templates_folder = basedir + os.path.sep + "templates" ""
 
@@ -487,7 +480,7 @@ def index():
 
             carousel["google_url"] = Images.get({'id':carousel['image']['$oid']}).google_url if Images.get({'id':carousel['image']['$oid']}) else  ''
             opts["sliders"].append(carousel)
-    
+
     opts["footer"] = Pages.get({"page_name": "footer"})
     service_page = Pages.get({"page_name":"services"})
     services = Pages.find({"parent_page": service_page})
@@ -498,7 +491,7 @@ def index():
         for page in  services:
             service =  Pages.get({'page_id': int(page['page_id'])})
             opts['services'].append(service)
-  
+
     # optss["banner"] =None
     # if   opts["current_page"].banner is not None:
     #    opts["banner"]=  opts["current_page"].banner
@@ -523,7 +516,7 @@ def index():
     # print("rendering page: ")
     #
     # print("site_description: ", opts["siteSettings"]["site_description"])
-    
+
     return render_template(
         "main/index.html",
         title="index",
@@ -576,7 +569,14 @@ def get_page(page_name):
             else "/static/logo_mini.png"
         )
         opts["siteSettings"]["site_icon"] = (
-            "/static/favico.ico" if not siteSettings else siteSettings.site_icon
+            "/static/favico.ico"
+            if not siteSettings.site_icon or siteSettings.site_icon == ""
+            else siteSettings.site_icon
+        )
+        opts["siteSettings"]["google_map"] = (
+            siteSettings.google_map
+            if siteSettings.google_map or siteSettings.google_map != ""
+            else "http://maps.google.com/maps?f=q&amp;source=s_q&amp;hl=en&amp;geocode=&amp;q=Brooklyn,+New+York,+NY,+United+States&amp;aq=0&amp;sll=37.0625,-95.677068&amp;sspn=61.282355,146.513672&amp;ie=UTF8&amp;hq=&amp;hnear=Brooklyn,+Kings,+New+York&amp;ll=40.649974,-73.950005&amp;spn=0.01628,0.025663&amp;z=14&amp;iwloc=A&amp;output=embed"
         )
         opts["timeOut"] = siteSettings.time_out_minutes
     else:
@@ -672,7 +672,7 @@ def get_page(page_name):
     for page in services:
         service = Pages.get({"page_id": int(page["page_id"])})
         opts["services"].append(service)
-    
+
     # if  opts["current_page"] and opts["current_page"].banner is not None:
     #    opts["banner"] = opts["current_page"].banner
     ##else:
@@ -1303,3 +1303,70 @@ def get_timeline_items(client_id):
     elif request.method == "POST":
         pass
     return jsonify({})
+
+
+@csrf.exempt
+@bp.route("/main/messages", methods=["POST"])
+def save_client_messages():
+    """
+    Saves messages sent from clients
+    """
+    client_name  = request.form.get("name")
+    client_email = request.form.get("email")
+    client_phone = request.form.get("phone")
+    subject      = request.form.get("subject")
+    message      = request.form.get("message")
+    siteSettings = SiteSettings.get({"settings_id": 1})
+    recipient = (
+        siteSettings.default_mailing_account
+        if "default_mailing_account" in siteSettings
+        else current_app.config["APP_CONFIG"]["MAIL_USERNAME"]
+    )
+
+    message_status = 0
+    if not recipient or recipient =='':
+        message_status =6
+
+    message_id = Messages.get_next("message_id")
+    message = Messages(
+        message_id=message_id,
+        client_name=client_name.strip(),
+        client_email=client_email.strip(),
+        client_phone=client_phone.strip(),
+        message_status=message_status,
+        subject=subject.strip(),
+        message=message.strip(),
+        last_modified_date=datetime.now(),
+        created_datetime=datetime.now(),
+        current_version=0,
+    )
+    message.save()
+    AuditTrail.log_to_trail(
+        {
+            "old_object": None,
+            "new_object": message,
+            "description": "Message record added",
+            "change_type": "INSERT",
+            "object_type": "Message",
+            "user_id":  0,
+            "username": "system",
+        }
+    )
+    if message_status != 6:
+        trigger_name = "client_message_delivery_trigger"
+        trigger = EventTriggers.get({"trigger_name": trigger_name})
+
+        if trigger:
+            parameters = trigger.parameters
+
+            if parameters:
+                parameters["subject"] = subject.strip()
+                parameters["recipient"] = recipient
+                parameters["sender_name"] = client_email
+                parameters["message"] = message.message
+                parameters["client_name"] = client_name
+                parameters["trigger_id"] = trigger.trigger_id
+                parameters["start"] = True
+                Events.create(parameters)
+
+    return jsonify({"message": "Your message has been sent!"})

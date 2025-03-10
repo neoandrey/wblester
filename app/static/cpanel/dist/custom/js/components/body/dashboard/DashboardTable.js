@@ -9,6 +9,7 @@ export default function DashboardTable(props, mode = 0) {
   const id       = getProperty(props, "id", `${name.toLowerCase()}-node`)
   const actions  = getProperty(props, "actions", {})
   let statsClass = getProperty(props, "statsClass", "secondary")
+  let tableClass = getProperty(props, "tableClass", "table-bordered table-striped")
   let statsTitle = getProperty(props, "statsTitle", "WBLesterc Report")
   let statsIcon  = getProperty(props, "statsIcon", "fas fa-bars")
   let tableData  = getProperty(props, "tableData", [])
@@ -47,7 +48,7 @@ export default function DashboardTable(props, mode = 0) {
       <h3 class="card-title"><i class="${statsIcon}"></i>&nbsp;&nbsp;&nbsp; ${statsTitle}</h3>
     </div>
     <div class="card-body">
-      <table id="${id}" class="table table-bordered table-striped">
+      <table id="${id}" class="table ${tableClass}">
         ${tableData}
       </table>
     </div>

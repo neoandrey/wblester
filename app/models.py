@@ -253,3 +253,79 @@ class Pages(SearchableMixin, PaginatedAPIMixin, db.DynamicDocument):
 
     def __repr__(self):
         return "<Pages {}>".format(self.page_name)
+
+class Messages(SearchableMixin, PaginatedAPIMixin, db.DynamicDocument):
+    """
+    ----------------
+    Client Messages
+    ----------------
+    """
+
+    NEW = 0
+    SEEN = 1
+    RESPONDED = 2
+    IGNORED = 3
+    REPLY=4
+    DRAFT=5
+    message_id = db.IntField(unique=True, index=True)
+    client_name = db.StringField(index=True)
+    client_email = db.StringField(index=True)
+    message_subject = db.StringField(index=True)
+    message_status = db.IntField(choices=[NEW, SEEN, RESPONDED, IGNORED, REPLY, DRAFT])
+    message_contents = db.StringField()
+    message_notes     = db.StringField()
+    client_phone     = db.StringField(index=True)
+    reply_message = ReferenceField("self", reverse_delete_rule=CASCADE)
+
+    meta = {
+        "db_alias": "default",
+        "collection": "Messages",
+        "indexes": [
+            (
+                "message_id",
+                "client_name",
+                "client_email",
+                "client_phone",
+                 "message_subject",
+                "message_status",
+                "created_datetime",
+                "last_modified_date",
+                "current_version",
+            )
+        ],
+    }
+
+    @staticmethod
+    def get_schema():
+        return {
+            "titleField": "message_id",
+            "idField": "message_id",
+            "display_map": {
+                "message_id": "Message ID",
+                "client_name": "Client Name",
+                "client_email": "Client Email",
+                "client_phone": "Client Phone",
+                "message_subject": "Message Subject",
+                "message_status": "Message Status",
+                "created_datetime": "Created Datetime",
+                "message_contents": "Message Contents",
+                "message_notes": "Message Notes",
+                "last_modified_date": "Last Modified Date",
+            },
+            "sc": 0,
+            "order": [
+                "message_id",
+                "client_name",
+                "client_email",
+                "client_phone",
+                "message_subject",
+                "message_status",
+                "created_datetime",
+                "message_contents",
+                "message_notes",
+                "last_modified_date",
+            ],
+        }
+
+    def __repr__(self):
+        return "<Messages {}>".format(self.message_id)
