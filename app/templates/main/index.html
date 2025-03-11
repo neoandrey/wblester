@@ -77,8 +77,7 @@
 <script src="{{ url_for('static', filename='js/jquery.js')}}"></script>
 <script src="{{ url_for('static', filename='js/jquery-migrate-1.1.1.js') }}"></script>
 <script src="{{ url_for('static', filename='js/superfish.js')}}"></script>
-<script src="{{ url_for('static', filename='js/sForm.js')}}"></script>
-<script src="{{ url_for('static', filename='js/forms.js')}}"></script>
+
 <script src="{{ url_for('static', filename='js/jquery.equalheights.js')}}"></script>
 <script src="{{ url_for('static', filename='js/jquery.easing.1.3.js')}}"></script>
 {% if  options.current_page.page_name == 'home' or options.current_page.banner_type==1 %}
@@ -131,11 +130,12 @@
   </script>
 {% endif %}
 {% if  options.current_page.page_name == 'contact' %}
-
+<script src="{{ url_for('static', filename='cpanel/plugins/jquery-ui/jquery-ui.min.js')}}"></script>
   <script>
 $(window).load(function () {
-  let mapLocation = `{{options.siteSettings.google_map if 'google_map' in options.siteSettings and options.siteSettings.google_map != '' else  'http://maps.google.com/maps?f=q&amp;source=s_q&amp;hl=en&amp;geocode=&amp;q=Brooklyn,+New+York,+NY,+United+States&amp;aq=0&amp;sll=37.0625,-95.677068&amp;sspn=61.282355,146.513672&amp;ie=UTF8&amp;hq=&amp;hnear=Brooklyn,+Kings,+New+York&amp;ll=40.649974,-73.950005&amp;spn=0.01628,0.025663&amp;z=14&amp;iwloc=A&amp;output=embed'}}`
+  let mapLocation = `{{options.siteSettings.google_map if 'google_map' in options.siteSettings and options.siteSettings.google_map != '' else  'http://maps.google.com/maps?f=q&source=s_q&hl=en&geocode=&q=Brooklyn,+New+York,+NY,+United+States&aq=0&sll=37.0625,-95.677068&sspn=61.282355,146.513672&ie=UTF8&hq=&hnear=Brooklyn,+Kings,+New+York&ll=40.649974,-73.950005&spn=0.01628,0.025663&z=14&iwloc=A&output=embed'}}`
   $('#gmap-location').html(`<iframe src="${mapLocation}"></iframe>`)
+   
    $('#contact-form').html(`<form id="form" action="#">
           <div class="success_wrapper">
             <div class="success">Contact form submitted!<br>
@@ -143,30 +143,35 @@ $(window).load(function () {
           </div>
           <fieldset>
             <label class="name">
-              <input type="text" value="Name:">
+              <input type="text" id="name" value="Name:">
               <br class="clear">
               <span class="error error-empty">*This is not a valid name.</span><span class="empty error-empty">*This field is required.</span> </label>
             <label class="email">
-              <input type="text" value="E-mail:">
+              <input type="text" id="email" value="E-mail:">
               <br class="clear">
               <span class="error error-empty">*This is not a valid email address.</span><span class="empty error-empty">*This field is required.</span> </label>
             <label class="phone">
-              <input type="tel" value="Phone:">
+              <input type="tel" id="phone" value="Phone:">
               <br class="clear">
               <span class="error error-empty">*This is not a valid phone number.</span><span class="empty error-empty">*This field is required.</span> </label>
-            <label class="message">
-              <textarea>Message:</textarea>
+              <label class="subject">
+              <input type="text" id="subject" value="Subject:">
+              <br class="clear">
+              <span class="error error-empty">*This is not a valid subject.</span><span class="empty error-empty">*This field is required.</span> </label>
+              <label class="message">
+              <textarea id="message">Message:</textarea>
               <br class="clear">
               <span class="error">*The message is too short.</span> <span class="empty">*This field is required.</span> </label>
             <div class="clear"></div>
-            <div class="btns"><a data-type="reset" class="btn">Clear</a><span></span><a data-type="submit" class="btn">Send</a>
+            <div class="btns"><a data-type="reset" class="btn">Clear</a><span></span><a data-type="submit" id="submit-message" class="btn">Send</a>
               <div class="clear"></div>
             </div>
           </fieldset>
         </form>`)
         });
         </script>
-
+<script src="{{ url_for('static', filename='js/sForm.js')}}"></script>
+<script src="{{ url_for('static', filename='js/forms.js')}}"></script>
 {% endif %}
 </body>
 </html>
