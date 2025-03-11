@@ -1,0 +1,110 @@
+---
+id: /subscriptions/2f09ec44-1ad5-4493-a5e8-a7982619999a/resourceGroups/microservices/providers/Microsoft.App/containerapps/mongodb-server
+type: Microsoft.App/containerApps
+systemData:
+  lastModifiedAt: 2025-03-01T00:34:01.6857685
+  createdAt: 2025-03-01T00:33:14.7071424
+  createdByType: User
+  lastModifiedBy: neondrayaz@outlook.com
+  lastModifiedByType: User
+  createdBy: neondrayaz@outlook.com
+name: mongodb-server
+identity:
+  type: None
+location: South Africa North
+properties:
+  provisioningState: Succeeded
+  workloadProfileName: Consumption
+  delegatedIdentities: []
+  customDomainVerificationId: 07F6AA19591D994BF27C7B1178C30EE2B776CC006A04C147353A416CEE8BF63A
+  environmentId: /subscriptions/2f09ec44-1ad5-4493-a5e8-a7982619999a/resourceGroups/microservices/providers/Microsoft.App/managedEnvironments/microverse
+  latestReadyRevisionName: mongodb-server--vhiknm5
+  latestRevisionName: mongodb-server--vhiknm5
+  runningStatus: Running
+  eventStreamEndpoint: https://southafricanorth.azurecontainerapps.dev/subscriptions/2f09ec44-1ad5-4493-a5e8-a7982619999a/resourceGroups/microservices/containerApps/mongodb-server/eventstream
+  template:
+    revisionSuffix: ""
+    containers:
+      - env:
+          - name: MONGO_INITDB_ROOT_USERNAME
+            value: neoazure
+          - name: MONGO_INITDB_ROOT_PASSWORD
+            value: M0ng0db123!
+        name: mongodb-server
+        resources:
+          memory: 1Gi
+          cpu: 0.5
+          ephemeralStorage: 2Gi
+        image: mongo
+        volumeMounts:
+          mountPath: /data/db
+          volumeName: containerdata
+    terminationGracePeriodSeconds: null
+    serviceBinds: null
+    scale:
+      maxReplicas: 2
+      minReplicas: 1
+      rules: null
+    volumes:
+      - storageType: AzureFile
+        name: containerdata
+        storageName: mongoshare
+    initContainers: null
+  outboundIpAddresses:
+    - 20.87.120.90
+    - 20.87.120.146
+    - 20.87.120.180
+    - 20.87.120.208
+    - 20.164.149.107
+    - 20.164.150.136
+    - 20.164.150.14
+    - 20.164.149.77
+    - 20.164.149.193
+    - 20.164.149.254
+    - 20.164.50.175
+    - 20.164.51.49
+    - 20.164.51.26
+    - 20.164.50.236
+    - 20.164.51.73
+    - 20.164.50.178
+    - 20.164.50.233
+    - 20.164.50.159
+    - 20.164.50.187
+    - 20.164.50.208
+    - 20.87.121.87
+    - 20.87.121.177
+    - 20.87.121.210
+    - 20.87.122.64
+    - 20.164.64.172
+    - 20.164.64.237
+    - 20.164.64.208
+    - 20.164.65.49
+    - 20.164.64.168
+    - 20.164.64.128
+    - 20.164.123.68
+  latestRevisionFqdn: mongodb-server--vhiknm5.orangehill-5940b953.southafricanorth.azurecontainerapps.io
+  managedEnvironmentId: /subscriptions/2f09ec44-1ad5-4493-a5e8-a7982619999a/resourceGroups/microservices/providers/Microsoft.App/managedEnvironments/microverse
+  configuration:
+    secrets: null
+    dapr: null
+    ingress:
+      traffic:
+        - weight: 100
+          latestRevision: true
+      allowInsecure: false
+      transport: Tcp
+      external: true
+      fqdn: mongodb-server.orangehill-5940b953.southafricanorth.azurecontainerapps.io
+      customDomains: null
+      targetPort: 27017
+      exposedPort: 27017
+      corsPolicy: null
+      additionalPortMappings: null
+      ipSecurityRestrictions: null
+      clientCertificateMode: null
+      stickySessions: null
+    activeRevisionsMode: Single
+    maxInactiveRevisions: 100
+    registries: null
+    service: null
+resourceGroup: microservices

@@ -1,0 +1,106 @@
+id: /subscriptions/2f09ec44-1ad5-4493-a5e8-a7982619999a/resourceGroups/microservices/providers/Microsoft.App/containerapps/redis-server
+identity:
+  type: None
+location: South Africa North
+name: redis-server
+properties:
+  configuration:
+    activeRevisionsMode: Single
+    dapr: null
+    ingress:
+      additionalPortMappings: null
+      allowInsecure: false
+      clientCertificateMode: null
+      corsPolicy: null
+      customDomains: null
+      exposedPort: 6379
+      external: true
+      fqdn: redis-server.orangehill-5940b953.southafricanorth.azurecontainerapps.io
+      ipSecurityRestrictions: null
+      stickySessions: null
+      targetPort: 6379
+      traffic:
+      - latestRevision: true
+        weight: 100
+      transport: Tcp
+    maxInactiveRevisions: 100
+    registries: null
+    secrets: null
+    service: null
+  customDomainVerificationId: 07F6AA19591D994BF27C7B1178C30EE2B776CC006A04C147353A416CEE8BF63A
+  delegatedIdentities: []
+  environmentId: /subscriptions/2f09ec44-1ad5-4493-a5e8-a7982619999a/resourceGroups/microservices/providers/Microsoft.App/managedEnvironments/microverse
+  eventStreamEndpoint: https://southafricanorth.azurecontainerapps.dev/subscriptions/2f09ec44-1ad5-4493-a5e8-a7982619999a/resourceGroups/microservices/containerApps/redis-server/eventstream
+  latestReadyRevisionName: redis-server--7dbcl32
+  latestRevisionFqdn: redis-server--7dbcl32.orangehill-5940b953.southafricanorth.azurecontainerapps.io
+  latestRevisionName: redis-server--7dbcl32
+  managedEnvironmentId: /subscriptions/2f09ec44-1ad5-4493-a5e8-a7982619999a/resourceGroups/microservices/providers/Microsoft.App/managedEnvironments/microverse
+  outboundIpAddresses:
+  - 20.87.120.90
+  - 20.87.120.146
+  - 20.87.120.180
+  - 20.87.120.208
+  - 20.164.149.107
+  - 20.164.150.136
+  - 20.164.150.14
+  - 20.164.149.77
+  - 20.164.149.193
+  - 20.164.149.254
+  - 20.164.50.175
+  - 20.164.51.49
+  - 20.164.51.26
+  - 20.164.50.236
+  - 20.164.51.73
+  - 20.164.50.178
+  - 20.164.50.233
+  - 20.164.50.159
+  - 20.164.50.187
+  - 20.164.50.208
+  - 20.87.121.87
+  - 20.87.121.177
+  - 20.87.121.210
+  - 20.87.122.64
+  - 20.164.64.172
+  - 20.164.64.237
+  - 20.164.64.208
+  - 20.164.65.49
+  - 20.164.64.168
+  - 20.164.64.128
+  - 20.164.123.68
+  provisioningState: Succeeded
+  runningStatus: Running
+  template:
+    containers:
+    - image: redis
+      args:
+      - redis-server --replicaof no one --maxmemory-policy noeviction --appendonly yes --save
+      name: redis-server
+      resources:
+        cpu: 0.5
+        ephemeralStorage: 2Gi
+        memory: 1Gi
+      volumeMounts:
+      - mountPath: /data/
+        volumeName: containerdata
+    initContainers: null
+    revisionSuffix: ''
+    scale:
+      maxReplicas: 1
+      minReplicas: 1
+      rules: null
+    serviceBinds: null
+    terminationGracePeriodSeconds: null
+    volumes:
+    - name: containerdata
+      storageName: redisshare
+      storageType: AzureFile
+  workloadProfileName: Consumption
+resourceGroup: microservices
+systemData:
+  createdAt: '2025-03-01T02:14:16.1312118'
+  createdBy: neondrayaz@outlook.com
+  createdByType: User
+  lastModifiedAt: '2025-03-01T12:27:32.2843406'
+  lastModifiedBy: neondrayaz@outlook.com
+  lastModifiedByType: User
+type: Microsoft.App/containerApps
