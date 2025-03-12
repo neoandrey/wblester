@@ -35,7 +35,7 @@ jobs:
         GPG_KEY: ${{ secrets.GPG_KEY}}
 
       run: |
-        docker build  --build-arg APP_NAME="$APP_NAME" --build-arg FLASK_ENV="$FLASK_ENV"  --build-arg GPG_KEY="$GPG_KEY"  -t  $APP_NAME-$BRANCH .
+        docker build  --build-arg FLASK_APP="$APP_NAME" --build-arg FLASK_ENV="$FLASK_ENV"  --build-arg GPG_KEY="$GPG_KEY"  -t  $APP_NAME-$BRANCH .
    
     - name: Tag the image with release version
       env:
