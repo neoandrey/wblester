@@ -268,12 +268,12 @@ def cpanel_get_data(table):
         )
         print(f"Invalid session key:{key}. Expected key: { expected_key}")
         return jsonify({"message": "Invalid Session Information"})
-    if "client_info" in session:
-        client_info = get_client_info(request)
-        if (
-            (client_info["REMOTE_ADDR"] != session["client_info"]["REMOTE_ADDR"])
-        ):
-            return jsonify({"message": "Invalid Session Information"})
+    # if "client_info" in session:
+    #     client_info = get_client_info(request)
+    #     if (
+    #         (client_info["REMOTE_ADDR"] != session["client_info"]["REMOTE_ADDR"])
+    #     ):
+    #         return jsonify({"message": "Invalid Session Information"})
     if "+" in table:
         tables = table.split("+")
     else:
@@ -445,11 +445,11 @@ def add_record(data_type):
         # expected_key = session["current_user"]["acky"]
         # print(f"Invalid session key: {check_key} , Expected key: { expected_key}")
         return jsonify({"message": "Invalid Session Information"})
-    if "client_info" in session:
-        client_info =  get_client_info(request)
-        if( 
-        (client_info['REMOTE_ADDR'] != session['client_info']['REMOTE_ADDR']) ):
-            return jsonify({"message": "Invalid Session Information"})
+    # if "client_info" in session:
+    #     client_info =  get_client_info(request)
+    #     if( 
+    #     (client_info['REMOTE_ADDR'] != session['client_info']['REMOTE_ADDR']) ):
+    #         return jsonify({"message": "Invalid Session Information"})
     count = current_app.config["CIPHER_COUNT"]
     mode = request.form.get("mode")
     key_maker = Serializer()
@@ -2687,12 +2687,12 @@ def get_column_order(table):
         print(f"Invalid session key:{key}. Expected key: { expected_key}")
         return jsonify({"message": "Invalid session information"})
 
-    if "client_info" in session:
-        client_info = get_client_info(request)
-        if (
-            (client_info["REMOTE_ADDR"] != session["client_info"]["REMOTE_ADDR"])
-        ):
-            return jsonify({"message": "Invalid Session Information"})
+    # if "client_info" in session:
+    #     client_info = get_client_info(request)
+    #     if (
+    #         (client_info["REMOTE_ADDR"] != session["client_info"]["REMOTE_ADDR"])
+    #     ):
+    #         return jsonify({"message": "Invalid Session Information"})
 
     table_key = table.capitalize()
     for k in models.__dict__.keys():
@@ -2726,12 +2726,12 @@ def remove_record(table):
         expected_key = session["current_user"]["acky"]
         print(f"Invalid session key:{key}. Expected key: { expected_key}")
         return jsonify({"message": "Invalid session information"})
-    if "client_info" in session:
-        client_info = get_client_info(request)
-        if (
-            (client_info["REMOTE_ADDR"] != session["client_info"]["REMOTE_ADDR"])
-        ):
-            return jsonify({"message": "Invalid Session Information"})
+    # if "client_info" in session:
+    #     client_info = get_client_info(request)
+    #     if (
+    #         (client_info["REMOTE_ADDR"] != session["client_info"]["REMOTE_ADDR"])
+    #     ):
+    #         return jsonify({"message": "Invalid Session Information"})
     table_key = table.capitalize()
     for k in models.__dict__.keys():
         if k.lower() == table.lower():
@@ -2790,12 +2790,12 @@ def get_sync_table_version_data(sync_type, sync_collection=None):
         print(f"Invalid session key:{key}. Expected key: { expected_key}")
         return jsonify({"message": "Invalid Session Information"})
     
-    if "client_info" in session:
-        client_info = get_client_info(request)
-        if (
-            (client_info["REMOTE_ADDR"] != session["client_info"]["REMOTE_ADDR"])
-        ):
-            return jsonify({"message": "Invalid Session Information"})
+    # if "client_info" in session:
+    #     client_info = get_client_info(request)
+    #     if (
+    #         (client_info["REMOTE_ADDR"] != session["client_info"]["REMOTE_ADDR"])
+    #     ):
+    #         return jsonify({"message": "Invalid Session Information"})
     sync_info = (
         current_app.config["COMPONENT_CONFIG"]["syncInfo"][sync_type]
         if sync_collection is None
@@ -2846,12 +2846,12 @@ def get_table_version_data(sync_type):
         print(f"Invalid session key:{key}. Expected key: { expected_key}")
         return jsonify({"message": "Invalid Session Information"})
 
-    if "client_info" in session:
-        client_info = get_client_info(request)
-        if (
-            (client_info["REMOTE_ADDR"] != session["client_info"]["REMOTE_ADDR"])
-        ):
-            return jsonify({"message": "Invalid Session Information"})
+    # if "client_info" in session:
+    #     client_info = get_client_info(request)
+    #     if (
+    #         (client_info["REMOTE_ADDR"] != session["client_info"]["REMOTE_ADDR"])
+    #     ):
+    #         return jsonify({"message": "Invalid Session Information"})
     for info in current_app.config["COMPONENT_CONFIG"]["syncInfo"][sync_type]:
         version_data[info["collectionName"]] = []
         collection = collection = models.__dict__[
@@ -2909,12 +2909,12 @@ def get_table_update_data(sync_type):
         )
         print(f"Invalid session key:{key}. Expected key: { expected_key}")
         return jsonify({"message": "Invalid Session Information"})
-    if "client_info" in session:
-        client_info = get_client_info(request)
-        if (
-            (client_info["REMOTE_ADDR"] != session["client_info"]["REMOTE_ADDR"])
-        ):
-            return jsonify({"message": "Invalid Session Information"})
+    # if "client_info" in session:
+    #     client_info = get_client_info(request)
+    #     if (
+    #         (client_info["REMOTE_ADDR"] != session["client_info"]["REMOTE_ADDR"])
+    #     ):
+    #         return jsonify({"message": "Invalid Session Information"})
     table_update_data = {}
     sync_info = current_app.config["COMPONENT_CONFIG"]["syncInfo"][sync_type]
 
@@ -3112,11 +3112,11 @@ def update_message():
     check_key = request.form.get("acky")
     if should_have_access(check_key) is False:
         return jsonify({"message": "Invalid Session Information"})
-    if "client_info" in session:
-        client_info =  get_client_info(request)
-        if( 
-        (client_info['REMOTE_ADDR'] != session['client_info']['REMOTE_ADDR']) ):
-            return jsonify({"message": "Invalid Session Information"})
+    # if "client_info" in session:
+    #     client_info =  get_client_info(request)
+    #     if( 
+    #     (client_info['REMOTE_ADDR'] != session['client_info']['REMOTE_ADDR']) ):
+    #         return jsonify({"message": "Invalid Session Information"})
     message_id = request.form.get("message_id")
     message_status =  request.form.get("message_status")
     message_notes = request.form.get("message_notes")
@@ -3166,10 +3166,10 @@ def rerun_events():
     check_key = request.form.get("acky")
     if should_have_access(check_key) is False:
         return jsonify({"message": "Invalid Session Information"})
-    if "client_info" in session:
-        client_info = get_client_info(request)
-        if client_info["REMOTE_ADDR"] != session["client_info"]["REMOTE_ADDR"]:
-            return jsonify({"message": "Invalid Session Information"})
+    # if "client_info" in session:
+    #     client_info = get_client_info(request)
+    #     if client_info["REMOTE_ADDR"] != session["client_info"]["REMOTE_ADDR"]:
+    #         return jsonify({"message": "Invalid Session Information"})
     event_id = request.form.get("event_id")
     event_status = request.form.get("event_status")
 

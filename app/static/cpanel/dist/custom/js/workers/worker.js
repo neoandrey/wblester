@@ -420,15 +420,15 @@ class DataSynchronizer {
     
                         if (results.length > 0) {
                              updateSet.add(collection)
-                            db.saveDatabase((err) => {
-                                if (!err) {
+                            // db.saveDatabase((err) => {
+                            //     if (!err) {
                                     
-                                  //  console.log("Database saved")
-                                } else { 
+                            //       //  console.log("Database saved")
+                            //     } else { 
                                     
-                                    console.log(err)
-                                }
-                            });
+                            //         console.log(err)
+                            //     }
+                            // });
                          }
                        
                         return results.length
@@ -502,16 +502,16 @@ class DataSynchronizer {
                     }
 
                 if (updateCount > 0) {
-                    db.saveDatabase((err) => {
-                        if (!err) {
+                    // db.saveDatabase((err) => {
+                    //     if (!err) {
 
 
-                        } else {
+                    //     } else {
 
-                            console.log(err)
-                        }
+                    //         console.log(err)
+                    //     }
 
-                    });
+                    // });
                     let updatedColData = {}
                     Array.from(updateSet).forEach((collection) => { 
                             updatedColData[collection] =tableMap[collection].data
@@ -653,7 +653,7 @@ class DataSynchronizer {
                         })
                     })
                         
-                //    if (tableName.toLowerCase() == "users") {
+                //    if (tableName.toLowerCase() == "events") {
                 //           console.log("liveTableData: ",liveTableData)
                 //         console.log("localTableData: ",localTableData)
                 //    }
@@ -694,16 +694,21 @@ class DataSynchronizer {
            
             if (count > 0) {
 
-                db.saveDatabase((err) => {
+                // db.saveDatabase((err) => {
                    
-                    if (!err) { databaseInitialize();tableData=null } else { console.log(err) }
-                });
+                //     if (!err) { databaseInitialize();tableData=null } else { console.log(err) }
+                // });
                  
 
                 let fetchUrl = `${DataSynchronizer.mongoBridgeURL}update/cpanel?q=`+JSON.stringify(updateQuery)+`&acky=${acky}`;
                 DataSynchronizer.runGet(fetchUrl, DataSynchronizer.updateLocalTables, { "updateSet": updateSet, "collectionSyncInfo": parameters.collectionSyncInfo, "deleted": recordDeletionMap })
             } else {
-                postMessage({ 'count': 0, 'collections': [], 'records': [], 'deleted': recordDeletionMap ,'session': DataSynchronizer.session, 'dataPass':acky  });
+             let updatedColData = {}
+                    Object.keys(tableMap).forEach((collection) => { 
+                            updatedColData[collection] =tableMap[collection].data
+
+                    })
+                postMessage({ 'count': 0, 'collections': updatedColData, 'records': [], 'deleted': recordDeletionMap ,'session': DataSynchronizer.session, 'dataPass':acky  });
                  
                  
             }
@@ -713,7 +718,13 @@ class DataSynchronizer {
 
             if (Object.keys(tableVersionInfo).includes('message')) { 
 
-            postMessage({ 'count': 0, 'collections': [], 'records': [], 'deleted': [],'session': DataSynchronizer.session, 'dataPass':acky });
+                    let updatedColData = {}
+                    Object.keys(tableMap).forEach((collection) => { 
+                            updatedColData[collection] =tableMap[collection].data
+
+                    })
+
+            postMessage({ 'count': 0, 'collections': updatedColData, 'records': [], 'deleted': [],'session': DataSynchronizer.session, 'dataPass':acky });
 
             }
         }
@@ -811,13 +822,13 @@ class DataSynchronizer {
                    
                 }
 
-                db.saveDatabase((err) => {
+                // db.saveDatabase((err) => {
 
-                    if(err){
+                //     if(err){
 
-                        console.log(err)
-                    }
-                });
+                //         console.log(err)
+                //     }
+                // });
                                     //let updatedColData = {}
                 // Array.from(updateSet).forEach((collection) => { 
                         
@@ -884,9 +895,9 @@ function startSync() {
     config.syncInfo.cpanel.filter((x => !dbCollections.includes(x.collectionName))).forEach((collection) => {
         //console.log(collection.collectionName)
         db.addCollection(collection.collectionName, {
-        indices: collection.matchingFields.concat(collection.watchedFields)
-            , autoupdate: true
-            , unique: [collection.idField]
+                indices: collection.matchingFields.concat(collection.watchedFields)
+                , autoupdate: true
+                , unique: [collection.idField]
         });
       
     })
@@ -912,7 +923,9 @@ onmessage = function(e) {
         let idbAdapter = new LokiIndexedAdapter();
         let pa = new loki.LokiPartitioningAdapter(idbAdapter, { paging: false });
         db = new loki(dbName, {
-            adapter: pa
+                    adapter: pa
+                    , autoload: true
+                    ,autosave:true
         });
         tableData = e.data[2];
         acky = e.data[3]

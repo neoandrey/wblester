@@ -10311,122 +10311,134 @@ $.fn.removeRecord = (deleteInfo) => {
 }
 
 
+
 $.fn.localSync = () => { 
-    /**
-    *  Syncs LokiDatabase with online database
-    **/
+  /**
+  *  Syncs LokiDatabase with online database
+  **/
 
-    if (window.Worker) {
-  
-      syncWorker = new Worker("/static/cpanel/dist/custom/js/workers/worker.js");
-      let tableData ={}
-      Object.keys(window.tableMap).forEach((table)=> tableData[table] =window.tableMap[table].data)
-      syncWorker.postMessage(['start', window.config,tableData,currentUser.acky]);
-      syncWorker.onmessage = (e) => {
-        let isUpdated = e?.data?.count > 0;
-        let updatedCollections = e?.data?.collections;
-        let deletedRecords = e?.data?.deleted;
-        let updatedRecords = e?.data?.records;
-        let isActiveSession = e?.data?.session;
-        let dataPass = e?.data.dataPass
-       // console.log(e.data)
-        //console.log("session: ", isActiveSession)
-        //console.log("dataPass: ", dataPass)
-        if (!isActiveSession && dataPass ==currentUser.acky) { 
-          window.location = 'auth/logout';
-        }
+  if (window.Worker) {
 
-
-        if (deletedRecords && Object.keys(deletedRecords).length > 0) { 
-          Object.keys(deletedRecords).forEach((table) => { 
-            let removedList = deletedRecords[table];
-            let idField            = window.config.syncInfo.cpanel.filter((tableName) => tableName.collectionName == table)[0]['idField']
-              let query = {}
-            query[idField] = { "$in": removedList };
-              window.tableMap[table].chain().find(query).remove();         
-          })
+    syncWorker = new Worker("/static/cpanel/dist/custom/js/workers/worker.js");
+    let tableData ={}
+    Object.keys(window.tableMap).forEach((table)=> tableData[table] =window.tableMap[table].data)
+    syncWorker.postMessage(['start', window.config,tableData,currentUser.acky]);
+    syncWorker.onmessage = (e) => {
+      let isUpdated = e?.data?.count > 0;
+      let updatedCollections = e?.data?.collections;
+      let deletedRecords = e?.data?.deleted;
+      let updatedRecords = e?.data?.records;
+      let isActiveSession = e?.data?.session;
+      let dataPass = e?.data.dataPass
+     // console.log(e.data)
+      //console.log("session: ", isActiveSession)
+      //console.log("dataPass: ", dataPass)
+      if (!isActiveSession && dataPass ==currentUser.acky) { 
+        window.location = 'auth/logout';
+      }
 
 
-          
-        }
+      if (deletedRecords && Object.keys(deletedRecords).length > 0) { 
+        Object.keys(deletedRecords).forEach((table) => { 
+          let removedList = deletedRecords[table];
+          let idField            = window.config.syncInfo.cpanel.filter((tableName) => tableName.collectionName == table)[0]['idField']
+            let query = {}
+          query[idField] = { "$in": removedList };
+            window.tableMap[table].chain().find(query).remove();         
+        })
 
-        //console.log("updated: " + isUpdated)
-        if (isUpdated) {
+
+        
+      }
+
+      //console.log("updated: " + isUpdated)
+      if (isUpdated) {
 
 
-          if (updatedCollections){
-            Object.keys(updatedRecords).forEach((collection) => {
-            // console.log(collection)
-              let idField = window.config.syncInfo.cpanel.filter((x) => { return x.collectionName.toLowerCase() == collection.toLowerCase() })[0]['idField']
-              //  console.log(updatedRecords[collection])
-              updatedRecords[collection].forEach((record) => {
 
-                let tempQuery = {}
-                tempQuery[idField] = record[idField];
-                let filteredRecord = null;
-                filteredRecord = Object.keys(window.tableMap).includes(collection) && window.tableMap[collection].data.length > 0 ? window.tableMap[collection].data.filter((entry)=> entry[idField]==record[idField]) : null; //.findOne(tempQuery) : null;
-                
-                if (filteredRecord  && Object.keys(filteredRecord).length > 0
+          Object.keys(updatedRecords).forEach((collection) => {
+            //console.log(collection)
+            let idField = window.config.syncInfo.cpanel.filter((x) => { return x.collectionName.toLowerCase() == collection.toLowerCase() })[0]['idField']
+            //  console.log(updatedRecords[collection])
+            updatedRecords[collection].forEach((record) => {
+
+              let tempQuery = {}
+              tempQuery[idField] = record[idField];
+              let filteredRecord = null;
+              filteredRecord = Object.keys(window.tableMap).includes(collection) && window.tableMap[collection].data.length > 0 ? window.tableMap[collection].data.filter((entry)=> entry[idField]==record[idField]) : null; //.findOne(tempQuery) : null;
               
-                ) {
-                 // console.log("record: ", record)
-                // console.log(`filtered record`,filteredRecord)
-                 
-                  let tempRecord =  { ...filteredRecord[0] }
-                  Object.keys(record).filter((field) => ['$loki', 'meta'].indexOf(field) < 0).forEach((field) => {
-                                    
-                    tempRecord[field] = record[field];
-                                    
-                  })
-                  try {
-                    // window.tableMap[collection].update(filteredRecord[0])
-                     window.tableMap[collection].chain().find(tempQuery).remove();
-                     window.tableMap[collection].insert(tempRecord)
-
-                  } catch (e) {
-                    console.log(e)  
-
+              if (filteredRecord  && Object.keys(filteredRecord).length > 0
+            
+              ) {
+               // console.log("record: ", record)
+              // console.log(`filtered record`,filteredRecord)
+               
+                let tempRecord = { ...filteredRecord[0] }
+               
+               
+                Object.keys(record).filter((field) => ['$loki', 'meta'].indexOf(field) < 0).forEach((field) => {
+                                  
+                  tempRecord[field] = record[field];
+                                  
+                })
+                try {
+                  if (tempRecord['$loki'] != null) {
+                    window.tableMap[collection].update(tempRecord)
+                  } else { 
+                        window.tableMap[collection].insert(tempRecord)
                   }
-                } else {
+                  
+                  // console.log("tempRecord: ", tempRecord)
+                  // console.log("tempQuery: ", tempQuery)
+                   //window.tableMap[collection].chain().find(tempQuery).remove();
+                 
 
-                  try {
+                } catch (e) {
+                  console.log(e)  
 
-                    let tempRecord = {  }
+                }
+              } else {
+
+                try {
+
+                  let tempRecord = {  }
+                  Object.keys(record).filter((field) => ['$loki', 'meta'].indexOf(field) < 0).forEach((field) => {
+                    tempRecord[field] = record[field]
+                  })
+                  
+                  window.tableMap[collection].insert(tempRecord);
+                    
+                } catch (e) {
+                
+                  filteredRecord = Object.keys(window.tableMap).includes(collection) && window.tableMap[collection].data.length > 0 ? window.tableMap[collection].find(tempQuery) : null;
+                        
+                  if (filteredRecord && Object.keys(filteredRecord).length > 0) {
+                    let tempRecord = { ...filteredRecord[0] }
                     Object.keys(record).filter((field) => ['$loki', 'meta'].indexOf(field) < 0).forEach((field) => {
                       tempRecord[field] = record[field]
                     })
-                    
+                    window.tableMap[collection].update(tempRecord);
+                              
+                  } else {
+                    let tempRecord = {}
+                    Object.keys(record).filter((field) => ['$loki', 'meta'].indexOf(field) < 0).forEach((field) => {
+                      tempRecord[field] = record[field]
+                    })
+
                     window.tableMap[collection].insert(tempRecord);
-                      
-                  } catch (e) {
-                  
-                    filteredRecord = Object.keys(window.tableMap).includes(collection) && window.tableMap[collection].data.length > 0 ? window.tableMap[collection].find(tempQuery) : null;
-                          
-                    if (filteredRecord && Object.keys(filteredRecord).length > 0) {
-                      let tempRecord = { ...filteredRecord[0] }
-                      Object.keys(record).filter((field) => ['$loki', 'meta'].indexOf(field) < 0).forEach((field) => {
-                        tempRecord[field] = record[field]
-                      })
-                      window.tableMap[collection].update(tempRecord);
-                                
-                    } else {
-                      let tempRecord = {}
-                      Object.keys(record).filter((field) => ['$loki', 'meta'].indexOf(field) < 0).forEach((field) => {
-                        tempRecord[field] = record[field]
-                      })
-
-                      window.tableMap[collection].insert(tempRecord);
-                    }
                   }
-
-
                 }
-              })
-          //    
 
 
+              }
             })
-            db.saveDatabase((data) => {
+        //    
+
+
+          })
+          if (updatedCollections) {
+            //eval(DisplayManager.lastRunFunction);
+              db.saveDatabase((data) => {
 
               if (DisplayManager.lastRunFunction && DisplayManager.lastRunFunction.trim() != "" && DisplayManager.lastRunFunction.trim() != "none") {
                 //console.log(`Executing: '${DisplayManager.lastRunFunction}'`)
@@ -10435,17 +10447,18 @@ $.fn.localSync = () => {
 
 
             });
-
           }
+         
 
         }
-      }
-    } else {
-      startSync();
-      syncWorker = true
-    }
-}
 
+     // }
+    }
+  } else {
+    startSync();
+    syncWorker = true
+  }
+}
 
 $("#index-root").ready((e) => { 
     DisplayManager.setCurrentPageID("index-root");
