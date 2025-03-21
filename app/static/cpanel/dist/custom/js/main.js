@@ -4350,7 +4350,7 @@ $.fn.editSettings = (query = 'none') => {
             let isValid =validCount ==6 && contactUsMessage.length > 0 && $.fn.areFieldsValid('settings-submit-btn', [ 'startup-message', 'secret-key', 'address', 'email', 'phone-number', 'time-out']) 
             
             if (isValid) {
-                  
+                  $(this).attr('disabled','disabled');
                   const formData = new FormData();
                   formData.append("mode", "edit");
                   formData.append("acky", currentUser.acky);
@@ -4664,6 +4664,7 @@ $.fn.editImage = (query = 'none') => {
               let isImageValid = imageUpdated ? $.fn.isValidImage('image-file') : true
                  
               if (isValid && isImageValid ) {
+                $(this).attr('disabled','disabled');
                  const formData = new FormData();
                  formData.append("mode", titlePrefix.toLowerCase());
                  if (titlePrefix.toLowerCase() == "edit") {
@@ -4891,6 +4892,7 @@ $.fn.editFile = (query = 'none') => {
                let isFileValid = fileUpdated ? $.fn.isValidFile('file-upload') : true;
                  
               if (isValid && isFileValid ) {
+                $(this).attr('disabled','disabled');
                  const formData = new FormData();
                  formData.append("mode", titlePrefix.toLowerCase());
                  if (titlePrefix.toLowerCase() == "edit") {
@@ -5095,6 +5097,7 @@ $.fn.editTemplate = (query = 'none') => {
               let isValid             = contents.length > 0 && $.fn.areFieldsValid('template-submit-btn', [ 'template-name','template-description'])
                  
               if (isValid ) {
+                $(this).attr('disabled','disabled');
                  const formData = new FormData();
                  formData.append("mode", titlePrefix.toLowerCase());
                  if (titlePrefix.toLowerCase() == "edit") {
@@ -5706,7 +5709,8 @@ $.fn.editPage = (query = 'none') => {
       let isValid             = pageContents.length > 0 && $.fn.areFieldsValid('page-submit-btn', [ 'page-name', 'page-href']);
       
        if (isValid) {
-            pageContents = pageContents.replaceAll('="static', '="/static');
+            $(this).attr('disabled','disabled');
+             pageContents = pageContents.replaceAll('="static', '="/static');
             const formData = new FormData();
             formData.append("mode", titlePrefix.toLowerCase());
             if (titlePrefix.toLowerCase() == "edit") {
@@ -5896,7 +5900,7 @@ $.fn.editSection = (query = 'none') => {
               let isValid = $.fn.areFieldsValid('section-submit-btn', ['section-name',  'section-description'])
 
               if (isValid) {
-                    
+                $(this).attr('disabled','disabled');
 
                 const formData = new FormData();
                 formData.append("mode", titlePrefix.toLowerCase());
@@ -6094,7 +6098,7 @@ $.fn.editTeamMember = (query = 'none') => {
               let isValid = $.fn.areFieldsValid('teammember-submit-btn', ['member-name', 'description', 'role']) 
 
               if (isValid  && $.fn.isValidJSON('#social-media',socialMedia)) {
-                    
+                $(this).attr('disabled','disabled');  
 
                 const formData = new FormData();
                 formData.append("mode", titlePrefix.toLowerCase());
@@ -6308,7 +6312,7 @@ $.fn.editBanner = (query = 'none') => {
         let isValidPageLink = $.fn.checkMappedProps(pageLinks, [1, 1, 1]);
         
         if ($.fn.areFieldsValid('banner-submit-btn', ['title', 'name']) && isValidPageLink) {
-              
+              $(this).attr('disabled','disabled');
               const formData = new FormData();
               formData.append("mode", titlePrefix.toLowerCase());
               if (titlePrefix.toLowerCase() == "edit") {
@@ -6570,7 +6574,7 @@ $.fn.editSlider = (query = 'none') => {
         let isActive                 = $('#is-active').val();
         
         if ($.fn.areFieldsValid('slider-submit-btn', ['name', 'line1', 'line2'])) {
-              
+              $(this).attr('disabled','disabled');
               const formData = new FormData();
               formData.append("mode", titlePrefix.toLowerCase());
               if (titlePrefix.toLowerCase() == "edit") {
@@ -7504,7 +7508,8 @@ $("#gmail-api-key,#gmail-confirm-api-key").on('change', (e)=>{
          let credFile = $('#credentials-file').prop('files')[0]
          
          if ($.fn.areFieldsValid('gmail-submit-btn', ['gmail-account-name', 'gmail-server-address', 'gmail-email-address','gmail-api-key','confirm-gmail-api-key']) && apiKey.length > 0) {
-           const formData = new FormData();
+          $(this).attr('disabled','disabled');
+            const formData = new FormData();
            formData.append("mode", titlePrefix.toLowerCase());
            if (titlePrefix.toLowerCase() == "edit") {
              formData.append('account_id', record.account_id)
@@ -7714,7 +7719,7 @@ $.fn.editMailTemplate = (query = 'none') => {
 
               if (isValid) {
                     
-
+                $(this).attr('disabled','disabled');
                 const formData = new FormData();
                 formData.append("mode", titlePrefix.toLowerCase());
                 if (titlePrefix.toLowerCase() == "edit") {
@@ -8055,7 +8060,7 @@ $.fn.editClient = (query = 'none') => {
               let valid           = $.fn.areFieldsValid('creator-submit-btn', [ 'first-name', 'last-name','email-address', 'address', 'phone-number'])
               if (valid) {
                     
-
+                $(this).attr('disabled','disabled');
                 const formData = new FormData();
                 formData.append("mode", titlePrefix.toLowerCase());
                 if (titlePrefix.toLowerCase() == "edit") {
@@ -8250,7 +8255,7 @@ $.fn.editPartner = (query = 'none') => {
 
                   if (isValid) {
                         
-
+                    $(this).attr('disabled','disabled');
                     const formData = new FormData();
                     formData.append("mode", titlePrefix.toLowerCase());
                     if (titlePrefix.toLowerCase() == "edit") {
@@ -8394,7 +8399,7 @@ $.fn.editServiceType = (query = 'none') => {
               let isValid = $.fn.areFieldsValid('type-submit-btn', ['type-name']) && typeDescription.length > 0
 
               if (isValid) {
-                    
+                $(this).attr('disabled','disabled');
 
                 const formData = new FormData();
                 formData.append("mode", titlePrefix.toLowerCase());
@@ -8947,7 +8952,7 @@ $.fn.editService = (query = 'none') => {
             }
             let isValid = $.fn.areFieldsValid('service-submit-btn', ['name', 'description']) && price.length > 0 && currency.length > 0 && availableFeatures.length > 0 && restrictedFeatures.length > 0
             if (isValid) {
-                
+              $(this).attr('disabled','disabled');
               const formData = new FormData();
               formData.append("mode", titlePrefix.toLowerCase());
               if (titlePrefix.toLowerCase() == "edit") {
@@ -9174,7 +9179,7 @@ $.fn.editEventType = (query = 'none') => {
 
               if (isValid) {
                     
-
+                $(this).attr('disabled','disabled');
                 const formData = new FormData();
                 formData.append("mode", titlePrefix.toLowerCase());
                 if (titlePrefix.toLowerCase() == "edit") {
@@ -9759,7 +9764,7 @@ $.fn.editEventTrigger = (query = 'none') => {
 
                   if (isValid) {
                         
-
+                    $(this).attr('disabled','disabled');
                     const formData = new FormData();
                     formData.append("mode", titlePrefix.toLowerCase());
                     if (titlePrefix.toLowerCase() == "edit") {
