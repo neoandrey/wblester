@@ -2409,7 +2409,8 @@ $.fn.getObjectIcon = (objectType)=>{
 
 $.fn.checkSession = (results)=>{
       if (Object.keys(results).includes("message") && results["message"] == "Invalid session information" ){ //|| !results.columnOrder) {
-          window.location = 'auth/logout';
+        history.pushState(null, null, ' ')  
+        window.location = 'auth/logout';
       }
 
 }
@@ -2424,7 +2425,8 @@ $.fn.checkSession = (results)=>{
 $.fn.showUpdatedTable = (result, objectType) => {
      //$.fn.refreshLocalTables()
     if (result && result.message && result.message.toLowerCase() == 'invalid session information') {
-        window.location = 'auth/logout';
+      history.pushState(null, null, ' ')  
+      window.location = 'auth/logout';
     }
   $.fn.syncLokiCollection($.fn.capitalize(objectType), () => {  $.fn.showTableRecords(objectType) }) 
     let messageType = result.message.toLowerCase().indexOf('success') > -1 ? 'success' : 'danger';
@@ -2524,7 +2526,8 @@ $.fn.getTable = (objectType, results, statsIcon = "fa fa-arrows-alt") => {
             crossDomain: true,
          success: (results) => {
                     if (Object.keys(results).includes("message") && results["message"] == "Invalid session information" || !results.columnOrder) {
-          window.location = 'auth/logout';
+                      history.pushState(null, null, ' ')
+                      window.location = 'auth/logout';
       }
                window.columnOrder[objectType]  = results;
                window.columnOrder[objectType].columnOrder.forEach((column) => { if (!excludedLokiFields.includes(column.toLowerCase())) { let col = column.split('_').map((str) => { return $.fn.capitalize(str) }).join(' '); columns.push({ 'sTitle': col, 'data': column, 'defaultContent': '' }) } }) 
@@ -4456,12 +4459,17 @@ $.fn.editImage = (query = 'none') => {
       };
 
       let bgTransparentOptions = ['No','Yes'].map((opt, key) => {
-            let selected = "";
-            if (opt=='No' || (record  && record.background_transpatent?.toString().toLowerCase() ==  "true") ) {
-              selected = `selected="selected"`
-            }
-            return `<option value="${key}" ${selected}>${opt}</option>`
-      });
+        let selected = "";
+    if (opt == "Yes" && record && record.background_transpatent.toString() == "true") {
+      selected = `selected="selected"`
+    } else if (opt == "No" && record && record.background_transpatent.toString() == "false")  {
+        selected = `selected="selected"`
+     }else if (opt == "No" && !record )  {
+        selected = `selected="selected"`
+     }
+        return `<option value="${key}" ${selected}>${opt}</option>`
+  });
+  
 		  
       
       $('#contentwrapper-node').html(
@@ -10339,6 +10347,7 @@ $.fn.localSync = () => {
       //console.log("session: ", isActiveSession)
       //console.log("dataPass: ", dataPass)
       if (!isActiveSession && dataPass ==currentUser.acky) { 
+        history.pushState(null, null, ' ')
         window.location = 'auth/logout';
       }
 
