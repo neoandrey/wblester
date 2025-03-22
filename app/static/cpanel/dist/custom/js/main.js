@@ -3927,7 +3927,7 @@ $.fn.editComponent = (
 
 }
 $.fn.editSettings = (query = 'none') => {
-  
+  $.fn.showLoadingDialog('Please wait...');
   const objectType = 'sitesettings';
   $.fn.highlightSidebar(objectType);
   DisplayManager.lastRunFunction = `$.fn.editSettings(${query == 'none' ? `'none'` : JSON.stringify(query)})`;
@@ -4235,6 +4235,7 @@ $.fn.editSettings = (query = 'none') => {
         </form>
       </div></div></div>`
       );
+      $.fn.closeDialog()
       $('#settings-cancel-btn').on('click', (e) => {
             e.preventDefault();
             $.fn.showTableRecords('sitesettings');
@@ -4353,6 +4354,7 @@ $.fn.editSettings = (query = 'none') => {
             let isValid =validCount ==6 && contactUsMessage.length > 0 && $.fn.areFieldsValid('settings-submit-btn', [ 'startup-message', 'secret-key', 'address', 'email', 'phone-number', 'time-out']) 
             
             if (isValid) {
+                  $.fn.showLoadingDialog('Applying changes...')
                   $(this).attr('disabled','disabled');
                   const formData = new FormData();
                   formData.append("mode", "edit");
@@ -4412,7 +4414,7 @@ $.fn.editSettings = (query = 'none') => {
 
 }
 $.fn.editImage = (query = 'none') => {
-
+  $.fn.showLoadingDialog('Please wait...');
   const objectType = 'images';
   $.fn.highlightSidebar(objectType)
   DisplayManager.lastRunFunction = `$.fn.editImage(${query == 'none' ? query : JSON.stringify(query)})`;
@@ -4432,7 +4434,7 @@ $.fn.editImage = (query = 'none') => {
       let button      = record ? 'Update' : 'Add';
       let disabled    = record ? `disabled="disabled"` : ``;
       let imageLabel = record  ? record.file_name : 'New Image'
-      let dimensions = record ? record.image_dimensions.replaceAll("\"", "'") : '';
+      let dimensions = record ?  record.image_dimensions.replaceAll("\"", "'") : '';
       
       const imageTypes = $.fn.getObjectType(window.appConfig.image_types)!="object"?JSON.parse(window.appConfig.image_types): window.appConfig.image_types;
 
@@ -4441,7 +4443,8 @@ $.fn.editImage = (query = 'none') => {
             
           if (record && record?.image_type && record.image_type == type) {
 
-            selected = `selected="selected"`;
+              selected = `selected="selected"`;
+              dimensions= JSON.stringify(imageTypes[type]).replaceAll("\"","'")
           }
         
               return `<option value="${type}" ${selected}>${type}</option>`
@@ -4457,22 +4460,22 @@ $.fn.editImage = (query = 'none') => {
         let height   = imgDimen.height
         previewImageHtml = `<div id="preview-div" class="text-center"><img  class="img-fluid" style="height:auto;max-width:100%"  id="preview-image" src="${imagePreview}" width="${width}" height="${height}" alt="logo preview"/> </div>`;
       };
-
+      console.log(record?.transparent_background?.toString().toLowerCase() );
       let bgTransparentOptions = ['No','Yes'].map((opt, key) => {
         let selected = "";
-    if (opt == "Yes" && record && Object.keys(record).includes('background_transpatent') && record.background_transpatent.toString() == "true") {
-      selected = `selected="selected"`
-    } else if (opt == "No" && record && Object.keys(record).includes('background_transpatent') && record.background_transpatent.toString() == "false")  {
-        selected = `selected="selected"`
-     }else if (opt == "No" && !record )  {
-        selected = `selected="selected"`
-     }
+          if (opt == "Yes" && record && record.transparent_background) {
+            selected = `selected="selected"`
+          } else if (opt == "No" && record && !record.transparent_background)  {
+              selected = `selected="selected"`
+          }else if (opt == "No" && !record )  {
+              selected = `selected="selected"`
+          }
         return `<option value="${key}" ${selected}>${opt}</option>`
   });
   
 		  
       
-      $('#contentwrapper-node').html(
+      $('#contentwrapper-node').html( 
         `<div class="container-fluid"><div class="row">       
          <div class="card card-dark col-md-12 w-100">
          <div class="card-header">
@@ -4501,9 +4504,9 @@ $.fn.editImage = (query = 'none') => {
 					</div>
 				</div>    
     <div class="form-group row">
-			<label  for="background-transpatent" class="col-md-2">Transparent Background</label>
+			<label  for="background-transparent" class="col-md-2">Transparent Background</label>
 			<div class="col-md-10"> 
-				<select name="background_transpatent" id="background-transpatent" class="form-control select2" style="width: 100%;">
+				<select name="transparent_background" id="background-transparent" class="form-control select2" style="width: 100%;">
 					${bgTransparentOptions}
 				</select>
 			</div>
@@ -4513,6 +4516,7 @@ $.fn.editImage = (query = 'none') => {
         <label for="image-dimensions" class="form-label col-sm-2">Image Dimensions</label>
         <div class="col-sm-10"><input type="text" class="form-control " id="image-dimensions" name="image_dimensions" placeholder="" value="${dimensions}"></div>
       </div>
+      
 				<div class="form-group row">
 					<div class="col-md-2">  <label for="image-file">Image File</label> 
 					</div>
@@ -4534,8 +4538,9 @@ $.fn.editImage = (query = 'none') => {
         </form>
       </div></div></div>`
       );
+      $.fn.closeDialog();
       $('#image-dimensions').attr('disabled', 'diabled="disabled"')
-       $('#image-dimensions').val(JSON.stringify(imageTypes[Object.keys(imageTypes)[0]]));
+      //$('#image-dimensions').val(JSON.stringify(imageTypes[Object.keys(imageTypes)[0]]));
       let imageUpdated = false;
 
           if (record) {
@@ -4663,7 +4668,7 @@ $.fn.editImage = (query = 'none') => {
               let imageType        = $('#image-type').val()
               let uploadedImage    = $('#image-file').val()
                let imageDimensions = $('#image-dimensions').val();
-               let isBgTransparent = $('#background-transpatent').val()
+               let isBgTransparent = $('#background-transparent').val()
                let imageElement    = document.getElementById("uploaded-image") 
                if (imageElement) { 
                    imageDimensions     = JSON.stringify({ 'width': imageElement.naturalWidth, 'height': imageElement.naturalHeight })
@@ -4672,6 +4677,7 @@ $.fn.editImage = (query = 'none') => {
               let isImageValid = imageUpdated ? $.fn.isValidImage('image-file') : true
                  
               if (isValid && isImageValid ) {
+                $.fn.showLoadingDialog('Applying changes...')
                 $(this).attr('disabled','disabled');
                  const formData = new FormData();
                  formData.append("mode", titlePrefix.toLowerCase());
@@ -4734,7 +4740,9 @@ $.fn.editImage = (query = 'none') => {
 
 }
 $.fn.editFile = (query = 'none') => {
-
+  $.fn.showLoadingDialog(
+    "Please wait ..."
+  )
   const objectType = 'files';
   $.fn.highlightSidebar(objectType)
   DisplayManager.lastRunFunction = `$.fn.editFile(${query == 'none' ? query : JSON.stringify(query)})`;
@@ -4748,7 +4756,7 @@ $.fn.editFile = (query = 'none') => {
     crossDomain: true,
 
     success: (results) => {
-       $.fn.checkSession(results);
+      $.fn.checkSession(results);
       let record       = Object.keys(results).includes(objectType) && results[objectType].length == 1 ? results[objectType][0] : null;
       let titlePrefix  = record ? 'Edit' : 'New';
       let button       = record ? 'Update' : 'Add';
@@ -4818,6 +4826,7 @@ $.fn.editFile = (query = 'none') => {
         </form>
       </div></div></div>`
       );
+      $.fn.closeDialog();
       let fileUpdated = false;
 
           if (record) {
@@ -4900,6 +4909,7 @@ $.fn.editFile = (query = 'none') => {
                let isFileValid = fileUpdated ? $.fn.isValidFile('file-upload') : true;
                  
               if (isValid && isFileValid ) {
+                $.fn.showLoadingDialog('Applying changes...')
                 $(this).attr('disabled','disabled');
                  const formData = new FormData();
                  formData.append("mode", titlePrefix.toLowerCase());
@@ -4958,7 +4968,7 @@ $.fn.editFile = (query = 'none') => {
 
 }
 $.fn.editTemplate = (query = 'none') => {
-
+  $.fn.showLoadingDialog('Please wait...');
   const objectType               = 'pagetemplates';
   $.fn.highlightSidebar(objectType)
   DisplayManager.lastRunFunction = `$.fn.editTemplate(${query == 'none' ? query : JSON.stringify(query)})`;
@@ -5024,6 +5034,8 @@ $.fn.editTemplate = (query = 'none') => {
         </form>
       </div></div></div>`
       );
+
+       $.fn.closeDialog()
       
       const ImageButton = function (context) {
         let ui = $.summernote.ui;
@@ -5105,6 +5117,7 @@ $.fn.editTemplate = (query = 'none') => {
               let isValid             = contents.length > 0 && $.fn.areFieldsValid('template-submit-btn', [ 'template-name','template-description'])
                  
               if (isValid ) {
+                $.fn.showLoadingDialog('Applying changes...')
                 $(this).attr('disabled','disabled');
                  const formData = new FormData();
                  formData.append("mode", titlePrefix.toLowerCase());
@@ -5157,7 +5170,7 @@ $.fn.editTemplate = (query = 'none') => {
 
 }
 $.fn.editPage = (query = 'none') => {
-
+  $.fn.showLoadingDialog('Please wait...');
   const objectType = 'pages';
   $.fn.highlightSidebar(objectType)
   DisplayManager.lastRunFunction = `$.fn.editPage(${query == 'none' ? query : JSON.stringify(query)})`;
@@ -5460,6 +5473,8 @@ $.fn.editPage = (query = 'none') => {
         </form>
       </div></div></div>`
       );
+
+      $.fn.closeDialog()
      
       if ($('#banner-type').val() == 1) {
         $('#banner-div').hide();
@@ -5717,6 +5732,7 @@ $.fn.editPage = (query = 'none') => {
       let isValid             = pageContents.length > 0 && $.fn.areFieldsValid('page-submit-btn', [ 'page-name', 'page-href']);
       
        if (isValid) {
+            $.fn.showLoadingDialog('Applying changes...')
             $(this).attr('disabled','disabled');
              pageContents = pageContents.replaceAll('="static', '="/static');
             const formData = new FormData();
@@ -5782,6 +5798,7 @@ $.fn.editPage = (query = 'none') => {
 
 }
 $.fn.editSection = (query = 'none') => {
+  $.fn.showLoadingDialog('Please wait...');
   const objectType = 'sections';
   $.fn.highlightSidebar(objectType)
   DisplayManager.lastRunFunction = `$.fn.editSection(${query == 'none' ? `'none'` : JSON.stringify(query)})`;
@@ -5871,7 +5888,9 @@ $.fn.editSection = (query = 'none') => {
                 </div>
               </form>
               </div></div></div>`
-          )
+          );
+
+          $.fn.closeDialog()
 
           if (record) {
             
@@ -5908,6 +5927,7 @@ $.fn.editSection = (query = 'none') => {
               let isValid = $.fn.areFieldsValid('section-submit-btn', ['section-name',  'section-description'])
 
               if (isValid) {
+                $.fn.showLoadingDialog('Applying changes...')
                 $(this).attr('disabled','disabled');
 
                 const formData = new FormData();
@@ -5954,6 +5974,7 @@ $.fn.editSection = (query = 'none') => {
 }
 
 $.fn.editTeamMember = (query = 'none') => {
+  $.fn.showLoadingDialog('Please wait...');
   const objectType = 'teammembers';
   $.fn.highlightSidebar(objectType)
   DisplayManager.lastRunFunction = `$.fn.editTeamMember(${query == 'none' ? `'none'` : JSON.stringify(query)})`;
@@ -6061,7 +6082,8 @@ $.fn.editTeamMember = (query = 'none') => {
                 </div>
               </form>
               </div></div></div>`
-          )
+          );
+          $.fn.closeDialog();
            $('.select2').select2();
            $('#teammember-cancel-btn').on('click', (e) => {
                 e.preventDefault();
@@ -6107,7 +6129,7 @@ $.fn.editTeamMember = (query = 'none') => {
 
               if (isValid  && $.fn.isValidJSON('#social-media',socialMedia)) {
                 $(this).attr('disabled','disabled');  
-
+                $.fn.showLoadingDialog('Applying changes...')
                 const formData = new FormData();
                 formData.append("mode", titlePrefix.toLowerCase());
                 if (titlePrefix.toLowerCase() == "edit") {
@@ -6156,6 +6178,7 @@ $.fn.editTeamMember = (query = 'none') => {
 }
 
 $.fn.editBanner = (query = 'none') => {
+  $.fn.showLoadingDialog('Please wait...');
   const objectType = 'banners';
   $.fn.highlightSidebar(objectType)
   DisplayManager.lastRunFunction = `$.fn.editBanner(${query == 'none' ? `'none'` : JSON.stringify(query)})`;
@@ -6284,7 +6307,8 @@ $.fn.editBanner = (query = 'none') => {
                 </div>
               </form>
               </div></div></div>`
-          )
+          );
+          $.fn.closeDialog();
 
           $('#banner-cancel-btn').on('click', (e) => {
                 e.preventDefault();
@@ -6321,6 +6345,7 @@ $.fn.editBanner = (query = 'none') => {
         
         if ($.fn.areFieldsValid('banner-submit-btn', ['title', 'name']) && isValidPageLink) {
               $(this).attr('disabled','disabled');
+              $.fn.showLoadingDialog('Applying changes...')
               const formData = new FormData();
               formData.append("mode", titlePrefix.toLowerCase());
               if (titlePrefix.toLowerCase() == "edit") {
@@ -6367,6 +6392,7 @@ $.fn.editBanner = (query = 'none') => {
 
 $.fn.editSlider = (query = 'none') => {
   const objectType = 'sliders';
+  $.fn.showLoadingDialog('Please wait...');
   $.fn.highlightSidebar(objectType)
   DisplayManager.lastRunFunction = `$.fn.editSlider(${query == 'none' ? `'none'` : JSON.stringify(query)})`;
   DisplayManager.lastObjectType = objectType;
@@ -6547,7 +6573,8 @@ $.fn.editSlider = (query = 'none') => {
                 </div>
               </form>
               </div></div></div>`
-          )
+          );
+          $.fn.closeDialog();
 
           $('#slider-cancel-btn').on('click', (e) => {
                 e.preventDefault();
@@ -6583,6 +6610,7 @@ $.fn.editSlider = (query = 'none') => {
         
         if ($.fn.areFieldsValid('slider-submit-btn', ['name', 'line1', 'line2'])) {
               $(this).attr('disabled','disabled');
+              $.fn.showLoadingDialog('Applying changes...');
               const formData = new FormData();
               formData.append("mode", titlePrefix.toLowerCase());
               if (titlePrefix.toLowerCase() == "edit") {
@@ -6627,6 +6655,7 @@ $.fn.editSlider = (query = 'none') => {
 
 }
 $.fn.editRole = (query = 'none') => {
+  $.fn.showLoadingDialog('Please wait...');
   const objectType = 'roles';
   $.fn.highlightSidebar(objectType)
   DisplayManager.lastRunFunction = `$.fn.editRole(${query == 'none' ? `'none'` : JSON.stringify(query)})`;
@@ -6692,7 +6721,8 @@ $.fn.editRole = (query = 'none') => {
                 </div>
               </form>
               </div></div></div>`
-          )
+          );
+          $.fn.closeDialog()
 
           if (record) {
             
@@ -6744,7 +6774,7 @@ $.fn.editRole = (query = 'none') => {
               let isValid = $.fn.areFieldsValid('role-submit-btn', ['role-name']) && description.length > 0
 
               if (isValid) {
-                    
+                $.fn.showLoadingDialog('Applying changes...')
 
                 const formData = new FormData();
                 formData.append("mode", titlePrefix.toLowerCase());
@@ -7517,6 +7547,7 @@ $("#gmail-api-key,#gmail-confirm-api-key").on('change', (e)=>{
          
          if ($.fn.areFieldsValid('gmail-submit-btn', ['gmail-account-name', 'gmail-server-address', 'gmail-email-address','gmail-api-key','confirm-gmail-api-key']) && apiKey.length > 0) {
           $(this).attr('disabled','disabled');
+          $.fn.showLoadingDialog('Applying changes...')
             const formData = new FormData();
            formData.append("mode", titlePrefix.toLowerCase());
            if (titlePrefix.toLowerCase() == "edit") {
@@ -7573,6 +7604,7 @@ $("#gmail-api-key,#gmail-confirm-api-key").on('change', (e)=>{
 
 }
 $.fn.editMailTemplate = (query = 'none') => {
+  $.fn.showLoadingDialog();
   const objectType = 'mailtemplates';
   $.fn.highlightSidebar(objectType)
   DisplayManager.lastRunFunction = `$.fn.editMailTemplate(${query == 'none' ? `'none'` : JSON.stringify(query)})`;
@@ -7645,7 +7677,7 @@ $.fn.editMailTemplate = (query = 'none') => {
               </form>
               </div></div></div>`
           )
-
+      $.fn.closeDialog()
 	  
 	const ImageButton = function (context) {
         let ui = $.summernote.ui;
@@ -7726,7 +7758,7 @@ $.fn.editMailTemplate = (query = 'none') => {
               let isValid = $.fn.areFieldsValid('template-submit-btn', ['template-name','template-description']) && description.length > 0
 
               if (isValid) {
-                    
+                $.fn.showLoadingDialog('Applying changes...')
                 $(this).attr('disabled','disabled');
                 const formData = new FormData();
                 formData.append("mode", titlePrefix.toLowerCase());
@@ -8069,6 +8101,7 @@ $.fn.editClient = (query = 'none') => {
               if (valid) {
                     
                 $(this).attr('disabled','disabled');
+                $.fn.showLoadingDialog('Applying changes...')
                 const formData = new FormData();
                 formData.append("mode", titlePrefix.toLowerCase());
                 if (titlePrefix.toLowerCase() == "edit") {
@@ -8121,6 +8154,7 @@ $.fn.editClient = (query = 'none') => {
 
 }
 $.fn.editPartner = (query = 'none') => {
+  $.fn.showLoadingDialog('Please wait...');
   const objectType = 'partners';
   $.fn.highlightSidebar(objectType)
   DisplayManager.lastRunFunction = `$.fn.editPartner(${query == 'none' ? `'none'` : JSON.stringify(query)})`;
@@ -8208,7 +8242,7 @@ $.fn.editPartner = (query = 'none') => {
                           </form>
                           </div></div></div>`
       );
-          
+          $.fn.closeDialog()
               $('#partner-cancel-btn').on('click', (e) => {
                     e.preventDefault();
                     $.fn.showTableRecords('partners');
@@ -8264,6 +8298,7 @@ $.fn.editPartner = (query = 'none') => {
                   if (isValid) {
                         
                     $(this).attr('disabled','disabled');
+                    $.fn.showLoadingDialog('Applying changes...')
                     const formData = new FormData();
                     formData.append("mode", titlePrefix.toLowerCase());
                     if (titlePrefix.toLowerCase() == "edit") {
@@ -8310,6 +8345,7 @@ $.fn.editPartner = (query = 'none') => {
 
 }
 $.fn.editServiceType = (query = 'none') => {
+  $.fn.showLoadingDialog('Please wait...');
   const objectType = 'servicetypes';
   $.fn.highlightSidebar(objectType)
   DisplayManager.lastRunFunction = `$.fn.editServiceType(${query == 'none' ? `'none'` : JSON.stringify(query)})`;
@@ -8375,7 +8411,8 @@ $.fn.editServiceType = (query = 'none') => {
                 </div>
               </form>
               </div></div></div>`
-          )
+          );
+          $.fn.closeDialog()
 
 
           $('#type-cancel-btn').on('click', (e) => {
@@ -8408,6 +8445,7 @@ $.fn.editServiceType = (query = 'none') => {
 
               if (isValid) {
                 $(this).attr('disabled','disabled');
+                $.fn.showLoadingDialog('Applying changes...')
 
                 const formData = new FormData();
                 formData.append("mode", titlePrefix.toLowerCase());
@@ -8452,6 +8490,7 @@ $.fn.editServiceType = (query = 'none') => {
 
 }
 $.fn.editService = (query = 'none') => {
+      $.fn.showLoadingDialog('Please wait...');
 			const objectType = 'services';
 			$.fn.highlightSidebar(objectType)
 			DisplayManager.lastRunFunction = `$.fn.editService(${query == 'none' ? `'none'` : JSON.stringify(query)})`;
@@ -8791,7 +8830,7 @@ $.fn.editService = (query = 'none') => {
 					  </form>
 					  </div></div></div>`
         );
-
+       $.fn.closeDialog();
       $('#avail-feature-rm-btn').on('click', (e) => {
                 e.preventDefault();
                 let optionsText  = $('#available-features').val();
@@ -8961,6 +9000,7 @@ $.fn.editService = (query = 'none') => {
             let isValid = $.fn.areFieldsValid('service-submit-btn', ['name', 'description']) && price.length > 0 && currency.length > 0 && availableFeatures.length > 0 && restrictedFeatures.length > 0
             if (isValid) {
               $(this).attr('disabled','disabled');
+              $.fn.showLoadingDialog('Applying changes...')
               const formData = new FormData();
               formData.append("mode", titlePrefix.toLowerCase());
               if (titlePrefix.toLowerCase() == "edit") {
@@ -9031,6 +9071,7 @@ $.fn.editService = (query = 'none') => {
 
 }
 $.fn.editEventType = (query = 'none') => {
+  $.fn.showLoadingDialog('Please wait...');
   const objectType = 'eventtypes';
   $.fn.highlightSidebar(objectType)
   DisplayManager.lastRunFunction = `$.fn.editEventType(${query == 'none' ? `'none'` : JSON.stringify(query)})`;
@@ -9137,7 +9178,7 @@ $.fn.editEventType = (query = 'none') => {
               </div></div></div>`
        );
 
-      
+        $.fn.closeDialog()
           $('#type-cancel-btn').on('click', (e) => {
                 e.preventDefault();
                 $.fn.showTableRecords('eventtypes');
@@ -9188,6 +9229,7 @@ $.fn.editEventType = (query = 'none') => {
               if (isValid) {
                     
                 $(this).attr('disabled','disabled');
+                $.fn.showLoadingDialog('Applying changes...')
                 const formData = new FormData();
                 formData.append("mode", titlePrefix.toLowerCase());
                 if (titlePrefix.toLowerCase() == "edit") {
@@ -9570,6 +9612,7 @@ $.fn.editSchedule = (query = 'none') => {
   
 }
 $.fn.editEventTrigger = (query = 'none') => {
+  $.fn.showLoadingDialog('Please wait...');
   const objectType = 'eventtriggers';
   $.fn.highlightSidebar(objectType)
   DisplayManager.lastRunFunction = `$.fn.editEventTrigger(${query == 'none' ? `'none'` : JSON.stringify(query)})`;
@@ -9718,7 +9761,8 @@ $.fn.editEventTrigger = (query = 'none') => {
                 </div>
               </form>
               </div></div></div>`
-      )
+      );
+      $.fn.closeDialog()
       if ($('#history-table')) {
              $('#history-table').dataTable();
             }
@@ -9773,6 +9817,7 @@ $.fn.editEventTrigger = (query = 'none') => {
                   if (isValid) {
                         
                     $(this).attr('disabled','disabled');
+                    $.fn.showLoadingDialog('Applying changes...')
                     const formData = new FormData();
                     formData.append("mode", titlePrefix.toLowerCase());
                     if (titlePrefix.toLowerCase() == "edit") {

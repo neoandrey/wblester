@@ -563,10 +563,11 @@ def add_record(data_type):
                 return jsonify({"message": "Role created successfully"})
             return jsonify({"message": "Role already exists"})
         elif data_type == "images":
+ 
             image_name = request.form.get("image_name")
             image_updated = request.form.get("image_updated")
             image_file = request.files.get("image_file") if image_updated else None
-            file_name = image_file.filename.replace('\\','/').split(os.sep)[-1] if image_file else None
+            file_name = image_file.filename.split(os.sep)[-1] if image_file else None
             image_format = file_name.split(".")[-1]
             image_size = request.form.get("size")
             image_type = request.form.get("image_type")
@@ -578,7 +579,9 @@ def add_record(data_type):
             image_webkit_relative_path = request.form.get("webkitRelativePath")
             image_dimensions = request.form.get("image_dimensions")
             filename = secure_filename(image_file.filename)
-            image_file_name = image_file.filename.replace('\\','/').split(os.sep)[-1]
+            print("filename: ", filename)
+            image_file_name = image_file.filename.replace('\\','/').split("/")[-1]
+            print("image_file_name: ",image_file_name)
             filename = filename.split(os.sep)[-1]
             if filename != "":
                 # print(filename)
@@ -600,13 +603,13 @@ def add_record(data_type):
             except Exception as _:
                 traceback.print_exc()
             upload_directory = image_path  # .replace("\\","\\\\"))
+            
             filepath = os.path.join(upload_directory, image_file_name)
             existing_image = Images.get({"file_path": filepath})
             folders = filepath.split(os.sep)
             index_of_static = folders.index("static")
             url_folders = folders[index_of_static:]
             image_url = "/" + "/".join(url_folders)
-
             image_check = True if existing_image else False
             if not image_check:
                 image_id = Images.get_next("image_id")
@@ -1830,7 +1833,7 @@ def add_record(data_type):
             image_id = request.form.get("image_id")
             image_name = request.form.get("image_name")
             image_file = request.files.get("image_file") if image_updated else None
-            file_name = image_file.filename.replace('\\','/').split(os.sep)[-1] if image_file else None
+            file_name = image_file.filename.replace('\\','/').split('/')[-1] if image_file else None
             image_format = file_name.split(".")[-1] if file_name else None
             image_size = request.form.get("size")
             image_type = request.form.get("image_type")
@@ -1841,12 +1844,13 @@ def add_record(data_type):
             transparent_background = convert_to_bool(
                 request.form.get("transparent_background")
             )
+            print("transparent_background ",transparent_background)
             image = None
             image = Images.get({"image_id": image_id})
             image_file_name = None
             if image_file:
                 filename = secure_filename(image_file.filename)
-                image_file_name = image_file.filename.replace('\\','/').split(os.sep)[-1]
+                image_file_name = image_file.filename.replace('\\','/').split('/')[-1]
                 filename = filename.split(os.sep)[-1]
                 if filename != "":
                     file_ext = os.path.splitext(filename)[1].replace(".", "")
@@ -1876,9 +1880,12 @@ def add_record(data_type):
 
             image_check = True if image else False
             if image_check:
+                image.transparent_background = transparent_background
 
                 # image.image_name = image_name
                 if str(image_updated).lower() == "true":
+                    if os.path.exists(filepath): 
+                        os.remove(filepath)  
                     image.file_name = (
                         image_file_name if image_file_name else image.file_name
                     )
@@ -1901,15 +1908,15 @@ def add_record(data_type):
                         if image_webkit_relative_path
                         else image.webkit_relative_path
                     )
-                    image.transparent_background = transparent_background
+                
                     image_file.save(image.file_path)
                     image_dimensions = image_dimensions.replace("'", '"')
                     resize_image(
                         filepath, json.loads(image_dimensions), transparent_background
                     )
-                image.image_dimensions = (
-                    image_dimensions if image_dimensions else image.image_dimensions
-                )
+                    image.image_dimensions = (
+                        image_dimensions if image_dimensions else image.image_dimensions
+                    )
                 image.last_modified_date = datetime.now()
                 image.save()
 
@@ -2746,7 +2753,13 @@ def remove_record(table):
     temp_data[id_field] = id_value
     entry_pending_removal = collection.find(temp_data)
     try:
+        if table_key in  ["Files", "Images"]:
+            file_path = entry_pending_removal.file_path
+            if os.path.exists(file_path): 
+                os.remove(file_path)  
         entry_pending_removal.delete()
+       
+
         user_id = (
             session["current_user"].user_id
             if "current_user" in session.keys() and session["current_user"].user_id
