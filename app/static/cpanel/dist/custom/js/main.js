@@ -4460,9 +4460,9 @@ $.fn.editImage = (query = 'none') => {
 
       let bgTransparentOptions = ['No','Yes'].map((opt, key) => {
         let selected = "";
-    if (opt == "Yes" && record && record.background_transpatent.toString() == "true") {
+    if (opt == "Yes" && record && Object.keys(record).includes('background_transpatent') && record.background_transpatent.toString() == "true") {
       selected = `selected="selected"`
-    } else if (opt == "No" && record && record.background_transpatent.toString() == "false")  {
+    } else if (opt == "No" && record && Object.keys(record).includes('background_transpatent') && record.background_transpatent.toString() == "false")  {
         selected = `selected="selected"`
      }else if (opt == "No" && !record )  {
         selected = `selected="selected"`
