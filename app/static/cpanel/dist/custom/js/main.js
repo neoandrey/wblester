@@ -4574,9 +4574,9 @@ $.fn.editImage = (query = 'none') => {
            imageUpdated = true;
            if (!$.fn.isValidImage('image-file')) {
               //console.log("Image is not valid o")
-              $('#image-file').addClass('is-invalid')
+              $('#image-file').addClass('is-invalid');
               $('#image-file').val('')
-             $('#preview-div').hide()
+             $('#preview-div').hide();
                               
           } else {
                                   

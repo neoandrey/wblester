@@ -567,7 +567,7 @@ def add_record(data_type):
             image_name = request.form.get("image_name")
             image_updated = request.form.get("image_updated")
             image_file = request.files.get("image_file") if image_updated else None
-            file_name = image_file.filename.split(os.sep)[-1] if image_file else None
+            file_name = image_file.filename.replace('\\','/').split('/')[-1] if image_file else None
             image_format = file_name.split(".")[-1]
             image_size = request.form.get("size")
             image_type = request.form.get("image_type")
@@ -582,7 +582,7 @@ def add_record(data_type):
             print("filename: ", filename)
             image_file_name = image_file.filename.replace('\\','/').split("/")[-1]
             print("image_file_name: ",image_file_name)
-            filename = filename.split(os.sep)[-1]
+            filename = filename.replace('\\','/').split('/')[-1]
             if filename != "":
                 # print(filename)
                 file_ext = os.path.splitext(filename)[1].replace(".", "")
@@ -606,7 +606,7 @@ def add_record(data_type):
             
             filepath = os.path.join(upload_directory, image_file_name)
             existing_image = Images.get({"file_path": filepath})
-            folders = filepath.split(os.sep)
+            folders = filepath.replace('\\','/').split('/')
             index_of_static = folders.index("static")
             url_folders = folders[index_of_static:]
             image_url = "/" + "/".join(url_folders)
@@ -682,7 +682,7 @@ def add_record(data_type):
             file_updated = request.form.get("file_updated")
             uploaded_file = request.files.get("uploaded_file") if file_updated else None
             actual_file_name = (
-                uploaded_file.filename.split(os.sep)[-1] if uploaded_file else None
+                uploaded_file.filename.replace('\\','/').split('/')[-1] if uploaded_file else None
             )
             file_format = file_name.split(".")[-1]
             file_size = request.form.get("size")
@@ -690,7 +690,7 @@ def add_record(data_type):
             file_last_modified = request.form.get("lastModified")
             file_webkit_relative_path = request.form.get("webkitRelativePath")
             filename = secure_filename(uploaded_file.filename)
-            filename = filename.split(os.sep)[-1]
+            filename = filename.replace('\\','/').split('/')[-1]
 
             if filename != "":
                 file_ext = os.path.splitext(filename)[1].replace(".", "")
@@ -718,7 +718,7 @@ def add_record(data_type):
             upload_directory = file_path  # .replace("\\","\\\\"))
             filepath = os.path.join(upload_directory, actual_file_name)
             existing_file = Files.get({"file_path": filepath})
-            folders = filepath.split(os.sep)
+            folders = filepath.replace('\\','/').split('/')
             index_of_static = folders.index("static")
             url_folders = folders[index_of_static:]
             file_url = "/" + "/".join(url_folders)
@@ -1851,7 +1851,7 @@ def add_record(data_type):
             if image_file:
                 filename = secure_filename(image_file.filename)
                 image_file_name = image_file.filename.replace('\\','/').split('/')[-1]
-                filename = filename.split(os.sep)[-1]
+                filename = filename.replace('\\','/').split('/')[-1]
                 if filename != "":
                     file_ext = os.path.splitext(filename)[1].replace(".", "")
                     if file_ext not in current_app.config["IMAGE_FORMATS"]:
@@ -1873,7 +1873,7 @@ def add_record(data_type):
 
                 upload_directory = image_path  # .replace("\\","\\\\"))
                 filepath = os.path.join(upload_directory, image_file_name)
-                folders = filepath.split(os.sep)
+                folders = filepath.replace('\\','/').split('/')
                 index_of_static = folders.index("static")
                 url_folders = folders[index_of_static:]
                 image_url = "/" + "/".join(url_folders)
@@ -1959,7 +1959,7 @@ def add_record(data_type):
             file_updated = request.form.get("file_updated")
             uploaded_file = request.files.get("uploaded_file") if file_updated else None
             file_name = (
-                uploaded_file.filename.split(os.sep)[-1] if uploaded_file else None
+                uploaded_file.filename.replace('\\','/').split('/')[-1] if uploaded_file else None
             )
             file_format = file_name.split(".")[-1]
             file_size = request.form.get("size")
@@ -1967,8 +1967,8 @@ def add_record(data_type):
             file_last_modified = request.form.get("lastModified")
             file_webkit_relative_path = request.form.get("webkitRelativePath")
             filename = secure_filename(uploaded_file.filename)
-            uploaded_file_name = uploaded_file.filename.split(os.sep)[-1]
-            filename = filename.split(os.sep)[-1]
+            uploaded_file_name = uploaded_file.filename.replace('\\','/').split('/')[-1]
+            filename = filename.replace('\\','/').split('/')[-1]
 
             if filename != "":
                 # print(filename)
@@ -1997,7 +1997,7 @@ def add_record(data_type):
             upload_directory = file_path  # .replace("\\","\\\\"))
             filepath = os.path.join(upload_directory, uploaded_file_name)
             existing_file = Files.get({"file_path": filepath})
-            folders = filepath.split(os.sep)
+            folders = filepath.replace('\\','/').split('/')
             index_of_static = folders.index("static")
             url_folders = folders[index_of_static:]
             file_url = "/" + "/".join(url_folders)
