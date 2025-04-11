@@ -829,14 +829,14 @@ class DataSynchronizer {
                 //         console.log(err)
                 //     }
                 // });
-                                    //let updatedColData = {}
-                // Array.from(updateSet).forEach((collection) => { 
+                  let updatedColData = {}
+                Array.from(updateSet).forEach((collection) => { 
                         
-                //             updatedColData[collection] =tableMap[collection].data
+                            updatedColData[collection] =tableMap[collection].data
 
-                //     })
-                  //  postMessage({ 'count': updateCount, 'collections':  updatedColData});
-                postMessage({ 'count': updateCount, 'collections': Array.from(updateSet), 'records': updateData, 'deleted': parameters.deleted ,'session': DataSynchronizer.session, 'dataPass':acky });
+                     })
+                   postMessage({ 'count': updateCount, 'collections':  updatedColData, 'records': updateData, 'deleted': parameters.deleted ,'session': DataSynchronizer.session, 'dataPass':acky });
+              //  postMessage({ 'count': updateCount, 'collections': Array.from(updateSet), 'records': updateData, 'deleted': parameters.deleted ,'session': DataSynchronizer.session, 'dataPass':acky });
                     
 			}
 							

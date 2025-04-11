@@ -10497,11 +10497,20 @@ $.fn.localSync = () => {
           })
           if (updatedCollections) {
             //eval(DisplayManager.lastRunFunction);
+          
               db.saveDatabase((data) => {
 
               if (DisplayManager.lastRunFunction && DisplayManager.lastRunFunction.trim() != "" && DisplayManager.lastRunFunction.trim() != "none") {
                 //console.log(`Executing: '${DisplayManager.lastRunFunction}'`)
-                eval(DisplayManager.lastRunFunction);
+                var regExp = /\(([^)]+)\)/;
+                var matches = regExp.exec(DisplayManager.lastRunFunction);
+                let collectionName = matches?matches[1].toLowerCase():'';
+                let matchingCollection = Object.keys(updatedCollections).filter((table) => table.toLowerCase()==collectionName)
+                if  (matchingCollection && matchingCollection.length>0){
+                  eval(DisplayManager.lastRunFunction);
+
+                }
+                
               }
 
 

@@ -169,6 +169,89 @@ $(window).load(function () {
           </fieldset>
         </form>`)
         });
+
+        
+$('.service-catalog').on('click', (e)=>{
+  e.preventDefault();
+    let  elementHtml = e.target.innetHTML?e.targetHTML.toLowerCase().trim():``
+	let  newHtml = "";
+	if(elementHtml.toLowerCase() == 'agriculture'){
+	    newHtml=`         <a href="/pages/services/agriculture"> Agriculture </a></h3>
+         <img src="/static/images/page3_img5.jpg" alt="" class="img_inner fleft i1">        
+         <div class="extra_wrapper">
+            <div class="col1"><a href="/pages/agriculture/livestock_farming">Livestock Farming</a></div>
+             We are dedicated to providing high-quality livestock, expert farming tips, and reliable resources to support your agricultural journey. Whether you're a seasoned farmer or just starting, we offer the guidance and products you need to raise healthy, productive animals. Explore our site for insights on animal care, sustainable farming practices, and the latest industry updates. Join our community and let’s grow together!
+         </div>
+         <div class="clear cl4"></div>
+         <img src="/static/images/page3_img6.jpg" alt="" class="img_inner fleft i1">        
+         <div class="extra_wrapper">
+            <div class="col1"><a href="/pages/agriculture/crop_farming">Crop Farming</a></div>
+             We are passionate about cultivating high-quality crops using sustainable and innovative farming practices. Whether you're a small-scale grower or a large agricultural enterprise, we provide expert insights, premium seeds, and essential resources to help you achieve a bountiful harvest. Explore our site for the latest farming techniques, seasonal tips, and industry trends. Let's nurture the land and grow success—one crop at a time! 
+         </div>
+         <div class="cl5 clear"></div>
+         <img src="/static/images/page3_img7.jpg" alt="" class="img_inner fleft i1">        
+         <div class="extra_wrapper">
+            <div class="col1"><a href="/pages/agriculture/agricultual_exports">Agricultural Exports</a></div>
+            We specialize in exporting premium agricultural products to global markets. With a commitment to quality, sustainability, and efficiency, we connect farmers with international buyers, ensuring fresh and high-grade produce reaches every corner of the world.Explore our range of export-grade crops, discover our seamless logistics solutions, and partner with us for reliable and competitive agricultural trade. 
+         </div>
+		 <div class="cl5 clear"></div>
+         <img src="/static/images/page3_img7.jpg" alt="" class="img_inner fleft i1">        
+         <div class="extra_wrapper">
+            <div class="col1"><a href="	/pages/services/agro-allied_manufacturing">Agro-allied Manufacturing</a></div>
+            We are committed to transforming agriculture through cutting-edge manufacturing solutions. From high-quality animal feed and fertilizers to farm equipment and agrochemicals, we provide essential products that enhance productivity and sustainability in the agricultural sector.Partner with us for reliable, efficient, and eco-friendly agro-allied solutions that empower farmers and agribusinesses worldwide.
+         </div>`
+	} else  if(elementHtml=="mining"){
+	
+		    newHtml=`<a href="/pages/services/agriculture"> Mining </a></h3>
+         <img src="/static/images/page3_img5.jpg" alt="" class="img_inner fleft i1">        
+         <div class="extra_wrapper">
+            <div class="col1"><a href="/pages/agriculture/livestock_farming">Lithium Mining</a></div>
+            Borem ipsum dolor sit amet consectetur adipiscing elitylot. Integer semper dapibus pharetra. Lenean atroli rhoncus justo. Aenean consectetur tellus non purus accumsan id mollisar lorem commodo. Otiam uis antet mattis laoreet risus eterto condimentum dui. Sed id elementum nibh. Nunc consewity ecetur metus eutrolur massa feugiat pellentesque. Praesentaloi accumsan eu sem non consectetur. Integer semper dapibus. 
+         </div>
+         <div class="clear cl4"></div>
+        `
+	}else  if(elementHtml=="aviation"){
+	
+  newHtml=`<a href="/pages/services/agriculture"> Aviation </a></h3>
+   <img src="/static/images/page3_img5.jpg" alt="" class="img_inner fleft i1">        
+   <div class="extra_wrapper">
+      <div class="col1"><a href="/pages/aviation/air_freight">Air Frieght</a></div>
+      Borem ipsum dolor sit amet consectetur adipiscing elitylot. Integer semper dapibus pharetra. Lenean atroli rhoncus justo. Aenean consectetur tellus non purus accumsan id mollisar lorem commodo. Otiam uis antet mattis laoreet risus eterto condimentum dui. Sed id elementum nibh. Nunc consewity ecetur metus eutrolur massa feugiat pellentesque. Praesentaloi accumsan eu sem non consectetur. Integer semper dapibus. 
+   </div>
+   <div class="clear cl4"></div>
+  `
+}else if (elementHtml=="electricity production"){
+
+  newHtml=`<a href="/pages/services/agriculture"> Agriculture </a></h3>
+         <img src="/static/images/page3_img5.jpg" alt="" class="img_inner fleft i1">        
+         <div class="extra_wrapper">
+            <div class="col1"><a href="/pages/electricity_production/solar_energ">Hydro Energy</a></div>
+            Borem ipsum dolor sit amet consectetur adipiscing elitylot. Integer semper dapibus pharetra. Lenean atroli rhoncus justo. Aenean consectetur tellus non purus accumsan id mollisar lorem commodo. Otiam uis antet mattis laoreet risus eterto condimentum dui. Sed id elementum nibh. Nunc consewity ecetur metus eutrolur massa feugiat pellentesque. Praesentaloi accumsan eu sem non consectetur. Integer semper dapibus. 
+         </div>
+         <div class="clear cl4"></div>
+         <img src="/static/images/page3_img6.jpg" alt="" class="img_inner fleft i1">        
+         <div class="extra_wrapper">
+            <div class="col1"><a href="/pages/electricity_production/wind_energy">Wind Energy</a></div>
+            Vhorem ipsum dolor sit amet consectetur adipiscing elitylot. Integer semper dapibus pharetra. Leneantrewi atroli rhoncus justo. Trenean consectetur tellus non purus accumsan id mollisar lorem commodo. Ktiam uis ante mattis oreet risus fsterto condimentum dui. Ked id elementum nibas. Func consewity ecetur metusewr eutrolur massa feugiat pellentesque. Varaesentaloi accumsan eu sem non consectetur. 
+         </div>
+         <div class="cl5 clear"></div>
+         <img src="/static/images/page3_img7.jpg" alt="" class="img_inner fleft i1">        
+         <div class="extra_wrapper">
+            <div class="col1"><a href="/pages/electricity_production/solar_energy">Solar Energy</a></div>
+            Mklotreorem ipsum dolor sit amet consectetur ipiscing elitylot. Integer semp dapibus pharetra. Leneantroliy atroli rhoncus justo. Menean consectetur tellus non purus accumsan id mollisar lorem commodo. Atiam uis ante mattis laoreet risus eterto condimentum dui. Sed id elementum nibh. Nunc consewity ecetur metustrell eutrolur massa feugiat pellentesque. Hraesentaloi accumsan eu sem non consectetuol. 
+         </div>
+		 <div class="cl5 clear"></div>
+         <img src="/static/images/page3_img7.jpg" alt="" class="img_inner fleft i1">        
+         <div class="extra_wrapper">
+            <div class="col1"><a href="	/pages/services/agro-allied_manufacturing">Agro-allied Exports</a></div>
+            Mklotreorem ipsum dolor sit amet consectetur ipiscing elitylot. Integer semp dapibus pharetra. Leneantroliy atroli rhoncus justo. Menean consectetur tellus non purus accumsan id mollisar lorem commodo. Atiam uis ante mattis laoreet risus eterto condimentum dui. Sed id elementum nibh. Nunc consewity ecetur metustrell eutrolur massa feugiat pellentesque. Hraesentaloi accumsan eu sem non consectetuol. 
+         </div>`
+
+}
+     $('#sub-services').html(newHtml);
+
+
+})
         </script>
 <script src="{{ url_for('static', filename='js/sForm.js')}}"></script>
 <script src="{{ url_for('static', filename='js/forms.js')}}"></script>
