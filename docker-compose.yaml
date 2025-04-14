@@ -1,0 +1,81 @@
+---
+services:
+  queue:
+    image: redis
+    restart: always
+    ports:
+      - 7379:6379
+    command: /bin/sh -c "redis-server --requirepass WBLesterRed1s123! --appendonly yes" #redis-server, --requirepass WBLesterRed1s123!, --appendonly yes,  --save  60 100, --replicaof  no one
+    volumes:
+      - ./data/redis:/data
+  db:
+    image: mongo
+    restart: always
+    ports:
+      - 24014:27017
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=mongo
+      - MONGO_INITDB_ROOT_PASSWORD=WBLester123!
+    volumes:
+      - ./data/mongo/tmp:/tmp/data
+      - ./data/mongo/db:/data/db
+      - ./data/mongo/log:/log
+  express:
+    image: mongo-express
+    restart: always
+    ports:
+      - 9091:8081
+    environment:
+      - ME_CONFIG_BASICAUTH_USERNAME=admin
+      - ME_CONFIG_BASICAUTH_PASSWORD=Password123
+      - ME_CONFIG_MONGODB_ENABLE_ADMIN=true
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=mongo
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=WBLester123!
+      - ME_CONFIG_MONGODB_PORT=27017
+      - ME_CONFIG_MONGODB_SERVER=db
+    depends_on:
+      - db
+  worker:
+    image: wblester_v1.0.0
+    entrypoint: ['./entrypoint.sh', 'worker']
+    ports:
+      - 5000:5000
+      - 8336:80
+      - 443:443
+    environment:
+      - MONGODB_URL=mongodb://mongo:WBLester123!@db:27017/wblesterdb?authSource=admin&directConnection=true
+      #- MONGODB_URL=mongodb://mongo:WBLester123!@172.22.6.132:29019/wblesterdb?authSource=admin&directConnection=true
+      - MONGODB_DB=wblesterdb
+      - REDIS_URL=rediss://:WBLesterRed1s123!@queue:6379
+      - REDIS_QUEUE_NAME=WBLESTER_QUEUE
+      - PORT=5000
+      - WORKER_SCRIPT=redis_worker.py
+      - WORKER_PATH=wblester
+      - REQUIREMENTS_FILE=worker_requirements.txt
+      - WORKER_NAME=wblester-redis-worker-01
+      - FLASK_ENV=development # remove this and the mounted volume for production run
+    volumes:
+      - .:/opt/wblester
+
+    depends_on:
+      - queue
+      - db
+    restart: always
+  web:
+    image: wblester_v1.0.0
+    entrypoint: ['./entrypoint.sh', 'web']
+    ports:
+      - 9499:9499
+    environment:
+      - MONGODB_URL=mongodb://mongo:WBLester123!@db:27017/wblesterdb?authSource=admin
+      #- MONGODB_URL=mongodb://mongo:WBLester123!@172.22.6.132:29019/wblesterdb?authSource=admin&directConnection=true
+      - MONGODB_DB=wblesterdb
+      - REDIS_URL=redis://:WBLesterRed1s123!@queue:6379
+      - REDIS_QUEUE_NAME=WBLESTER_QUEUE
+      - PORT=9499
+      - FLASK_ENV=development # remove this and the mounted volume for production run
+    volumes:
+      - .:/opt/wblester
+    depends_on:
+      - queue
+      - db
