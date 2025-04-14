@@ -1,23 +1,23 @@
 <footer>
   <div class="container_12">
-    <div class="grid_2">
+    <div class="grid_4">
       <div class="copy"> <a href="/pages/home" class="footer_logo"><img src="{{options.siteSettings.site_logo}}"	alt=""></a> &copy;<span id="current-year">{{ options.year }}</span>  <a href="#">Privacy Policy</a> </div>
     </div>
-    <div class="grid_2">
+    <div class="grid_4">
       <ul>
         {% for page in options.navPages %}
             <li><a href="/pages/{{ page.href |replace('#','')}}">{{ page.page_name.replace("_", " ")|title }}</a></li>
         {% endfor %}
       </ul>
     </div>
-    <div class="grid_2">
+    <div class="grid_4">
       <ul>
         {% for service in options.services %}
             <li><a href="/pages/{{ service.href |replace('#','')}}">{{ service.page_name.replace("_", " ")|title }}</a></li>
         {% endfor %}
       </ul>
     </div>
-    <div class="grid_3 prefix_1">
+    <div class="grid_3 prefix_1" style="display:none">
       <h4>Newsletter</h4>
       <form id="newsletter" action="#">
         <div class="success">Your subscription request has been sent!</div>

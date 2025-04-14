@@ -21,7 +21,7 @@
 </div>
 <span style="display:none">
     <form name="utility_form" id="utility-form">
-        <input type="hidden" name="site_logo" id="site-logo" value="{{ options.siteSettings.site_logo if 'siteSettings' in options else '/static/logo.png'  }}" />
+        <input type="hidden" name="site_logo" id="site-logo" value="{{ options.siteSettings.site_icon if 'siteSettings' in options else '/static/logo.png'  }}" />
         <input type="hidden" name="start_time" id="start-time" value="{{ options.startTime }}" />
         <input type="hidden" name="time_out" id="time-out" value="{{ options.timeOut }}" />
         <input type="hidden" name="end_time" id="end-time" value="" />

@@ -217,7 +217,7 @@ def log_event_details(parameters):
     event_type = None
     mail_template = None
     schedule = None
-    # print(parameters)
+  
     if "start" in parameters and parameters["start"]:
         parameters["start"] = False
         event_id = parameters["event_id"]
@@ -725,3 +725,213 @@ def save_preformatted_page_handler(page_name, page_contents):
                 )
                 job.jobStatus = Jobs.FAILED
                 job.save()
+
+
+def client_message_handler(parameters):
+    """
+    Sends emails to and from clients. Some parameters are required for Jobs and Events.
+    Handler Parameters:
+    client_id  => for tests purposes. A separate function should be created later on for client registration
+    sender_name
+    subject
+    """
+
+    task_parameters = log_event_details(parameters)
+    recipient =  task_parameters["parameters"]["recipient"]
+    mail_template = task_parameters["mail_template"]
+    event = task_parameters["event"]
+    job = task_parameters["job"]
+    schedule = task_parameters["schedule"]
+    site_settings = SiteSettings.get({"settings_id": 1})
+
+    try:
+
+        job_name = task_parameters["parameters"]["job_name"]
+        queue = rq.Queue(
+            current_app.config["REDIS_QUEUE_NAME"], connection=current_app.redis
+        )
+        mailing_details = (
+            site_settings.default_mailing_account
+            if "default_mailing_account" in site_settings
+            else "imap,1"
+            # else "gmail,1"
+        )
+        mail_type = mailing_details.split(",")[0]
+        account_id = mailing_details.split(",")[1]
+        if mail_type == "gmail":
+
+            gmail_account = GMailAccounts.get({"account_id": account_id})
+            gmail_server = gmail_account.servers
+            email_address = gmail_account.email_address
+            credential_file = linuxize_file(gmail_account.credential_file)
+            token_file = linuxize_file(gmail_account.token_file)
+            # print(gmail_server, email_address, credential_file, token_file)
+            gmail_helper = GmailHelper(
+                gmail_server,
+                email_address,
+                credential_file,
+                token_file,
+            )
+            service = gmail_helper.gmail_authenticate("gmail")
+
+            event.notification_status = Events.PENDING
+            event.current_version = int(event.current_version) + 1
+            event.last_modified_date = datetime.now()
+            event.save()
+
+            body = """<html>
+            <body><style>
+            font-size:12px;
+            font-family: "Times New Roman", Arial, Helvetica, Times, serif;
+            body {
+                font-size: 16px !important;
+            }
+            table, th, td {
+                border: 1px solid black;
+                border-collapse: collapse;
+            }
+            th, td {
+                padding: 10px;
+                text-align: left;
+            }
+            table{
+                    width: 80%;    
+            }
+            </style>
+            """
+            mail_draft = parse_contents(
+                mail_template.contents, task_parameters["parameters"]
+            )
+            mail_draft, image_attachments = get_image_attachments(mail_draft)
+            mail_draft, file_attachments = get_file_attachments(mail_draft)
+            body += mail_draft
+            destination = recipient  # task_parameters["parameters"]["recipients"]
+            sbj = task_parameters["parameters"]["subject"]
+            body += "<br />"
+            # body += "Best regards,"
+            # body += "<br />"
+            # body += task_parameters["parameters"]["sender_name"]
+            body += "</body></html>"
+            # print("attachments: ", image_attachments)
+            # print("file_attachments: ", file_attachments)
+            file_attachments = file_attachments + (image_attachments)
+            gmail_helper.send_message(service, destination, sbj, body, file_attachments)
+            event.notification_status = Events.SENT
+            event.current_version = int(event.current_version) + 1
+            event.last_modified_date = datetime.now()
+            event.save()
+        else:
+            imap_account = IMAPAccounts.get({"account_id": account_id})
+            event.notification_status = Events.PENDING
+            event.current_version = int(event.current_version) + 1
+            event.last_modified_date = datetime.now()
+            event.save()
+
+            body = """<html>
+            <body><style>
+            font-size:12px;
+            font-family: "Times New Roman", Arial, Helvetica, Times, serif;
+            body {
+            font-size: 16px !important;
+            }
+            table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+            }
+            th, td {
+            padding: 10px;
+            text-align: left;
+            }
+            table{
+            width: 80%;    
+            }
+            </style>
+            """
+            mail_draft = parse_contents(
+                mail_template.contents, task_parameters["parameters"]
+            )
+            mail_draft, image_attachments = get_image_attachments(mail_draft)
+            mail_draft, file_attachments = get_file_attachments(mail_draft)
+            body += mail_draft
+            destination = recipient  # task_parameters["parameters"]["recipients"]
+            sbj = task_parameters["parameters"]["subject"]
+            body += "<br />"
+            # body += "Best regards,"
+            # body += "<br />"
+            # body += task_parameters["parameters"]["sender_name"]
+            body += "</body></html>"
+            file_attachments = file_attachments + (image_attachments)
+            plain_message = MIMEText(mail_template.contents, "plain")
+            html_message = MIMEText(body, "html")
+
+            message = MIMEMultipart("alternative")
+            # message = MIMEMultipart()
+            message["Subject"] = task_parameters["parameters"]["subject"]
+            message["From"] = task_parameters["parameters"][
+                "sender_name"
+            ]  # imap_account.imap_username
+            message["To"] = destination
+            message.attach(plain_message)
+            message.attach(html_message)
+
+            for attachment in file_attachments:
+                message.attach(ImapEmailHelper.add_attachment(attachment))
+
+            with smtplib.SMTP(
+                imap_account.imap_server_address, imap_account.imap_port
+            ) as server:
+                server.starttls()
+                server.login(
+                    imap_account.imap_username,
+                    key_maker.multiDemystify(
+                        imap_account.imap_password,
+                        current_app.config["CIPHER_COUNT"],
+                    ),
+                    initial_response_ok=True,
+                )
+                server.sendmail(
+                    imap_account.imap_username,
+                    recipient,  # task_parameters["parameters"]["recipients"],
+                    message.as_string(),
+                )
+                event.notification_status = Events.SENT
+                event.save()
+        job.complete = True
+        job.endTime = datetime.now()
+        job.info = job.info + [f"Job complete successfully at {job.endTime}."]
+        job.jobStatus = Jobs.SUCCEEDED
+        job.progress = 100.0
+        job.current_version = int(job.current_version + 1)
+        job.last_modified_date = datetime.now()
+        job.save()
+        interval = schedule.get_interval()
+        if interval:
+            queue.enqueue_in(
+                timedelta(seconds=interval),
+                job_name,
+                args=[task_parameters["parameters"]],
+                job_timeout=current_app.config["SYNC_INTERVAL"],
+                retry=Retry(max=3, interval=[10, 30, 60]),
+            )
+    except:
+        job.complete = False
+        job.endTime = datetime.now()
+        job.info = job.info + [f"Job failed at {job.endTime}."]
+        job.errors = job.errors + [str(format_exc())]
+        job.jobStatus = Jobs.FAILED
+        job.progress = 100.0
+        job.current_version = int(job.current_version + 1)
+        job.last_modified_date = datetime.now()
+        job.save()
+        traceback.print_exc()
+
+    interval = schedule.get_interval()
+    if interval:
+
+        queue.enqueue_in(
+            timedelta(seconds=interval),
+            f"app.tasks.{job_name}",
+            args=[task_parameters["parameters"]],
+            job_timeout=current_app.config["SYNC_INTERVAL"],
+            retry=Retry(max=3, interval=[10, 30, 60]),
+        )

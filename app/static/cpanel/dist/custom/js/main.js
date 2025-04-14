@@ -14,11 +14,11 @@ new DisplayManager()
 window.DisplayManager = DisplayManager; // Workaround for RequestHandler importing DisplayManager
 window.dataSynchronizer = dataSynchronizer; // Workaround for RequestHandler importing DataSynchronizer
 const defaultVersionMap = {}
-window.syncID = -1
+window.syncID = -1;
 window.requestHandler = new RequestHandler();
-const config = window.config
-const appConfig  = window.appConfig
-//window.isUpdateRunning= false
+const config = window.config;
+const appConfig = window.appConfig;
+
 let  dashWorker = null;
 let syncWorker = null;
 window.tableMap = {};
@@ -31,7 +31,7 @@ const pa = new loki.LokiPartitioningAdapter(idbAdapter, { paging: false }); // P
 let db = new loki(dbName, {
   adapter: pa
 });
-//console.log(`main database name: ${dbName}`)
+
 $.fn.databaseInitialize = () => {
   let dbCollections = db.collections;
   window.config.syncInfo.cpanel.filter((x => !dbCollections.includes(x.collectionName))).forEach((collection) => {
@@ -99,6 +99,7 @@ if (Object.keys(DisplayManager.collectionVersionMap).length > 0) {
   DisplayManager.collectionVersionMap = defaultVersionMap;
 }
 
+
     
 /**
  * ==============================================================================================================
@@ -123,11 +124,12 @@ $.fn.showText = (id, test) => {
 }
 
 function isOnline() {
+  /** Check if server is reachable */
   return window.navigator.onLine;
 }
 
 function startSync() {
-
+ /**Synchronize local cache with server */
   if (window.syncID === -1) {
 
     window.syncID = setInterval(() => {
@@ -151,6 +153,7 @@ function startSync() {
 }
 
 $.fn.isValidFile = (elementID) => {
+  /*check if file format is acceptable*/
   let files = document.getElementById(elementID).files;
   //console.log("files", files);
   if (files) {
@@ -177,6 +180,7 @@ $.fn.isValidFile = (elementID) => {
 }
 
 $.fn.isValidImage = (elementID) => {
+  /* Check if image format is acceptable*/
   let files = document.getElementById(elementID).files;
   if (files){
       let imagePath = files[0]?.name;
@@ -276,8 +280,8 @@ $.fn.isValidURL= (value)=> {
   var pattern = new RegExp('^(https?:\\/\\/)?'+ // protocol
     '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|'+ // domain name
     '((\\d{1,3}\\.){3}\\d{1,3}))'+ // OR ip (v4) address
-    '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*'+ // port and path
-    '(\\?[;&a-z\\d%_.~+=-]*)?'+ // query string
+    '(\\:\\d+)?(\\/[-a-z\\d%_.~+!]*)*'+ // port and path
+    '(\\?[;&a-z\\d%_.~!+=-]*)?'+ // query string
     '(\\#[-a-z\\d_]*)?$','i'); // fragment locator
   return !!pattern.test(value);
 }
@@ -320,15 +324,15 @@ $.fn.highlightSidebar = (objectType) =>{
   
   let currentPage = DisplayManager.currentTab;
   const sidebarPositionMap = currentPage.toLowerCase() == 'configurations' ? {
-    "sitesettings": 0
+        "sitesettings": 0
         ,"roles": 1
         ,"users": 2
         ,"mailaccounts": 3
         ,"mailtemplates": 4
         , "eventtypes": 5
-        , "events": 6
-        , "schedules": 7
-        , "eventtriggers": 8
+        , "schedules": 6
+        , "eventtriggers": 7
+        , "events": 8
         ,"jobs": 9
         ,"audittrail": 10
   } : currentPage.toLowerCase() == 'components' ? {
@@ -342,7 +346,7 @@ $.fn.highlightSidebar = (objectType) =>{
      
   }: {
       
-      "dashboard":0
+      "messages":0
       ,"feedback":1
       , "ratings": 2
       ,"messages":3
@@ -644,28 +648,31 @@ $.fn.getRepeatString = (repeat)=>{
   let repeatVal    = repeat?parseInt(repeat):0;
   let repeatString = "No";
   
-  if  (repeatVal == (3600 *24 *30*12)){
+  if (repeatVal == (3600 * 24 * 30 * 12)) {
   
-       repeatVal = 'yearly';
+    repeatVal = 'yearly';
    
-  }else if(repeatVal == 3600 *24 *30*3){
+  } else if (repeatVal == 3600 * 24 * 30 * 3) {
   
     repeatString = 'quarterly';
   
-  }else if(repeatVal == 3600 *24 *30){
+  } else if (repeatVal == 3600 * 24 * 30) {
   
     repeatString = 'monthly';
     
-  }else if(repeatVal == 3600 *24 *7*2){
+  } else if (repeatVal == 3600 * 24 * 7 * 2) {
     repeatString = 'bi-weekly';
-  }else if(repeatVal == 3600 *24 *7){
+  } else if (repeatVal == 3600 * 24 * 7) {
     repeatString = 'weekly'
-  }else if(repeatVal == 3600 *24){
+  } else if (repeatVal == 3600 * 24) {
     repeatString = 'daily';
-  }else if(repeatVal == 3600){
+  } else if (repeatVal == 3600) {
     repeatString = 'hourly';
-  }else{
-       repeatString="No";
+  } else if (repeatVal == 0) {
+    repeatString = 'none';
+  } else { 
+
+    repeatString='custom'
   }
 
    return repeatString
@@ -716,8 +723,7 @@ $.fn.highlightNavHeader = (currentHeading) => {
 
     })
   
-  } 
-
+} 
 $.fn.showImagePrompt = (imageURl) => {
   let imageProps = tableMap['Images'] ? tableMap['Images'].find({ 'google_url': imageURl }) : null
   imageProps = imageProps && imageProps.length >= 1 ? imageProps[0] : imageProps
@@ -792,8 +798,6 @@ $.fn.displayImage = (imageID) => {
     $.fn.showAlert(`Image:${imageID} could not be loaded`,"warning","$.fn.cancelDialog()")
   }
 
-
-
 };
 $.fn.displayRecords= (title,objectType,idField, recordID) => {
   let modalOptions = {
@@ -804,6 +808,7 @@ $.fn.displayRecords= (title,objectType,idField, recordID) => {
   let temp ={}
   temp[idField] = recordID
   let recordInfo = tableMap[objectType] ? tableMap[objectType].find(temp) : null;
+  //console.log('recordInfo: ',recordInfo)
   recordInfo = recordInfo && recordInfo.length >= 1 ? recordInfo[0] : recordInfo;
   objectType=objectType.toLowerCase()
 
@@ -814,18 +819,22 @@ $.fn.displayRecords= (title,objectType,idField, recordID) => {
     Object.keys(recordInfo).filter((field)=>!['$loki','_id','_cls','meta'].includes(field)).forEach((field) => {
       
       if ($.fn.getObjectType(recordInfo[field]) == "object") { 
-              let info =''
+        let info =''
+        let tempRecord = null;
         if (field == "template") {
           let tempRecords = Object.keys(window.tableMap).includes('MailTemplates') && window.tableMap['MailTemplates'].data.length > 0 ? window.tableMap['MailTemplates'].data : [];
-          let tempRecord = tempRecords.length > 0 ? tempRecords.filter((temp) => recordInfo[field]['$oid'] == temp._id)[0] : [];
+          tempRecord = tempRecords.length > 0 ? tempRecords.filter((temp) => recordInfo[field]['$oid'] == temp._id)[0] : [];
           ['$loki', '_id', '_cls', 'meta'].forEach((field) => {
-
-            delete tempRecord[field];
+            if (tempRecord && tempRecord[field])
+              delete tempRecord[field];
           })
           info = JSON.stringify(tempRecord);
-        } else if (field == "startTime") {
-          info=$.fn.displayDate(tempRecord[field])
+        } else if (field == "startTime" && tempRecord) {
+          info = $.fn.displayDate(tempRecord[field])
                 
+        } else { 
+          recordInfo[field] = '';
+
         }
 
         recordDetails.push(`
@@ -911,7 +920,7 @@ $.fn.updateEventStatus = (eventID) => {
   recordSelect['event_id']=eventID
   let eventData = window.tableMap['Events'].find(recordSelect)
   let eventInfo = Array.isArray(eventData) ? eventData[0] : null;
-   let titlePrefix = eventInfo ? 'Edit' : 'New';
+  let titlePrefix = eventInfo ? 'Edit' : 'New';
   $('#modal-content').html(`
   <div class="card card-primary" id="event-header">
     <div class= "card-header">
@@ -946,7 +955,7 @@ $('#myModal').show();
 $("#event-status option[value=" + eventInfo.event_status + "]").attr('selected', 'selected'); 
 $("#event-status option[value=" + eventInfo.event_status + "]").attr('value', eventInfo.event_status)
 
-  $('#event-update-bttn').on('click',(e)=>{
+$('#event-update-bttn').on('click',(e)=>{
 	  e.preventDefault();
       let eventStatus      =  $('#event-status').val();
       const formData = new FormData();
@@ -977,9 +986,42 @@ $("#event-status option[value=" + eventInfo.event_status + "]").attr('value', ev
 
  
 
-  })
+})
 
 }
+
+$.fn.retryEvent = (eventID, eventStatus) => {
+   let btnId =  event.target.id
+  $(btnId).attr("disabled","disabled")
+  const objectType = "events";
+  const formData = new FormData();
+  formData.append("event_id", eventID)
+  formData.append("event_status", eventStatus);
+  formData.append("acky", currentUser.acky);
+    
+  $.ajax({
+    url: "/cpanel/events",
+    type: "POST",
+    data: formData,
+    processData: false,
+    contentType: false,
+    //async: true,
+    crossDomain: true,
+    success: (result) => {
+      $.fn.showUpdatedTable(result, objectType)
+       $(btnId).removeAttr("disabled")
+    },
+    error: (e) => {
+            
+      $.fn.showAlert('Events Update Failed', 'danger', () => { $.fn.showTableRecords(objectType) })
+
+    }
+
+
+  });
+  
+}
+  
 $.fn.show404Error =() =>{
 	  $('#contentwrapper-node').html(`
 	      <!-- Content Header (Page header) -->
@@ -1390,7 +1432,6 @@ $.fn.checkMappedProps= (mapPropList, columnCheckParity)=>{
   return isReallyValid
 
 }
-
 $.fn.addObjectMapperRowOld = (id) =>{
     const mapperTable = $(`#${id}-table`).DataTable();
     let   rowNumber =  mapperTable.rows().count();
@@ -1415,7 +1456,6 @@ $.fn.addObjectMapperRowOld = (id) =>{
         ])
         .draw()
 }
-
 $.fn.removeMapRecordOld = (id, rowNumber) => {
   const mapperTable = $(`#${id}-table`).DataTable();
   let rowIdx = -1;
@@ -1522,7 +1562,7 @@ $.fn.refreshLocalTables = () => {
   
 }
 
-$.fn.getTableRecords =  (objectType, serverRecords) => {
+$.fn.getTableRecords = (objectType, serverRecords) => {
  
   let records = []
   let columns = [{
@@ -1532,459 +1572,584 @@ $.fn.getTableRecords =  (objectType, serverRecords) => {
   }];
  
   if (objectType == 'admin') {
-       objectType = 'users'
+    objectType = 'users'
   }
   //if (currentUserRoleID == 1) {
   
-      let dbRecords = serverRecords && (serverRecords.length> 0 || $.fn.getObjectType(serverRecords)=="object")? serverRecords : Object.keys(window.tableMap).includes($.fn.capitalize(objectType)) && window.tableMap[$.fn.capitalize(objectType)].data ? window.tableMap[$.fn.capitalize(objectType)].data : null;
-      if (objectType        == 'sitesettings') {
+  let dbRecords = serverRecords && (serverRecords.length > 0 || $.fn.getObjectType(serverRecords) == "object") ? serverRecords : Object.keys(window.tableMap).includes($.fn.capitalize(objectType)) && window.tableMap[$.fn.capitalize(objectType)].data ? window.tableMap[$.fn.capitalize(objectType)].data : [];
+  if (objectType == 'sitesettings') {
             
-                if (dbRecords && dbRecords.length > 0) {
+    if (dbRecords && dbRecords.length > 0) {
                                   
-                  records = dbRecords.map((row) => {
+      records = dbRecords.map((row) => {
                       
-                      //["social_media", "overrides", "sqlalchemy_track_modifications", "profile_image_dimensions", "admins", "languages", "ms_translator_key", "upload_extensions", "image_types", "image_formats", "excluded_file_formats", "sync_info"].forEach((r) => delete row[r])
-                      //let deleteInfo = `\\'sitesettings,${row.user_id}\\'`;
+        //["social_media", "overrides", "sqlalchemy_track_modifications", "profile_image_dimensions", "admins", "languages", "ms_translator_key", "upload_extensions", "image_types", "image_formats", "excluded_file_formats", "sync_info"].forEach((r) => delete row[r])
+        //let deleteInfo = `\\'sitesettings,${row.user_id}\\'`;
 
-                      row['created_datetime']   = $.fn.displayDate (row, 'created_datetime')
-                      row['last_modified_date'] = $.fn.displayDate(row, 'last_modified_date') 
+        row['created_datetime'] = $.fn.displayDate(row, 'created_datetime')
+        row['last_modified_date'] = $.fn.displayDate(row, 'last_modified_date')
                 
-                      if (currentUserRoleID == 1) {
-                        row['Actions'] = `<div class="row"><div class="col-md-6"><button class="btn btn-secondary btn-md" onClick="$.fn.editSettings({'settings_id': 1})">Edit</button></div><div class="col-md-6"></div>`;
-                      }
+        if (currentUserRoleID == 1) {
+          row['Actions'] = `<div class="row"><div class="col-md-6"><button class="btn btn-secondary btn-md" onClick="$.fn.editSettings({'settings_id': 1})">Edit</button></div><div class="col-md-6"></div>`;
+        }
 
-                      return row;
+        return row;
 
-                    });
+      });
                                 
-                }
+    }
 
-      } else if (objectType == 'users') {
+  } else if (objectType == 'users') {
             
-        if (dbRecords && dbRecords.length > 0) {
+    if (dbRecords && dbRecords.length > 0) {
                           
-          records = dbRecords.map((row) => {
-            //console.log(row)
-            let deleteInfo = `\\'users,${row.user_id}\\'`;
-            if (currentUserRoleID == 1) {
-              row['Actions'] = `<div class="row"><div class="col-md-6"><button class="btn btn-secondary btn-md" onClick="$.fn.editUser({'user_id': ${row.user_id}})">Edit</button></div><div class="col-md-6"><button class="btn btn-danger btn-md" onClick="$.fn.showConfirmDialog('Delete User', 'Are you sure that you want to delete the User with id: ${row.user_id}?', '$.fn.removeRecord(${deleteInfo})' )">Delete</button></div></div>`;
-            }
-            row['last_modified_date'] = $.fn.displayDate(row, 'last_modified_date')
-            return row;
+      records = dbRecords.map((row) => {
+        //console.log(row)
+        let deleteInfo = `\\'users,${row.user_id}\\'`;
+        if (currentUserRoleID == 1) {
+          row['Actions'] = `<div class="row"><div class="col-md-6"><button class="btn btn-secondary btn-md" onClick="$.fn.editUser({'user_id': ${row.user_id}})">Edit</button></div><div class="col-md-6"><button class="btn btn-danger btn-md" onClick="$.fn.showConfirmDialog('Delete User', 'Are you sure that you want to delete the User with id: ${row.user_id}?', '$.fn.removeRecord(${deleteInfo})' )">Delete</button></div></div>`;
+        }
+        row['last_modified_date'] = $.fn.displayDate(row, 'last_modified_date')
+        return row;
 
-          })
+      })
 
                               
-        }
+    }
 
-      } else if (objectType == 'roles') {
+  } else if (objectType == 'roles') {
           
-          if (dbRecords && dbRecords.length > 0) {
+    if (dbRecords && dbRecords.length > 0) {
                                 
-            records = dbRecords.map((row) => {
-              let deleteInfo = `\\'roles,${row.role_id}\\'`
+      records = dbRecords.map((row) => {
+        let deleteInfo = `\\'roles,${row.role_id}\\'`
               
-              return {
-                ...row,
-                'created_datetime':  $.fn.displayDate(row, 'created_datetime')
-                , 'last_modified_date':  $.fn.displayDate(row, 'last_modified_date') 
-              //  , 'Actions': `<button class="btn btn-secondary btn-md" onClick="$.fn.editRole({'role_id': ${row.role_id}})">Edit</button><button class="btn btn-danger btn-md" onClick="$.fn.showConfirmDialog('Delete Role', 'Are you sure that you want to delete the Role with id: ${row.roles_id}?', '$.fn.removeRecord(${deleteInfo})' )">Delete</button>`
-              }
-            })                           
+        return {
+          ...row,
+          'created_datetime': $.fn.displayDate(row, 'created_datetime')
+          , 'last_modified_date': $.fn.displayDate(row, 'last_modified_date')
+          //  , 'Actions': `<button class="btn btn-secondary btn-md" onClick="$.fn.editRole({'role_id': ${row.role_id}})">Edit</button><button class="btn btn-danger btn-md" onClick="$.fn.showConfirmDialog('Delete Role', 'Are you sure that you want to delete the Role with id: ${row.roles_id}?', '$.fn.removeRecord(${deleteInfo})' )">Delete</button>`
         }
-      } else if (objectType == 'images') {
+      })
+    }
+  } else if (objectType == 'images') {
           
-        if (dbRecords && dbRecords.length > 0) {
+    if (dbRecords && dbRecords.length > 0) {
                               
-          records = dbRecords.map((row) => {
-            let deleteInfo = `\\'images,${row.image_id}\\'`;
-            let fileName = row.image_url.split("/").pop();
-            if (currentUserRoleID == 1) {
-              return {
-                ...row,
-                'image_url': `<a href="${row.image_url}" onclick="{event.preventDefault(); $.fn.showImagePrompt('${row.image_url}')}">${fileName} </a>`,
-                'created_datetime': $.fn.displayDate(row, 'created_datetime')
-                , 'last_modified_date': $.fn.displayDate(row, 'last_modified_date')
-                , 'Actions': `<button class="btn btn-secondary btn-md" onClick="$.fn.editImage({'image_id': ${row.image_id}})">Edit</button><button class="btn btn-danger btn-md" onClick="$.fn.showConfirmDialog('Delete Image', 'Are you sure that you want to delete the Image with id: ${row.image_id}?', '$.fn.removeRecord(${deleteInfo})' )">Delete</button>`
-              }
-            } else { 
-              return {
-                ...row,
-                'image_url': `<a href="${row.image_url}" onclick="{event.preventDefault(); $.fn.showImagePrompt('${row.image_url}')}">${fileName} </a>`,
-                'created_datetime': $.fn.displayDate(row, 'created_datetime')
-                , 'last_modified_date': $.fn.displayDate(row, 'last_modified_date')
-               }
-            }
-          })
+      records = dbRecords.map((row) => {
+        let deleteInfo = `\\'images,${row.image_id}\\'`;
+        let fileName = row.image_url.split("/").pop();
+        if (currentUserRoleID == 1) {
+          return {
+            ...row,
+            'image_url': `<a href="${row.image_url}" onclick="{event.preventDefault(); $.fn.showImagePrompt('${row.image_url}')}">${fileName} </a>`,
+            'created_datetime': $.fn.displayDate(row, 'created_datetime')
+            , 'last_modified_date': $.fn.displayDate(row, 'last_modified_date')
+            , 'Actions': `<button class="btn btn-secondary btn-md" onClick="$.fn.editImage({'image_id': ${row.image_id}})">Edit</button><button class="btn btn-danger btn-md" onClick="$.fn.showConfirmDialog('Delete Image', 'Are you sure that you want to delete the Image with id: ${row.image_id}?', '$.fn.removeRecord(${deleteInfo})' )">Delete</button>`
+          }
+        } else {
+          return {
+            ...row,
+            'image_url': `<a href="${row.image_url}" onclick="{event.preventDefault(); $.fn.showImagePrompt('${row.image_url}')}">${fileName} </a>`,
+            'created_datetime': $.fn.displayDate(row, 'created_datetime')
+            , 'last_modified_date': $.fn.displayDate(row, 'last_modified_date')
+          }
+        }
+      })
                         
                           
-        }
-      } else if (objectType == 'files') {
+    }
+  } else if (objectType == 'files') {
           
-        if (dbRecords && dbRecords.length > 0) {
+    if (dbRecords && dbRecords.length > 0) {
                               
-          records = dbRecords.map((row) => {
-            let deleteInfo = `\\'files,${row.file_id}\\'`;
-            let fileName = row.google_url.split("/").pop();
-            if (currentUserRoleID == 1) {
-              return {
-                ...row,
-                'google_url': `<a href="${row.google_url}">${fileName} </a>`,
-                'created_datetime': $.fn.displayDate(row, 'created_datetime')
-                , 'last_modified_date': $.fn.displayDate(row, 'last_modified_date')
-                , 'Actions': `<button class="btn btn-secondary btn-md" onClick="$.fn.editFile({'file_id': ${row.file_id}})">Edit</button><button class="btn btn-danger btn-md" onClick="$.fn.showConfirmDialog('Delete File', 'Are you sure that you want to delete the File with id: ${row.file_id}?', '$.fn.removeRecord(${deleteInfo})' )">Delete</button>`
-              }
-            } else { 
-              return {
-                ...row,
-                'google_url': `<a href="${row.google_url}">${fileName} </a>`,
-                'created_datetime': $.fn.displayDate(row, 'created_datetime')
-                , 'last_modified_date': $.fn.displayDate(row, 'last_modified_date')
-              }
+      records = dbRecords.map((row) => {
+        let deleteInfo = `\\'files,${row.file_id}\\'`;
+        let fileName = row.google_url.split("/").pop();
+        if (currentUserRoleID == 1) {
+          return {
+            ...row,
+            'google_url': `<a href="${row.google_url}">${fileName} </a>`,
+            'created_datetime': $.fn.displayDate(row, 'created_datetime')
+            , 'last_modified_date': $.fn.displayDate(row, 'last_modified_date')
+            , 'Actions': `<button class="btn btn-secondary btn-md" onClick="$.fn.editFile({'file_id': ${row.file_id}})">Edit</button><button class="btn btn-danger btn-md" onClick="$.fn.showConfirmDialog('Delete File', 'Are you sure that you want to delete the File with id: ${row.file_id}?', '$.fn.removeRecord(${deleteInfo})' )">Delete</button>`
+          }
+        } else {
+          return {
+            ...row,
+            'google_url': `<a href="${row.google_url}">${fileName} </a>`,
+            'created_datetime': $.fn.displayDate(row, 'created_datetime')
+            , 'last_modified_date': $.fn.displayDate(row, 'last_modified_date')
+          }
 
               
-            }
-          })
+        }
+      })
                         
                           
-        }
-      } else if (objectType == 'pagetemplates') {
+    }
+  } else if (objectType == 'pagetemplates') {
           
-        if (dbRecords && dbRecords.length > 0) {                     
-            records = dbRecords.map((row) => {
-              let deleteInfo = `\\pagetemplates,${row.template_id}\\'`
-              if (currentUserRoleID == 1) {
-                return {
-                  ...row,
-                  'created_datetime': $.fn.displayDate(row, 'created_datetime')
-                  , 'last_modified_date': $.fn.displayDate(row, 'last_modified_date'),
-                  'Actions': `<button class="btn btn-secondary btn-md" onClick="$.fn.editTemplate({'template_id': ${row.template_id}})">Edit</button><button class="btn btn-danger btn-md" onClick="$.fn.showConfirmDialog('Delete Template', 'Are you sure that you want to delete the Template with id: ${row.template_id}?', '$.fn.removeRecord(${deleteInfo})' )">Delete</button>`
-                }
-              } else { 
+    if (dbRecords && dbRecords.length > 0) {
+      records = dbRecords.map((row) => {
+        let deleteInfo = `\\pagetemplates,${row.template_id}\\'`
+        if (currentUserRoleID == 1) {
+          return {
+            ...row,
+            'created_datetime': $.fn.displayDate(row, 'created_datetime')
+            , 'last_modified_date': $.fn.displayDate(row, 'last_modified_date'),
+            'Actions': `<button class="btn btn-secondary btn-md" onClick="$.fn.editTemplate({'template_id': ${row.template_id}})">Edit</button><button class="btn btn-danger btn-md" onClick="$.fn.showConfirmDialog('Delete Template', 'Are you sure that you want to delete the Template with id: ${row.template_id}?', '$.fn.removeRecord(${deleteInfo})' )">Delete</button>`
+          }
+        } else {
 
-                 return {
-                  ...row,
-                  'created_datetime': $.fn.displayDate(row, 'created_datetime')
-                  , 'last_modified_date': $.fn.displayDate(row, 'last_modified_date'),
-                }
-              }
-          })
-                
+          return {
+            ...row,
+            'created_datetime': $.fn.displayDate(row, 'created_datetime')
+            , 'last_modified_date': $.fn.displayDate(row, 'last_modified_date'),
+          }
         }
-      } else if (objectType == 'pages') {
+      })
+                
+    }
+  } else if (objectType == 'pages') {
           
-        if (dbRecords && dbRecords.length > 0) {                     
-            records = dbRecords.map((row) => {
-              let deleteInfo = `\\'pages,${row.page_id}\\'`;
+    if (dbRecords && dbRecords.length > 0) {
+      records = dbRecords.map((row) => {
+        let deleteInfo = `\\'pages,${row.page_id}\\'`;
               
-              //  delete row.parent_page;
-              if (currentUserRoleID == 1) {
-                return {
-                  ...row
+        //  delete row.parent_page;
+        if (currentUserRoleID == 1) {
+          return {
+            ...row
              
-                  , 'comes_after': (row.comes_after != null ? dbRecords.filter((rec) => parseInt(rec.page_id) == parseInt(row.comes_after))[0]?.page_name : "")
-                  , 'created_datetime': $.fn.displayDate(row, 'created_datetime')
-                  , 'last_modified_date': $.fn.displayDate(row, 'last_modified_date')
-                  , 'Actions': `<button class="btn btn-secondary btn-md" onClick="$.fn.editPage({'page_id': ${row.page_id}})">Edit</button><button class="btn btn-danger btn-md" onClick="$.fn.showConfirmDialog('Delete Page', 'Are you sure that you want to delete the Page with id: ${row.page_id}?', '$.fn.removeRecord(${deleteInfo})' )">Delete</button>`
-                }
-              } else { 
-                return {
-                  ...row
+            , 'comes_after': (row.comes_after != null ? dbRecords.filter((rec) => parseInt(rec.page_id) == parseInt(row.comes_after))[0]?.page_name : "")
+            , 'created_datetime': $.fn.displayDate(row, 'created_datetime')
+            , 'last_modified_date': $.fn.displayDate(row, 'last_modified_date')
+            , 'Actions': `<button class="btn btn-secondary btn-md" onClick="$.fn.editPage({'page_id': ${row.page_id}})">Edit</button><button class="btn btn-danger btn-md" onClick="$.fn.showConfirmDialog('Delete Page', 'Are you sure that you want to delete the Page with id: ${row.page_id}?', '$.fn.removeRecord(${deleteInfo})' )">Delete</button>`
+          }
+        } else {
+          return {
+            ...row
              
-                  , 'comes_after': (row.comes_after != null ? dbRecords.filter((rec) => parseInt(rec.page_id) == parseInt(row.comes_after))[0]?.page_name : "")
-                  , 'created_datetime': $.fn.displayDate(row, 'created_datetime')
-                  , 'last_modified_date': $.fn.displayDate(row, 'last_modified_date')
-                    }
+            , 'comes_after': (row.comes_after != null ? dbRecords.filter((rec) => parseInt(rec.page_id) == parseInt(row.comes_after))[0]?.page_name : "")
+            , 'created_datetime': $.fn.displayDate(row, 'created_datetime')
+            , 'last_modified_date': $.fn.displayDate(row, 'last_modified_date')
+          }
 
-              }
-          })
-                
         }
-      } else if (objectType == 'sections') {
-                  
-         if (dbRecords && dbRecords.length > 0) {                     
-            records = dbRecords.map((row) => {
-            let deleteInfo = `\\'sections,${row.section_id}\\'`
-            return {
-              ...row,
-              'pages': row.pages && window.tableMap['Pages']?row.pages.map((page)=>{
+      })
                 
-                let filteredPage =  window.tableMap['Pages'].data.filter((localPage)=> localPage._id == page["$oid"]);
-                filteredPage = filteredPage && filteredPage.length >0? filteredPage[0]:null;
-                if (filteredPage){
+    }
+  } else if (objectType == 'sections') {
+                  
+    if (dbRecords && dbRecords.length > 0) {
+      records = dbRecords.map((row) => {
+        let deleteInfo = `\\'sections,${row.section_id}\\'`
+        return {
+          ...row,
+          'pages': row.pages && window.tableMap['Pages'] ? row.pages.map((page) => {
+                
+            let filteredPage = window.tableMap['Pages'].data.filter((localPage) => localPage._id == page["$oid"]);
+            filteredPage = filteredPage && filteredPage.length > 0 ? filteredPage[0] : null;
+            if (filteredPage) {
 
-                    return filteredPage.page_name;
-                }
-
-
-              }):'',
-              'created_datetime': $.fn.displayDate(row, 'created_datetime')
-              , 'last_modified_date': $.fn.displayDate(row, 'last_modified_date')
-              , 'Actions': `<button class="btn btn-secondary btn-md" onClick="$.fn.editSection({'section_id': ${row.section_id}})">Edit</button><button class="btn btn-danger btn-md" onClick="$.fn.showConfirmDialog('Delete Section', 'Are you sure that you want to delete the Section with id: ${row.section_id}?', '$.fn.removeRecord(${deleteInfo})' )">Delete</button>`
+              return filteredPage.page_name;
             }
-          })
+
+
+          }) : '',
+          'created_datetime': $.fn.displayDate(row, 'created_datetime')
+          , 'last_modified_date': $.fn.displayDate(row, 'last_modified_date')
+          , 'Actions': `<button class="btn btn-secondary btn-md" onClick="$.fn.editSection({'section_id': ${row.section_id}})">Edit</button><button class="btn btn-danger btn-md" onClick="$.fn.showConfirmDialog('Delete Section', 'Are you sure that you want to delete the Section with id: ${row.section_id}?', '$.fn.removeRecord(${deleteInfo})' )">Delete</button>`
+        }
+      })
                 
-        }
-      } else if (objectType == 'mailtemplates') {
+    }
+  } else if (objectType == 'mailtemplates') {
           
-          if (dbRecords && dbRecords.length > 0) {
+    if (dbRecords && dbRecords.length > 0) {
                                 
-            records = dbRecords.map((row) => {
-              let deleteInfo = `\\'mailtemplates,${row.template_id}\\'`
-              return {
-                ...row,
-                'created_datetime': $.fn.displayDate(row, 'created_datetime')
-                , 'last_modified_date': $.fn.displayDate(row, 'last_modified_date')
-                , 'Actions': `<button class="btn btn-secondary btn-md" onClick="$.fn.editMailTemplate({'template_id': ${row.template_id}})">Edit</button><button class="btn btn-danger btn-md" onClick="$.fn.showConfirmDialog('Delete MailTemplate', 'Are you sure that you want to delete the Mail Template with id: ${row.mailtemplates_id}?', '$.fn.removeRecord(${deleteInfo})' )">Delete</button>`
-              }
-            })               
+      records = dbRecords.map((row) => {
+        let deleteInfo = `\\'mailtemplates,${row.template_id}\\'`
+        return {
+          ...row,
+          'created_datetime': $.fn.displayDate(row, 'created_datetime')
+          , 'last_modified_date': $.fn.displayDate(row, 'last_modified_date')
+          , 'Actions': `<button class="btn btn-secondary btn-md" onClick="$.fn.editMailTemplate({'template_id': ${row.template_id}})">Edit</button><button class="btn btn-danger btn-md" onClick="$.fn.showConfirmDialog('Delete MailTemplate', 'Are you sure that you want to delete the Mail Template with id: ${row.mailtemplates_id}?', '$.fn.removeRecord(${deleteInfo})' )">Delete</button>`
+        }
+      })
                           
-        }
-      } else if (objectType == 'clients') {
+    }
+  } else if (objectType == 'clients') {
           
-          if (dbRecords && dbRecords.length > 0) {
+    if (dbRecords && dbRecords.length > 0) {
                                 
-            records = dbRecords.map((row) => {
-              let deleteInfo = `\\'clients,${row.client_id}\\'`;
-               let imageUrlInfo = window.tableMap['Images'].data.filter((image) => image._id == row.profile_image["$oid"])
-              let imageUrl = imageUrlInfo.length == 1 ? $.fn.getGoogleUrl(imageUrlInfo[0].google_url) : '';
+      records = dbRecords.map((row) => {
+        let deleteInfo = `\\'clients,${row.client_id}\\'`;
+        let imageUrlInfo = window.tableMap['Images'].data.filter((image) => image._id == row.profile_image["$oid"])
+        let imageUrl = imageUrlInfo.length == 1 ? $.fn.getGoogleUrl(imageUrlInfo[0].google_url) : '';
 
 
-              return {
-                ...row
-                 ,'date_of_birth': $.fn.displayDate(row, 'date_of_birth')
-                ,'created_datetime': $.fn.displayDate(row, 'created_datetime')
-                , 'last_modified_date': $.fn.displayDate(row, 'last_modified_date')
-                ,'profile_image': `<img src="${imageUrl}" onclick="{event.preventDefault(); $.fn.showImagePrompt('${imageUrl}')}" alt="Profile Image" />`
-                , 'password': '**********'
-                , 'Actions': `<button class="btn btn-secondary btn-md" onClick="$.fn.editClient({'client_id': ${row.client_id}})">Edit</button><button class="btn btn-danger btn-md" onClick="$.fn.showConfirmDialog('Delete Client', 'Are you sure that you want to delete the Client with id: ${row.clients_id}?', '$.fn.removeRecord(${deleteInfo})' )">Delete</button>`
-              }
-            })               
-                          
+        return {
+          ...row
+          , 'date_of_birth': $.fn.displayDate(row, 'date_of_birth')
+          , 'created_datetime': $.fn.displayDate(row, 'created_datetime')
+          , 'last_modified_date': $.fn.displayDate(row, 'last_modified_date')
+          , 'profile_image': `<img src="${imageUrl}" onclick="{event.preventDefault(); $.fn.showImagePrompt('${imageUrl}')}" alt="Profile Image" />`
+          , 'password': '**********'
+          , 'Actions': `<button class="btn btn-secondary btn-md" onClick="$.fn.editClient({'client_id': ${row.client_id}})">Edit</button><button class="btn btn-danger btn-md" onClick="$.fn.showConfirmDialog('Delete Client', 'Are you sure that you want to delete the Client with id: ${row.clients_id}?', '$.fn.removeRecord(${deleteInfo})' )">Delete</button>`
         }
-      } else if (objectType == 'partners') {
-          
-          if (dbRecords && dbRecords.length > 0) {
-                                
-            records = dbRecords.map((row) => {
-              let deleteInfo = `\\'partners,${row.partner_id}\\'`
-              return {
-                ...row,
-                'created_datetime': $.fn.displayDate(row, 'created_datetime')
-                , 'last_modified_date': $.fn.displayDate(row, 'last_modified_date')
-                , 'Actions': `<button class="btn btn-secondary btn-md" onClick="$.fn.editPartner({'partner_id': ${row.partner_id}})">Edit</button><button class="btn btn-danger btn-md" onClick="$.fn.showConfirmDialog('Delete Partner', 'Are you sure that you want to delete the Partner with id: ${row.partners_id}?', '$.fn.removeRecord(${deleteInfo})' )">Delete</button>`
-              }
-            })               
+      })
                           
-        }
-      } else if (objectType == 'services') {
+    }
+  } else if (objectType == 'partners') {
           
-          if (dbRecords && dbRecords.length > 0) {
+    if (dbRecords && dbRecords.length > 0) {
                                 
-            records = dbRecords.map((row) => {
-              let deleteInfo = `\\'services,${row.plan_id}\\'`
-              return {
-                ...row,
-                 'created_datetime': $.fn.displayDate(row, 'created_datetime')
-                , 'last_modified_date': $.fn.displayDate(row, 'last_modified_date')
-                , 'Actions': `<button class="btn btn-secondary btn-md" onClick="$.fn.editService({'plan_id': ${row.plan_id}})">Edit</button><button class="btn btn-danger btn-md" onClick="$.fn.showConfirmDialog('Delete Service', 'Are you sure that you want to delete the Service with id: ${row.service_id}?', '$.fn.removeRecord(${deleteInfo})' )">Delete</button>`
-              }
-            })               
+      records = dbRecords.map((row) => {
+        let deleteInfo = `\\'partners,${row.partner_id}\\'`
+        return {
+          ...row,
+          'created_datetime': $.fn.displayDate(row, 'created_datetime')
+          , 'last_modified_date': $.fn.displayDate(row, 'last_modified_date')
+          , 'Actions': `<button class="btn btn-secondary btn-md" onClick="$.fn.editPartner({'partner_id': ${row.partner_id}})">Edit</button><button class="btn btn-danger btn-md" onClick="$.fn.showConfirmDialog('Delete Partner', 'Are you sure that you want to delete the Partner with id: ${row.partners_id}?', '$.fn.removeRecord(${deleteInfo})' )">Delete</button>`
+        }
+      })
                           
-        }
-      } else if (objectType == 'banners') {
+    }
+  } else if (objectType == 'services') {
           
-          if (dbRecords && dbRecords.length > 0) {
+    if (dbRecords && dbRecords.length > 0) {
                                 
-            records = dbRecords.map((row) => {
-              let deleteInfo = `\\'banners,${row.banner_id}\\'`;
-              let imageUrlInfo = window.tableMap['Images'].data.filter((image) => row.image &&  image._id == row.image["$oid"])
-              let imageUrl = imageUrlInfo[0]?imageUrlInfo[0].google_url : '';
-              let fileName = imageUrlInfo[0]?imageUrlInfo[0].file_name : '';
-              if (currentUserRoleID == 1) {
-                return {
-                  ...row,
-                  'created_datetime': $.fn.displayDate(row, 'created_datetime')
-                  , 'last_modified_date': $.fn.displayDate(row, 'last_modified_date')
-                  , "image": `<a href="${imageUrl}">${fileName} </a>`
-                  , 'Actions': `<button class="btn btn-secondary btn-md" onClick="$.fn.editBanner({'banner_id': ${row.banner_id}})">Edit</button><button class="btn btn-danger btn-md" onClick="$.fn.showConfirmDialog('Delete Banner', 'Are you sure that you want to delete the Banner with id: ${row.banners_id}?', '$.fn.removeRecord(${deleteInfo})' )">Delete</button>`
-                }
-              } else { 
-                return {
-                  ...row,
-                  'created_datetime': $.fn.displayDate(row, 'created_datetime')
-                  , 'last_modified_date': $.fn.displayDate(row, 'last_modified_date')
-                  , "image": `<a href="${imageUrl}">${fileName} </a>`
-                 }
+      records = dbRecords.map((row) => {
+        let deleteInfo = `\\'services,${row.plan_id}\\'`
+        return {
+          ...row,
+          'created_datetime': $.fn.displayDate(row, 'created_datetime')
+          , 'last_modified_date': $.fn.displayDate(row, 'last_modified_date')
+          , 'Actions': `<button class="btn btn-secondary btn-md" onClick="$.fn.editService({'plan_id': ${row.plan_id}})">Edit</button><button class="btn btn-danger btn-md" onClick="$.fn.showConfirmDialog('Delete Service', 'Are you sure that you want to delete the Service with id: ${row.service_id}?', '$.fn.removeRecord(${deleteInfo})' )">Delete</button>`
+        }
+      })
+                          
+    }
+  } else if (objectType == 'banners') {
+          
+    if (dbRecords && dbRecords.length > 0) {
+                                
+      records = dbRecords.map((row) => {
+        let deleteInfo = `\\'banners,${row.banner_id}\\'`;
+        let imageUrlInfo = window.tableMap['Images'].data.filter((image) => row.image && image._id == row.image["$oid"])
+        let imageUrl = imageUrlInfo[0] ? imageUrlInfo[0].google_url : '';
+        let fileName = imageUrlInfo[0] ? imageUrlInfo[0].file_name : '';
+        if (currentUserRoleID == 1) {
+          return {
+            ...row,
+            'created_datetime': $.fn.displayDate(row, 'created_datetime')
+            , 'last_modified_date': $.fn.displayDate(row, 'last_modified_date')
+            , "image": `<a href="${imageUrl}">${fileName} </a>`
+            , 'Actions': `<button class="btn btn-secondary btn-md" onClick="$.fn.editBanner({'banner_id': ${row.banner_id}})">Edit</button><button class="btn btn-danger btn-md" onClick="$.fn.showConfirmDialog('Delete Banner', 'Are you sure that you want to delete the Banner with id: ${row.banners_id}?', '$.fn.removeRecord(${deleteInfo})' )">Delete</button>`
+          }
+        } else {
+          return {
+            ...row,
+            'created_datetime': $.fn.displayDate(row, 'created_datetime')
+            , 'last_modified_date': $.fn.displayDate(row, 'last_modified_date')
+            , "image": `<a href="${imageUrl}">${fileName} </a>`
+          }
 
-              }
-              })               
-                          
         }
-      } else if (objectType == 'sliders') {
+      })
+                          
+    }
+  } else if (objectType == 'sliders') {
           
-          if (dbRecords && dbRecords.length > 0) {
+    if (dbRecords && dbRecords.length > 0) {
                                 
-            records = dbRecords.map((row) => {
-              let deleteInfo = `\\'sliders,${row.slider_id}\\'`;
-              let imageUrlInfo = window.tableMap['Images'].data.filter((image) => row.image &&  image._id == row.image["$oid"])
-              let imageUrl = imageUrlInfo[0]?imageUrlInfo[0].google_url : '';
-              let fileName = imageUrlInfo[0]?imageUrlInfo[0].file_name : '';
-              if (currentUserRoleID == 1) {
-                return {
-                  ...row,
-                  'created_datetime': $.fn.displayDate(row, 'created_datetime')
-                  , 'last_modified_date': $.fn.displayDate(row, 'last_modified_date')
-                  , "image": `<a href="${imageUrl}" onclick="{event.preventDefault(); $.fn.showImagePrompt('${imageUrl}')}">${fileName} </a>`
-                  , 'Actions': `<button class="btn btn-secondary btn-md" onClick="$.fn.editSlider({'slider_id': ${row.slider_id}})">Edit</button><button class="btn btn-danger btn-md" onClick="$.fn.showConfirmDialog('Delete Slider', 'Are you sure that you want to delete the Slider with id: ${row.sliders_id}?', '$.fn.removeRecord(${deleteInfo})' )">Delete</button>`
-                }
-              } else { 
-                return {
-                  ...row,
-                  'created_datetime': $.fn.displayDate(row, 'created_datetime')
-                  , 'last_modified_date': $.fn.displayDate(row, 'last_modified_date')
-                  , "image": `<a href="${imageUrl}" onclick="{event.preventDefault(); $.fn.showImagePrompt('${imageUrl}')}">${fileName} </a>`
-               }
+      records = dbRecords.map((row) => {
+        let deleteInfo = `\\'sliders,${row.slider_id}\\'`;
+        let imageUrlInfo = window.tableMap['Images'].data.filter((image) => row.image && image._id == row.image["$oid"])
+        let imageUrl = imageUrlInfo[0] ? imageUrlInfo[0].google_url : '';
+        let fileName = imageUrlInfo[0] ? imageUrlInfo[0].file_name : '';
+        if (currentUserRoleID == 1) {
+          return {
+            ...row,
+            'created_datetime': $.fn.displayDate(row, 'created_datetime')
+            , 'last_modified_date': $.fn.displayDate(row, 'last_modified_date')
+            , "image": `<a href="${imageUrl}" onclick="{event.preventDefault(); $.fn.showImagePrompt('${imageUrl}')}">${fileName} </a>`
+            , 'Actions': `<button class="btn btn-secondary btn-md" onClick="$.fn.editSlider({'slider_id': ${row.slider_id}})">Edit</button><button class="btn btn-danger btn-md" onClick="$.fn.showConfirmDialog('Delete Slider', 'Are you sure that you want to delete the Slider with id: ${row.sliders_id}?', '$.fn.removeRecord(${deleteInfo})' )">Delete</button>`
+          }
+        } else {
+          return {
+            ...row,
+            'created_datetime': $.fn.displayDate(row, 'created_datetime')
+            , 'last_modified_date': $.fn.displayDate(row, 'last_modified_date')
+            , "image": `<a href="${imageUrl}" onclick="{event.preventDefault(); $.fn.showImagePrompt('${imageUrl}')}">${fileName} </a>`
+          }
 
-              }
-              })               
-                          
         }
-      } else if (objectType == 'servicetypes') {
+      })
+                          
+    }
+  } else if (objectType == 'servicetypes') {
           
-          if (dbRecords && dbRecords.length > 0) {
+    if (dbRecords && dbRecords.length > 0) {
                                 
-            records = dbRecords.map((row) => {
-              let deleteInfo = `\\'servicetypes,${row.type_id}\\'`
-              return {
-                ...row,
-                 'created_datetime': $.fn.displayDate(row, 'created_datetime')
-                , 'last_modified_date': $.fn.displayDate(row, 'last_modified_date')
-                , 'Actions': `<button class="btn btn-secondary btn-md" onClick="$.fn.editServiceType({'type_id': ${row.type_id}})">Edit</button><button class="btn btn-danger btn-md" onClick="$.fn.showConfirmDialog('Delete ServiceType', 'Are you sure that you want to delete the ServiceType with id: ${row.type_id}?', '$.fn.removeRecord(${deleteInfo})' )">Delete</button>`
-              }
-            })               
-                          
+      records = dbRecords.map((row) => {
+        let deleteInfo = `\\'servicetypes,${row.type_id}\\'`
+        return {
+          ...row,
+          'created_datetime': $.fn.displayDate(row, 'created_datetime')
+          , 'last_modified_date': $.fn.displayDate(row, 'last_modified_date')
+          , 'Actions': `<button class="btn btn-secondary btn-md" onClick="$.fn.editServiceType({'type_id': ${row.type_id}})">Edit</button><button class="btn btn-danger btn-md" onClick="$.fn.showConfirmDialog('Delete ServiceType', 'Are you sure that you want to delete the ServiceType with id: ${row.type_id}?', '$.fn.removeRecord(${deleteInfo})' )">Delete</button>`
         }
-      } else if (objectType == 'gmailaccounts') {
+      })
+                          
+    }
+  } else if (objectType == 'gmailaccounts') {
             
-        if (dbRecords && dbRecords.length > 0) {
+    if (dbRecords && dbRecords.length > 0) {
                           
-            records = dbRecords.map((row) => {
-              //console.log(row)
+      records = dbRecords.map((row) => {
+        //console.log(row)
               
-              let deleteInfo = `\\'GMailAccounts,${row.account_id}\\'`;
-              row['api_key'] =  '***************'
-              row['Actions'] = `<div class="row"><div class="col-md-6"><button class="btn btn-secondary btn-md" onClick="$.fn.editGmailBox({'account_id': ${row.account_id}})">Edit</button></div><div class="col-md-6"><button class="btn btn-danger btn-md" onClick="$.fn.showConfirmDialog('Delete GMail Account', 'Are you sure that you want to delete the User with id: ${row.account_id}?', '$.fn.removeRecord(${deleteInfo})' )">Delete</button></div></div>`;
-              row['created_datetime'] =$.fn.displayDate(row, 'created_datetime')
-              row['last_modified_date'] = $.fn.displayDate(row, 'last_modified_date')
-              return row;
+        let deleteInfo = `\\'GMailAccounts,${row.account_id}\\'`;
+        row['api_key'] = '***************'
+        row['Actions'] = `<div class="row"><div class="col-md-6"><button class="btn btn-secondary btn-md" onClick="$.fn.editGmailBox({'account_id': ${row.account_id}})">Edit</button></div><div class="col-md-6"><button class="btn btn-danger btn-md" onClick="$.fn.showConfirmDialog('Delete GMail Account', 'Are you sure that you want to delete the User with id: ${row.account_id}?', '$.fn.removeRecord(${deleteInfo})' )">Delete</button></div></div>`;
+        row['created_datetime'] = $.fn.displayDate(row, 'created_datetime')
+        row['last_modified_date'] = $.fn.displayDate(row, 'last_modified_date')
+        return row;
 
-            })
+      })
 
                               
-        }
+    }
 
-      }else if (objectType  == 'imapaccounts') {
+  } else if (objectType == 'imapaccounts') {
             
-        if (dbRecords && dbRecords.length > 0) {
+    if (dbRecords && dbRecords.length > 0) {
                           
-            records = dbRecords.map((row) => {
-              //console.log(row)
+      records = dbRecords.map((row) => {
+        //console.log(row)
               
-              let deleteInfo = `\\'IMAPAccounts,${row.account_id}\\'`;
-              row['password'] =  '***************'
-              row['Actions'] = `<div class="row"><div class="col-md-6"><button class="btn btn-secondary btn-md" onClick="$.fn.editMailBox({'account_id': ${row.account_id}})">Edit</button></div><div class="col-md-6"><button class="btn btn-danger btn-md" onClick="$.fn.showConfirmDialog('Delete Imap Account', 'Are you sure that you want to delete the User with id: ${row.account_id}?', '$.fn.removeRecord(${deleteInfo})' )">Delete</button></div></div>`;
-              row['created_datetime'] =$.fn.displayDate(row, 'created_datetime')
-              row['last_modified_date'] = $.fn.displayDate(row, 'last_modified_date')
-              return row;
+        let deleteInfo = `\\'IMAPAccounts,${row.account_id}\\'`;
+        row['password'] = '***************'
+        row['Actions'] = `<div class="row"><div class="col-md-6"><button class="btn btn-secondary btn-md" onClick="$.fn.editMailBox({'account_id': ${row.account_id}})">Edit</button></div><div class="col-md-6"><button class="btn btn-danger btn-md" onClick="$.fn.showConfirmDialog('Delete Imap Account', 'Are you sure that you want to delete the User with id: ${row.account_id}?', '$.fn.removeRecord(${deleteInfo})' )">Delete</button></div></div>`;
+        row['created_datetime'] = $.fn.displayDate(row, 'created_datetime')
+        row['last_modified_date'] = $.fn.displayDate(row, 'last_modified_date')
+        return row;
 
-            })
+      })
 
                               
-        }
+    }
 
-      } else if (objectType == 'eventtypes') {
+  } else if (objectType == 'eventtypes') {
           
-          if (dbRecords && dbRecords.length > 0) {
-                 const   mailTemplates    = Object.keys(window.tableMap).includes('MailTemplates') && window.tableMap['MailTemplates'].data.length > 0 ? window.tableMap['MailTemplates'].data : [];
+    if (dbRecords && dbRecords.length > 0) {
+      const mailTemplates = Object.keys(window.tableMap).includes('MailTemplates') && window.tableMap['MailTemplates'].data.length > 0 ? window.tableMap['MailTemplates'].data : [];
                   
-            records = dbRecords.map((row) => {
-              let deleteInfo = `\\'eventtypes,${row.type_id}\\'`;
+      records = dbRecords.map((row) => {
+        let deleteInfo = `\\'eventtypes,${row.type_id}\\'`;
               		   
-              return {
-                ...row,
-                'created_datetime': $.fn.displayDate(row, 'created_datetime')
-                , 'template': mailTemplates.length > 0 && Object.keys(row).includes("template") && row.template != null ? mailTemplates.filter((temp) => row.template['$oid'] == temp._id)[0]?.name : ''
-                , 'last_modified_date':  $.fn.displayDate(row, 'last_modified_date') 
-                , 'Actions': `<button class="btn btn-secondary btn-md" onClick="$.fn.editEventType({'type_id': ${row.type_id}})">Edit</button><button class="btn btn-danger btn-md" onClick="$.fn.showConfirmDialog('Delete Event Type', 'Are you sure that you want to delete the Event Type with id: ${row.type_id}?', '$.fn.removeRecord(${deleteInfo})' )">Delete</button>`
-              }
-            })                           
+        return {
+          ...row,
+          'created_datetime': $.fn.displayDate(row, 'created_datetime')
+          , 'template': mailTemplates.length > 0 && Object.keys(row).includes("template") && row.template != null ? mailTemplates.filter((temp) => row.template['$oid'] == temp._id)[0]?.name : ''
+          , 'last_modified_date': $.fn.displayDate(row, 'last_modified_date')
+          , 'Actions': `<button class="btn btn-secondary btn-md" onClick="$.fn.editEventType({'type_id': ${row.type_id}})">Edit</button><button class="btn btn-danger btn-md" onClick="$.fn.showConfirmDialog('Delete Event Type', 'Are you sure that you want to delete the Event Type with id: ${row.type_id}?', '$.fn.removeRecord(${deleteInfo})' )">Delete</button>`
         }
-      } else if (objectType == 'events') {
+      })
+    }
+  } else if (objectType == 'events') {
           
-        if (dbRecords && dbRecords.length > 0) {
-          const eventTypes = Object.keys(window.tableMap).includes('EventTypes') && window.tableMap['EventTypes'].data.length > 0 ? window.tableMap['EventTypes'].data : [];
-          const mailTemplates = Object.keys(window.tableMap).includes('MailTemplates') && window.tableMap['MailTemplates'].data.length > 0 ? window.tableMap['MailTemplates'].data : [];
-          const jobs = Object.keys(window.tableMap).includes('Jobs') && window.tableMap['Jobs'].data.length > 0 ? window.tableMap['Jobs'].data : [];
+    if (dbRecords && dbRecords.length > 0) {
+      const eventTypes = Object.keys(window.tableMap).includes('EventTypes') && window.tableMap['EventTypes'].data.length > 0 ? window.tableMap['EventTypes'].data : [];
+      const mailTemplates = Object.keys(window.tableMap).includes('MailTemplates') && window.tableMap['MailTemplates'].data.length > 0 ? window.tableMap['MailTemplates'].data : [];
+      const jobs = Object.keys(window.tableMap).includes('Jobs') && window.tableMap['Jobs'].data.length > 0 ? window.tableMap['Jobs'].data : [];
                                 
-            records = dbRecords.map((row) => {
-             // let deleteInfo = `\\'events,${row.event_id}\\'`
-              return {
-                ...row,
-                'event_type': eventTypes.length > 0 && Object.keys(row).includes("event_type") && row.event_type != null ? `<a href="#" onClick="$.fn.displayRecords('Event Type Information','EventTypes', '_id','${row.event_type['$oid']}')">${eventTypes.filter((temp) => row.event_type['$oid'] == temp._id)[0]?.type_name}</a>` : ''
-                , 'parameters': JSON.stringify(row.parameters)
-                , 'mail_template': mailTemplates.length > 0 && Object.keys(row).includes("mail_template") && row.mail_template != null ? `<a href="#" onClick="$.fn.displayRecords('Mail Template Information','MailTemplates', '_id','${row.mail_template['$oid']}')">${mailTemplates.filter((temp) => row.mail_template['$oid'] == temp._id)[0]?.name}</a>` : ''
-                ,  'job': jobs.length > 0 && Object.keys(row).includes("job") && row.job != null ? `<a href="#" onClick="$.fn.displayRecords('Job Details','Jobs', '_id','${row.job['$oid']}')">${jobs.filter((temp) => row.job['$oid'] == temp._id)[0]?.name}</a>` : ''
-                ,'created_datetime':  $.fn.displayDate(row, 'created_datetime')
-                , 'last_modified_date':  $.fn.displayDate(row, 'last_modified_date') 
-                , 'Actions': `<button class="btn btn-secondary btn-md" onClick="$.fn.updateEventStatus(${row.event_id})">Update Status</button>`
-              }
-            })                           
+      records = dbRecords.map((row) => {
+        // let deleteInfo = `\\'events,${row.event_id}\\'`
+          const retryBttn =  row.event_status == "OPEN" && row.notification_status !=1?`<button class="btn btn-success btn-md" onClick="$.fn.retryEvent(${row.event_id},'${row.event_status}')">Rerun</button>`:''
+        return {
+          ...row,
+          'event_type': eventTypes.length > 0 && Object.keys(row).includes("event_type") && row.event_type != null ? `<a href="#" onClick="$.fn.displayRecords('Event Type Information','EventTypes', '_id','${row.event_type['$oid']}')">${eventTypes.filter((temp) => row.event_type['$oid'] == temp._id)[0]?.type_name}</a>` : ''
+          , 'parameters': JSON.stringify(row.parameters)
+          , 'mail_template': mailTemplates.length > 0 && Object.keys(row).includes("mail_template") && row.mail_template != null ? `<a href="#" onClick="$.fn.displayRecords('Mail Template Information','MailTemplates', '_id','${row.mail_template['$oid']}')">${mailTemplates.filter((temp) => row.mail_template['$oid'] == temp._id)[0]?.name}</a>` : ''
+          , 'job': jobs.length > 0 && Object.keys(row).includes("job") && row.job != null ? `<a href="#"  onClick="$.fn.viewEventJob(${row.event_id})">${jobs.filter((temp) => row.job['$oid'] == temp._id)[0]?.name.split('.').pop()}</a>` : ''
+          , 'job_history': row.job_history && row.job_history.length > 0 ? JSON.stringify(row.job_history) : ''
+          , 'created_datetime': $.fn.displayDate(row, 'created_datetime')
+          , 'last_modified_date': $.fn.displayDate(row, 'last_modified_date')
+          , 'Actions': `<button class="btn btn-secondary btn-md" onClick="$.fn.updateEventStatus(${row.event_id})">Update Status</button>${retryBttn}`
         }
-      }else if (objectType  == 'schedules') {
+      })
+    }
+  } else if (objectType == 'schedules') {
           
-          if (dbRecords && dbRecords.length > 0) {
+    if (dbRecords && dbRecords.length > 0) {
                                 
-            records = dbRecords.map((row) => {
-              let deleteInfo = `\\'schedules,${row.schedule_id}\\'`
-              return {
-                ...row,
-                'startTime':  $.fn.displayDate(row, 'startTime'),
-                'created_datetime':  $.fn.displayDate(row, 'created_datetime')
-                , 'last_modified_date':  $.fn.displayDate(row, 'last_modified_date') 
-                , 'Actions': `<button class="btn btn-secondary btn-md" onClick="$.fn.editSchedule({'schedule_id': ${row.schedule_id}})">Edit</button><button class="btn btn-danger btn-md" onClick="$.fn.showConfirmDialog('Delete Schedule', 'Are you sure that you want to delete the Schedule with id: ${row.schedule_id}?', '$.fn.removeRecord(${deleteInfo})' )">Delete</button>`
-              }
-            })                           
+      records = dbRecords.map((row) => {
+        let deleteInfo = `\\'schedules,${row.schedule_id}\\'`
+        return {
+          ...row,
+          'start_time': $.fn.displayDate(row, 'startTime'),
+          'created_datetime': $.fn.displayDate(row, 'created_datetime')
+          , 'last_modified_date': $.fn.displayDate(row, 'last_modified_date')
+          , 'Actions': `<button class="btn btn-secondary btn-md" onClick="$.fn.editSchedule({'schedule_id': ${row.schedule_id}})">Edit</button><button class="btn btn-danger btn-md" onClick="$.fn.showConfirmDialog('Delete Schedule', 'Are you sure that you want to delete the Schedule with id: ${row.schedule_id}?', '$.fn.removeRecord(${deleteInfo})' )">Delete</button>`
         }
-      }else if (objectType  == 'eventtriggers') {
-             const   eventTypes   = Object.keys(window.tableMap).includes('EventTypes') && window.tableMap['EventTypes'].data.length > 0 ? window.tableMap['EventTypes'].data: [];
-              const   schedules    = Object.keys(window.tableMap).includes('Schedules') && window.tableMap['Schedules'].data.length > 0 ? window.tableMap['Schedules'].data : [];
+      })
+    }
+  } else if (objectType == 'eventtriggers') {
+    const eventTypes = Object.keys(window.tableMap).includes('EventTypes') && window.tableMap['EventTypes'].data.length > 0 ? window.tableMap['EventTypes'].data : [];
+    const schedules = Object.keys(window.tableMap).includes('Schedules') && window.tableMap['Schedules'].data.length > 0 ? window.tableMap['Schedules'].data : [];
 
-          if (dbRecords && dbRecords.length > 0) {
+    if (dbRecords && dbRecords.length > 0) {
                                 
-            records = dbRecords.map((row) => {
+      records = dbRecords.map((row) => {
 
-              let deleteInfo       = `\\'schedules,${row.trigger_id}\\'`;
+        let deleteInfo = `\\'schedules,${row.trigger_id}\\'`;
 
-              delete row['trigger_history']
-              return {
-                ...row,
-                'parameters': JSON.stringify(row.parameters)
-                ,'created_datetime':  $.fn.displayDate(row, 'created_datetime')
-                , 'last_modified_date': $.fn.displayDate(row, 'last_modified_date') 
-                , 'event_type': eventTypes.length > 0 ? eventTypes.filter((evt) => row.event_type['$oid'] == evt._id)[0]?.type_name : ''
-                ,'schedule': schedules.length > 0? schedules.filter((sch)=> row.schedule['$oid'] == sch._id)[0]?.name:''
-                , 'Actions': `<button class="btn btn-secondary btn-md" onClick="$.fn.editEventTrigger({'trigger_id': ${row.trigger_id}})">Edit</button><button class="btn btn-danger btn-md" onClick="$.fn.showConfirmDialog('Delete Event Trigger', 'Are you sure that you want to delete the Event Trigger with id: ${row.trigger_id}?', '$.fn.removeRecord(${deleteInfo})' )">Delete</button>`
-              }
-            })                           
+        delete row['trigger_history']
+        return {
+          ...row,
+          'parameters': JSON.stringify(row.parameters)
+          , 'created_datetime': $.fn.displayDate(row, 'created_datetime')
+          , 'last_modified_date': $.fn.displayDate(row, 'last_modified_date')
+          , 'event_type': eventTypes.length > 0 ? eventTypes.filter((evt) => row.event_type['$oid'] == evt._id)[0]?.type_name : ''
+          , 'schedule': schedules.length > 0 ? schedules.filter((sch) => row.schedule['$oid'] == sch._id)[0]?.name : ''
+          , 'Actions': `<button class="btn btn-secondary btn-md" onClick="$.fn.editEventTrigger({'trigger_id': ${row.trigger_id}})">Edit</button><button class="btn btn-danger btn-md" onClick="$.fn.showConfirmDialog('Delete Event Trigger', 'Are you sure that you want to delete the Event Trigger with id: ${row.trigger_id}?', '$.fn.removeRecord(${deleteInfo})' )">Delete</button>`
         }
+      })
+    }
+  } else if (objectType == 'messages') {
+
+      records = dbRecords.map((row) => {
+        ["meta", "_cls", "$loki", "_id","current_version"].forEach((r) => delete row[r])
+        row['created_datetime'] = $.fn.displayDate(row, 'created_datetime')
+        row['last_modified_date'] = $.fn.displayDate(row, 'last_modified_date')
+        if (currentUserRoleID == 1) {
+          row['Actions'] = `<div class="row"><div class="col-md-4"><button class="btn btn-primary btn-md" onClick="$.fn.viewMessage(${row.message_id})">View</button></div><div class="col-md-4"><button class="btn btn-success btn-md" onClick="$.fn.replyMessage( ${row.message_id})">Reply</button></div><div class="col-md-4"><button class="btn btn-secondary btn-md" onClick="$.fn.updateMessage( ${row.message_id})">Update</button></div></div>`;
+        }
+        return row;
+      });
+
+  } else if (objectType == 'responses') {
+      
+    records = dbRecords.map((row) => {
+
+      ["meta", "_cls", "$loki", "_id","current_version"].forEach((r) => delete row[r])
+      row['created_datetime'] = $.fn.displayDate(row, 'created_datetime')
+      row['last_modified_date'] = $.fn.displayDate(row, 'last_modified_date')
+      if (currentUserRoleID == 1) {
+        row['Actions'] = `<div class="row"><div class="col-md-6"><button class="btn btn-success btn-md" onClick="$.fn.viewMessage( ${row.message_id})">View</button></div><div class="col-md-6"></div>`;
       }
+      return row;
+  })
+  }
 
-      return { 'records': records, 'columns': columns }
-
-
+   return { 'records': records, 'columns': columns }
 }
+  $.fn.viewEventJob = (eventID) => {
+  let modalOptions = {
+    keyboard: false,
+    focus: true,
+    backdrop: 'static'
+  }
+  let events = window.tableMap['Events'] ? window.tableMap['Events'].find({ 'event_id': eventID }) : null
+  let event  = events && events.length > 0 ? events[0] : events
+    let job = null;
+  if(event){
+    let jobs =  window.tableMap['Jobs']? window.tableMap['Jobs'].find({"_id":event.job['$oid'] }): null;
+    job =  jobs && jobs.length> 0?jobs[0]:jobs
+  }
 
+    //console.log(jobs)
+   
+  $('#modal-content').css('width', "60em");
+  
+    if (job) {
+      let jobStatus = '';
+
+      if (job.jobStatus == 0) { jobStatus = "QUEUED"; }
+      else if (job.jobStatus == 1) { jobStatus = "RUNNING";  }
+      else if (job.jobStatus == 2) {  jobStatus = "SUCCEEDED"; }
+      else if (job.jobStatus == 3) {  jobStatus = "FAILED"; }
+      
+      $('#modal-content').html(`
+   <form id="job-display-form">
+  <div class="card card-primary" id="job-display">
+    <div class= "card-header">
+       <h3 class="card-title text-center" id="job-id">Job ID: ${job.job_id ? job.job_id : ''}</h3>
+   </div >
+ 
+    <div class="card-body">
+    
+      <div class="form-group row">
+        <label for="job-name" class="form-label col-sm-2">Name</label>
+        <input type="text" class="form-control col-sm-10" id="job-name" value="${job.name ? job.name.split('.').pop() : ''}" disabled="disabled">
+      </div>
+      <div class="form-group row">
+        <label for="complete" class="form-label col-sm-2">Complete</label>
+        <input type="text" class="form-control col-sm-10" id="complete" value="${job.complete ? 'Yes' : 'No'} " disabled="disabled">
+      </div>
+	  
+	   <div class="form-group row">
+        <label for="job-status" class="form-label col-sm-2">Status</label>
+        <input type="text" class="form-control col-sm-10" id="job-status" value="${jobStatus? jobStatus : ''} " disabled="disabled">
+      </div>
+	  	   <div class="form-group row">
+        <label for="start-time" class="form-label col-sm-2">Start Time</label>
+        <input type="text" class="form-control col-sm-10" id="start-time" value="${job.startTime ? $.fn.displayDate(job, 'startTime') : ''} " disabled="disabled">
+      </div>
+	  
+	
+	  
+      <div class="form-group row">
+        <label for="parameters" class="form-label col-sm-2">Parameters</label>
+        <textarea name="parameters" class="form-control col-sm-10" id="parameters"   disabled="disabled" style="resize:none">${job.parameters ? job.parameters.replaceAll('\n','').replaceAll('\s','') : ''}</textarea>
+        </div>
+		
+		      <div class="form-group row">
+        <label for="job-info" class="form-label col-sm-2">Execution Information</label>
+        <textarea name="job-info" class="form-control col-sm-10" id="job-info"   disabled="disabled" style="resize:none">${job.info ? job.info.join("\n").replaceAll('\n','').replaceAll('\s','') : ''}</textarea>
+        </div>
+		
+				
+		      <div class="form-group row">
+        <label for="job-error" class="form-label col-sm-2">Errors</label>
+        <textarea name="job-error" class="form-control col-sm-10" id="job-error"   disabled="disabled" style="resize:none">${job.errors ? job.errors.join("\n").replaceAll('\n','').replaceAll('\s','') : ''}</textarea>
+        </div>
+
+
+      <div class="form-group row">
+        <label for="job-creation-date" class="form-label col-sm-2">Creation Date</label>
+        <input type="text" class="form-control col-sm-10" id="job-creation-date" value="${job.created_datetime ? job.created_datetime : ''}" disabled="disabled">
+      </div>
+	        <div class="form-group row">
+        <label for="job-update-date" class="form-label col-sm-2">Modified Date</label>
+        <input type="text" class="form-control col-sm-10" id="job-update-date" value="${job.last_modified_date ? job.last_modified_date : ''}" disabled="disabled">
+      </div>	  
+
+
+    </div>
+    <div class="card-footer">
+      <div class="row"> <div class="col-sm-6 text-left"> </div>
+          <div class="col-sm-6 text-right">
+              <button  id="display-cancel-bttn" onclick="$.fn.cancelDialog()"  class="btn btn-secondary">Close</button>
+          </div>
+      </div>
+    </div>
+  </div>
+</form>
+  `);
+    $('#myModal').modal(modalOptions);
+    $('#myModal').show();
+  } else { 
+
+    $.fn.showAlert(`Unable to find job for event:${eventID}`,"warning","$.fn.cancelDialog()")
+  }
+
+};
+  
 $.fn.selectImage = (context) => {
     let modalOptions = {
       keyboard: false,
@@ -2069,7 +2234,7 @@ $.fn.selectPlaceholder= (context) => {
       backdrop: 'static'
   }
 	
-	const placeholderTypes = ['Users','Clients', 'Images', 'Files'];
+	const placeholderTypes = ['Messages', 'Images', 'Files'];
 	
 	const placeholderOptions=  placeholderTypes.map((type, i) => { 
        let selected = "";
@@ -2234,13 +2399,21 @@ $.fn.getObjectIcon = (objectType)=>{
         ,"sitesettings":"fas fa-tools"
         , "roles": "far fa-id-badge"
         , "users": "fas fa-users"
-        ,"audittrail": "fas fa-clipboard-list"
+      , "audittrail": "fas fa-clipboard-list"
+        ,"messages": "fa fa-envelope-open"
   }
   return Object.keys(iconMap).includes(objectType.toLowerCase()) ? iconMap[objectType] : 'fa fa-question-circle';
  
 
 }
 
+$.fn.checkSession = (results)=>{
+      if (Object.keys(results).includes("message") && results["message"] == "Invalid session information" ){ //|| !results.columnOrder) {
+        history.pushState(null, null, ' ')  
+        window.location = 'auth/logout';
+      }
+
+}
 /**
  * =====================================================================================================================
  * 
@@ -2252,7 +2425,8 @@ $.fn.getObjectIcon = (objectType)=>{
 $.fn.showUpdatedTable = (result, objectType) => {
      //$.fn.refreshLocalTables()
     if (result && result.message && result.message.toLowerCase() == 'invalid session information') {
-        window.location = 'auth/logout';
+      history.pushState(null, null, ' ')  
+      window.location = 'auth/logout';
     }
   $.fn.syncLokiCollection($.fn.capitalize(objectType), () => {  $.fn.showTableRecords(objectType) }) 
     let messageType = result.message.toLowerCase().indexOf('success') > -1 ? 'success' : 'danger';
@@ -2339,13 +2513,10 @@ $.fn.getTable = (objectType, results, statsIcon = "fa fa-arrows-alt") => {
 
         }
 
-
-
   const tableData = $.fn.getTableRecords(objectType,results[objectType]);
   const records = tableData['records'];
   let columns = [];
-  // localStorage.setItem('store_name', 'data_name'); 
-  // console.log(window.columnOrder);
+
   if (!Object.keys(window.columnOrder).includes(objectType)){
        $.ajax({
             url: `/cpanel/columns/${objectType}?acky=${currentUser.acky}`,
@@ -2354,9 +2525,10 @@ $.fn.getTable = (objectType, results, statsIcon = "fa fa-arrows-alt") => {
             contentType: false,
             crossDomain: true,
          success: (results) => {
-                if (Object.keys(results).includes("message") && results["message"] == "Invalid session information" || !results.columnOrder) { 
-                    window.location = 'auth/logout';
-                }
+                    if (Object.keys(results).includes("message") && results["message"] == "Invalid session information" || !results.columnOrder) {
+                      history.pushState(null, null, ' ')
+                      window.location = 'auth/logout';
+      }
                window.columnOrder[objectType]  = results;
                window.columnOrder[objectType].columnOrder.forEach((column) => { if (!excludedLokiFields.includes(column.toLowerCase())) { let col = column.split('_').map((str) => { return $.fn.capitalize(str) }).join(' '); columns.push({ 'sTitle': col, 'data': column, 'defaultContent': '' }) } }) 
               $('#loading-row').remove();
@@ -2412,6 +2584,7 @@ $.fn.getTable = (objectType, results, statsIcon = "fa fa-arrows-alt") => {
 				contentType: false,
 				crossDomain: true,
 				success: (results) => {
+           $.fn.checkSession(results);
             window.columnOrder[objectType] = results;			  
             window.columnOrder[objectType].columnOrder.forEach((column) => { if (!excludedLokiFields.includes(column.toLowerCase())) { let col = column.split('_').map((str) => { return $.fn.capitalize(str) }).join(' '); columns.push({ 'sTitle': col, 'data': column, 'defaultContent': '' }) } }) 
 
@@ -2581,7 +2754,7 @@ $.fn.showTableRecords = (objectType) => {
 			  let records = Object.keys(window.tableMap).includes($.fn.capitalize(objectType)) && window.tableMap[$.fn.capitalize(objectType)]!=null &&  Object.keys(window.tableMap[$.fn.capitalize(objectType)]).includes('data') ? window.tableMap[$.fn.capitalize(objectType)]?.data : null;
 
       if (!forceOnlineFetch && (records && records.length > 0)) {
-            console.log("Fetching settings: ", records.length)
+           // console.log("Fetching settings: ", records.length)
             $.fn.getTable(objectType, { 'records': records });
         
 			  } else {
@@ -2592,7 +2765,7 @@ $.fn.showTableRecords = (objectType) => {
 				  contentType: false,
 				  crossDomain: true,
           success: (results) => {
-            
+               $.fn.checkSession(results);
 					    $.fn.getTable(objectType, results);
 				  }
 				  , error: (err) => {
@@ -2633,7 +2806,8 @@ $.fn.showTableRecords = (objectType) => {
 				  processData: false,
 				  contentType: false,
 				  crossDomain: true,
-				  success: (results) => {
+          success: (results) => {
+               $.fn.checkSession(results);
 					    $.fn.drawMailTable(results);
 				  },
 				  error: (e) => {
@@ -2669,6 +2843,7 @@ $.fn.showSettings= () => {
       contentType: false,
       crossDomain: true,
       success: (results) => {
+         $.fn.checkSession(results);
        // $.fn.drawSettingsTable(results);
         $.fn.getTable(objectType, results);
       }
@@ -2703,6 +2878,7 @@ $.fn.showImages= () => {
       contentType: false,
       crossDomain: true,
       success: (results) => {
+         $.fn.checkSession(results);
         $.fn.getTable(objectType, results);
         
       }
@@ -2716,7 +2892,6 @@ $.fn.showImages= () => {
   }
 
 }
-
 
 $.fn.showAuditTrail = () => {
   const objectType = 'audittrail';
@@ -2736,6 +2911,7 @@ $.fn.showAuditTrail = () => {
       contentType: false,
       crossDomain: true,
       success: (results) => {
+         $.fn.checkSession(results);
             $.fn.drawAuditTrailTable(results)
       },
       error: (e) => {
@@ -2744,7 +2920,6 @@ $.fn.showAuditTrail = () => {
     });
   }
 }
-
 
 $.fn.showJobs = () => {
   const objectType = 'jobs';
@@ -2764,6 +2939,7 @@ $.fn.showJobs = () => {
       contentType: false,
       crossDomain: true,
       success: (results) => {
+         $.fn.checkSession(results);
         $.fn.drawJobsTable(results)
       },
       error: (e) => {
@@ -2777,32 +2953,903 @@ $.fn.showJobs = () => {
 /**
  * =====================================================================================================================
  * 
- * This section is for functions that manage objects
+ * This section is for functions that manage Messages
  * 
  * =======================================================================================================================
  */
+$.fn.showMessages = (currentStatus) => {
 
-$.fn.postFormData = (objectType,formData,errorHeader) => { 
+  const objectType = 'messages';
+  $.fn.highlightSidebar(objectType)
+  DisplayManager.lastRunFunction = `$.fn.showMessages('${currentStatus}')`;
+  DisplayManager.lastObjectType = objectType;
+ 
+  let newMessageCount     = Object.keys(window.tableMap).includes('Messages') && window.tableMap['Messages'] ? window.tableMap['Messages'].find({ 'message_status': 0 }).length : 0;
+  let newMessageBadge     = `<span class="badge bg-warning float-right">${newMessageCount}</span>`;
+  let seenMessageCount    = Object.keys(window.tableMap).includes('Messages') && window.tableMap['Messages'] ? window.tableMap['Messages'].find({ 'message_status': 1 }).length : 0;
+  let seenMessageBadge    = `<span class="badge bg-secondary float-right">${seenMessageCount}</span>`;
+  let repliedMessageCount = Object.keys(window.tableMap).includes('Messages') && window.tableMap['Messages'] ? window.tableMap['Messages'].find({ 'message_status': 2 }).length : 0;
+  let repliedMessageBadge = `<span class="badge bg-success float-right">${repliedMessageCount}</span>`;
+  let ignoredMessageCount = Object.keys(window.tableMap).includes('Messages') && window.tableMap['Messages'] ? window.tableMap['Messages'].find({ 'message_status': 3 }).length : 0;
+  let ignoredMessageBadge = `<span class="badge bg-danger float-right">${ignoredMessageCount}</span>`;
 
+  let replyMessageCount = Object.keys(window.tableMap).includes('Messages') && window.tableMap['Messages'] ? window.tableMap['Messages'].find({ 'message_status': 4 }).length : 0;
+  let replyMessageBadge = `<span class="badge bg-info float-right">${replyMessageCount}</span>`;
+  let draftMessageCount = Object.keys(window.tableMap).includes('Messages') && window.tableMap['Messages'] ? window.tableMap['Messages'].find({ 'message_status': 5 }).length : 0;
+  let draftMessageBadge = `<span class="badge bg-dark float-right">${draftMessageCount}</span>`;
+
+  let undeliveredMessageCount = Object.keys(window.tableMap).includes('Messages') && window.tableMap['Messages'] ? window.tableMap['Messages'].find({ 'message_status': 6 }).length : 0;
+  let undeliveredMessageBadge = `<span class="badge bg-dark float-right">${undeliveredMessageCount}</span>`;
+
+  let status = currentStatus == 'new' ? 0 : currentStatus == 'seen' ? 1 : currentStatus == 'replied' ? 2 : currentStatus == 'ignored' ? 3 : currentStatus == 'reply'?4:currentStatus == 'draft'?5: -1;
+  let messageData = []
+ 
+  if (status <4 || status==6)  {
+      let tempData = window.tableMap['Messages'] ? window.tableMap['Messages'].find({ 'message_status': status }) : [];
+      messageData = tempData.map((row) => {
+          ["meta", "_cls", "$loki","_id", "current_version"].forEach((r) => delete row[r])
+        row['created_datetime'] = $.fn.displayDate(row, 'created_datetime')
+        row['last_modified_date'] = $.fn.displayDate(row, 'last_modified_date')
+      
+        if (currentUserRoleID == 1) {
+          row['Actions'] = `<div class="row"><div class="col-md-4"><button class="btn btn-success btn-md" onClick="$.fn.viewMessage( ${row.message_id})">View</button></div><div class="col-md-4"><button class="btn btn-success btn-md" onClick="$.fn.replyMessage( ${row.message_id})">Reply</button></div><div class="col-md-4"><button class="btn btn-success btn-md" onClick="$.fn.updateMessage(${row.message_id})">Update</button></div></div>`;
+        }
+        return row;
+
+      });
+      tempData = null;
+  } else {
+      
+    let query = { "reply_message": { $exists: true } }
+    let repliedMessages = Object.keys(window.tableMap).includes('Messages') && window.tableMap['Messages'] != null ? window.tableMap['Messages'].find(query) : []; 
+    
+    let repliedMessageIDs = repliedMessages && repliedMessages.length > 0 ? repliedMessages.map((record) => '$oid' in  record['reply_message'] ? record['reply_message']['$oid']:null):[];
+    let tempData = Object.keys(window.tableMap).includes('Messages') && window.tableMap['Messages']!=null ? window.tableMap['Messages'].find({ '_id': { '$in': repliedMessageIDs } }):[]
+    messageData = tempData.map((row) => {
+       ["meta", "_cls", "$loki","_id","current_version"].forEach((r) => delete row[r])
+      row['created_datetime'] = $.fn.displayDate(row, 'created_datetime')
+      row['last_modified_date'] = $.fn.displayDate(row, 'last_modified_date')
+     
+      if (currentUserRoleID == 1) {
+        row['Actions'] = `<div class="row"><div class="col-md-6"><button class="btn btn-success btn-md" onClick="$.fn.viewMessage( ${row.message_id})">View</button></div><div class="col-md-6"></div>`;
+      }
+      return row;
+    });
+    tempData = null;
+  }
+  
+  let statsIcon = 'fas fa-mail'
+  let messageTable = DashboardTable({ "statsTitle": `<a href="#" onclick="$.fn.showMessages('${currentStatus}')">${$.fn.capitalize(currentStatus)} Messages</a>`, "statsIcon": `${statsIcon}`, "tableData": messageData, "id": objectType, "statsClass": "secondary" ,"tableClass": "table-hover table-striped"});
+  currentStatus = $.fn.capitalize(currentStatus) 
+  $('.page-title').text(currentStatus+' Messages');
+  $('#contentwrapper-node').html(`
+		<section class="content">
+		  <div class="row">
+			<div class="col-md-3">
+			    <div class="card">
+			  	<div class="card-header">
+				  <h3 class="card-title">Inbox</h3>
+				  <div class="card-tools">
+					<button type="button" class="btn btn-tool" data-card-widget="collapse">
+					  <i class="fas fa-minus"></i>
+					</button>
+				  </div>
+				</div>
+				<div class="card-body p-0">
+				  <ul class="nav nav-pills flex-column">
+					<li class="nav-item ${status==0?'active':''}">
+					  <a href="#" class="nav-link ${status==0?'active':''}"  onclick="$.fn.showMessages('new')">
+						<i class="fa fa-envelope"></i> New
+						${newMessageBadge}
+					  </a>
+					</li>
+					<li class="nav-item ${status==1?'active':''}">
+					  <a href="#" class="nav-link ${status==1?'active':''}"  onclick="$.fn.showMessages('seen')">
+						<i class="fa fa-envelope-open"></i> Seen
+						${seenMessageBadge}
+					  </a>
+					</li>
+					<li class="nav-item ${status==2?'active':''}">
+					  <a href="#" class="nav-link ${status==2?'active':''}"  onclick="$.fn.showMessages('replied')">
+						<i class="fa fa-reply"></i> Replied
+						${repliedMessageBadge}
+					  </a>
+					</li>
+					<li class="nav-item ${status==3?'active':''}">
+					  <a href="#" class="nav-link ${status==3?'active':''}" onclick="$.fn.showMessages('ignored')">
+						<i class="fa fa-bell-slash"></i> Ignored
+						${ignoredMessageBadge}
+					  </a>
+					</li>
+          <li class="nav-item ${status==6?'active':''}">
+					  <a href="#" class="nav-link ${status==6?'active':''}" onclick="$.fn.showMessages('undelivered')">
+						<i class="fa fa-ban"></i> Undelivered
+						${undeliveredMessageBadge}
+					  </a>
+					</li>
+				  </ul>
+				</div>
+				<!-- /.card-body -->
+			  </div>
+			  <!-- /.card -->
+			  <div class="card">
+          <div class="card-header">
+              <h3 class="card-title">Outbox</h3>
+                  <div class="card-tools">
+                      <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                        <i class="fas fa-minus"></i>
+                      </button>
+                      </div>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="nav nav-pills flex-column">
+                        <li class="nav-item ${status==4?'active':''}">
+                          <a href="#" class="nav-link ${status==4?'active':''}"  onclick="$.fn.showMessages('reply')">
+                          <i class="fas fa-paper-plane text-dark"></i>Sent
+                         ${replyMessageBadge}
+                          </a>
+                        </li>
+                       <li class="nav-item ${status==5?'active':''}">
+                          <a href="#" class="nav-link ${status==5?'active':''}"  onclick="$.fn.showMessages('draft')">
+                          <i class="fas fa-file-alt text-dark"></i>Drafts
+                           ${draftMessageBadge}
+                          </a>
+                        </li>
+                    </ul>
+                </div>
+          </div>
+			</div>
+        <div class="col-md-9" id="message-status-display">
+                ${messageTable}
+        </div>
+		  </div>
+		</section>
+	  </div>`);
+	  
+  if (messageData.length == 0) { 
+      messageData = [{}]
+  }
+  const tableData = status<4 || status == 6?$.fn.getTableRecords(objectType,messageData ):$.fn.getTableRecords("responses",messageData );
+  const records = tableData['records'];
+  let columns = [];
+
+    if (!Object.keys(window.columnOrder).includes(objectType)) {
+      $.ajax({
+        url: `/cpanel/columns/${objectType}?acky=${currentUser.acky}`,
+        type: "GET",
+        processData: false,
+        contentType: false,
+        crossDomain: true,
+        success: (results) => {
+          $.fn.checkSession(results);
+          window.columnOrder[objectType] = results;
+          window.columnOrder[objectType].columnOrder.forEach((column) => { if (!excludedLokiFields.includes(column.toLowerCase())) { let col = column.split('_').map((str) => { return $.fn.capitalize(str) }).join(' '); columns.push({ 'sTitle': col, 'data': column, 'defaultContent': '' }) } })
+          if (!DataTable.isDataTable(`#${objectType}`)) {
+            try {
+              $('#loading-row').remove();
+              $(`#${objectType}`).DataTable({
+                "aaData": records
+                , "columns": columns,
+                "paging": true,
+                "lengthChange": true,
+                "searching": true,
+                "ordering": true,
+                "info": false,
+                "autoWidth": true,
+                "responsive": true
+              });
+            } catch (e) { 
+
+            }
+          }
+        },
+        error: (e) => {
+          $.fn.showAlert('Column Order Check Failed', 'danger', '$.fn.closeDialog()')
+        }
+      })
+  
+    } else {
+        
+      window.columnOrder[objectType].columnOrder.forEach((column) => { if (!excludedLokiFields.includes(column.toLowerCase())) { let col = column.split('_').map((str) => { return $.fn.capitalize(str) }).join(' '); columns.push({ 'sTitle': col, 'data': column, 'defaultContent': '' }) } })
+
+      if (!DataTable.isDataTable(`#${objectType}`) && document.querySelector(`#${objectType}`)) {
+        $('#loading-row').remove();
+        try{
+        $(`#${objectType}`).DataTable({
+          "aaData": records
+          , "columns": columns,
+          "paging": true,
+          "lengthChange": true,
+          "searching": true,
+          "ordering": true,
+          "info": false,
+          "autoWidth": true,
+          "responsive": true
+        });
+          } catch (e) { 
+
+    }
+      }
+
+    }
+
+
+}
+
+$.fn.viewMessage = (messageID) => {
+
+  let currentStatus            = 'seen';
+  const objectType               = 'messages';
+  $.fn.highlightSidebar(objectType)
+  DisplayManager.lastRunFunction = `$.fn.viewMessage('${messageID}')`;
+  DisplayManager.lastObjectType  = objectType;
+ 
+  let newMessageCount     = Object.keys(window.tableMap).includes('Messages') && window.tableMap['Messages'] ? window.tableMap['Messages'].find({ 'message_status': 0 }).length : 0;
+  let newMessageBadge     = `<span class="badge bg-warning float-right">${newMessageCount}</span>`;
+  let seenMessageCount    = Object.keys(window.tableMap).includes('Messages') && window.tableMap['Messages'] ? window.tableMap['Messages'].find({ 'message_status': 1 }).length : 0;
+  let seenMessageBadge    = `<span class="badge bg-secondary float-right">${seenMessageCount}</span>`;
+  let repliedMessageCount = Object.keys(window.tableMap).includes('Messages') && window.tableMap['Messages'] ? window.tableMap['Messages'].find({ 'message_status': 2 }).length : 0;
+  let repliedMessageBadge = `<span class="badge bg-success float-right">${repliedMessageCount}</span>`;
+  let ignoredMessageCount = Object.keys(window.tableMap).includes('Messages') && window.tableMap['Messages'] ? window.tableMap['Messages'].find({ 'message_status': 3 }).length : 0;
+  let ignoredMessageBadge = `<span class="badge bg-danger float-right">${ignoredMessageCount}</span>`;
+  let replyMessageCount = Object.keys(window.tableMap).includes('Messages') && window.tableMap['Messages'] ? window.tableMap['Messages'].find({ 'message_status': 4 }).length : 0;
+  let replyMessageBadge = `<span class="badge bg-info float-right">${replyMessageCount}</span>`;
+  let draftMessageCount = Object.keys(window.tableMap).includes('Messages') && window.tableMap['Messages'] ? window.tableMap['Messages'].find({ 'message_status': 5 }).length : 0;
+  let draftMessageBadge = `<span class="badge bg-dark float-right">${draftMessageCount}</span>`;
+  let undeliveredMessageCount = Object.keys(window.tableMap).includes('Messages') && window.tableMap['Messages'] ? window.tableMap['Messages'].find({ 'message_status': 6 }).length : 0;
+  let undeliveredMessageBadge = `<span class="badge bg-dark float-right">${undeliveredMessageCount}</span>`;
+
+  let status = currentStatus == 'new' ? 0 : currentStatus == 'seen' ? 1 : currentStatus == 'replied' ? 2 : currentStatus == 'ignored' ? 3 : currentStatus == 'reply'?4:currentStatus == 'draft'?5: -1;
+
+  let message = window.tableMap['Messages'] ? window.tableMap['Messages'].find({ 'message_id': parseInt(messageID) }) : null;
+  if (message && message.length > 0) { 
+    message = message[0];
+  }
+
+  let prevNnext = ""
+  let totalMessageCount = window.tableMap['Messages'].data.length
+  if (totalMessageCount != parseInt(message.message_id)) { 
+    if (messageID == 1) {
+
+      prevNnext = `<a href="#" onClick="$.fn.viewMessage('2')" class="btn btn-tool" title="Next"><i class="fas fa-chevron-right"></i></a>`
+    } else if (messageID > 1 && messageID < totalMessageCount) {
+
+       prevNnext =  `<a href="#"  onClick="$.fn.viewMessage('${parseInt(messageID)-1}')" class="btn btn-tool" title="Previous"><i class="fas fa-chevron-left"></i></a>
+									<a href="#" onClick="$.fn.viewMessage('${parseInt(messageID)+1}')" class="btn btn-tool" title="Next"><i class="fas fa-chevron-right"></i></a>`
+    } else { 
+
+          prevNnext =  `<a href="#"  onClick="$.fn.viewMessage('${parseInt(messageID)-1}')" class="btn btn-tool" title="Previous"><i class="fas fa-chevron-left"></i></a>`
+    }
+
+  
+  }
+
+  const showMessage = () => {         
+      $('#contentwrapper-node').html(`
+						<section class="content">
+						  <div class="row">
+							<div class="col-md-3">
+			    <div class="card">
+			  	<div class="card-header">
+				  <h3 class="card-title">Inbox</h3>
+				  <div class="card-tools">
+					<button type="button" class="btn btn-tool" data-card-widget="collapse">
+					  <i class="fas fa-minus"></i>
+					</button>
+				  </div>
+				</div>
+				<div class="card-body p-0">
+				  <ul class="nav nav-pills flex-column">
+					<li class="nav-item ${status==0?'active':''}">
+					  <a href="#" class="nav-link ${status==0?'active':''}"  onclick="$.fn.showMessages('new')">
+						<i class="fa fa-envelope"></i> New
+						${newMessageBadge}
+					  </a>
+					</li>
+					<li class="nav-item ${status==1?'active':''}">
+					  <a href="#" class="nav-link ${status==1?'active':''}"  onclick="$.fn.showMessages('seen')">
+						<i class="fa fa-envelope-open"></i> Seen
+						${seenMessageBadge}
+					  </a>
+					</li>
+					<li class="nav-item ${status==2?'active':''}">
+					  <a href="#" class="nav-link ${status==2?'active':''}"  onclick="$.fn.showMessages('replied')">
+						<i class="fa fa-reply"></i> Replied
+						${repliedMessageBadge}
+					  </a>
+					</li>
+					<li class="nav-item ${status==3?'active':''}">
+					  <a href="#" class="nav-link ${status==3?'active':''}" onclick="$.fn.showMessages('ignored')">
+						<i class="fa fa-bell-slash"></i> Ignored
+						${ignoredMessageBadge}
+					  </a>
+					</li>
+
+            <li class="nav-item ${status==6?'active':''}">
+  					  <a href="#" class="nav-link ${status==6?'active':''}" onclick="$.fn.showMessages('undelivered')">
+  						<i class="fa fa-ban"></i> Undelivered
+  						${undeliveredMessageBadge}
+  					  </a>
+					</li>
+				  </ul>
+				</div>
+				<!-- /.card-body -->
+			  </div>
+			  <!-- /.card -->
+			  <div class="card">
+          <div class="card-header">
+              <h3 class="card-title">Outbox</h3>
+                  <div class="card-tools">
+                      <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                        <i class="fas fa-minus"></i>
+                      </button>
+                      </div>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="nav nav-pills flex-column">
+                        <li class="nav-item ${status==4?'active':''}">
+                          <a href="#" class="nav-link ${status==4?'active':''}"  onclick="$.fn.showMessages('reply')">
+                          <i class="fas fa-paper-plane text-dark"></i>Sent
+                         ${replyMessageBadge}
+                          </a>
+                        </li>
+                       <li class="nav-item ${status==5?'active':''}">
+                          <a href="#" class="nav-link ${status==5?'active':''}"  onclick="$.fn.showMessages('draft')">
+                          <i class="fas fa-file-alt text-dark"></i>Drafts
+                           ${draftMessageBadge}
+                          </a>
+                        </li>
+                    </ul>
+                </div>
+          </div>
+			</div>
+
+						<div class="col-md-9" id="message-content-display">
+							  <div class="card card-primary card-outline">
+								<div class="card-header">
+								  <h3 class="card-title">Mail From: ${message.client_name}</h3>
+
+								  <div class="card-tools">
+								${prevNnext}
+								  </div>
+								</div>
+								
+								<div class="card-body p-0">
+								  <div class="mailbox-read-info">
+                      <h5>${message.subject}</h5>
+                      <h6>From: ${message.client_email}  <span class="mailbox-read-time float-right">${$.fn.displayDate(message, 'created_datetime')}</span></h6>
+                       <h6>Notes: ${message.message_notes?message.message_notes:''}</h6>
+								  </div>
+								  <div class="mailbox-controls with-border text-center">
+                      <div class="btn-group">
+                            <button type="button" class="btn btn-default btn-sm" data-container="body" title="Reply" onClick="$.fn.replyMessage( ${message.message_id})" >
+                              <i class="fas fa-reply"></i>
+                            </button>
+                            <button type="button" class="btn btn-default btn-sm" data-container="body" title="Update" onClick="$.fn.updateMessage(${message.message_id})">
+                              <i class="fa fa-edit"></i>
+                            </button>
+                      </div>
+								  </div>
+								 
+                    <div class="mailbox-read-message">
+                      ${message.message}
+                    </div>
+								</div>
+                 <div class="card-footer bg-white">
+                 </div>
+								<div class="card-footer">
+                      <button type="button" class="btn btn-default" onClick="$.fn.updateMessage(${message.message_id})" ><i class="fa fa-edit"></i> Update</button>
+                      <button type="button" class="btn btn-default" onClick="$.fn.replyMessage(${message.message_id})" ><i class="fas fa-reply"></i> Reply</button>
+								 
+								  <button type="button" onClick="$.fn.showMessages('${currentStatus.toLowerCase()}')" class="btn btn-default float-right"><i class="far fa-envelope"></i> Messages</button>
+								</div>
+								
+							  </div>
+						</div>
+						  </div>
+						</section>
+					  `
+		  
+					);}
+  currentStatus = status > -1 ? $.fn.capitalize(currentStatus) : 'Response';
+  $('.page-title').text(currentStatus+' Messages');
+  if(message){
+		if (message.message_status != 1){
+	         const formData = new FormData();
+			 formData.append("message_id", message.message_id)
+			 formData.append("message_status",1)
+			 formData.append("acky", currentUser.acky);
+        $.ajax({
+          url: `cpanel/messages/update`,
+          type: "POST",
+          data: formData,
+          processData: false,
+          contentType: false,
+          crossDomain: true,
+          success: (result) => {
+            showMessage();
+            $.fn.syncLokiCollection('Messages', () => { $.fn.viewMessage(messageID) }) ;
+          },
+          error: (e) => {
+        
+              $.fn.showAlert(`Error Reading Message from ${message.client_name}`, 'warning',`$.fn.showMessages('${currentStatus}')`)
+          
+          }
+        });
+	  
+    } else {
+      showMessage();
+    }
+  
+  
+	
+	 } else{
+	 
+	  $.fn.showAlert('Message not found!', 'danger',`$.fn.showMessages('${currentStatus}')`)
+	 }
+
+
+
+}
+
+$.fn.replyMessage = (messageID) => {
+
+  let currentStatus            = 'seen';
+  const objectType               = 'messages';
+  $.fn.highlightSidebar(objectType)
+  DisplayManager.lastRunFunction = `$.fn.replyMessage('${messageID}')`;
+  DisplayManager.lastObjectType  = objectType;
+ 
+  let newMessageCount     = Object.keys(window.tableMap).includes('Messages') && window.tableMap['Messages'] ? window.tableMap['Messages'].find({ 'message_status': 0 }).length : 0;
+  let newMessageBadge     = `<span class="badge bg-warning float-right">${newMessageCount}</span>`;
+  let seenMessageCount    = Object.keys(window.tableMap).includes('Messages') && window.tableMap['Messages'] ? window.tableMap['Messages'].find({ 'message_status': 1 }).length : 0;
+  let seenMessageBadge    = `<span class="badge bg-secondary float-right">${seenMessageCount}</span>`;
+  let repliedMessageCount = Object.keys(window.tableMap).includes('Messages') && window.tableMap['Messages'] ? window.tableMap['Messages'].find({ 'message_status': 2 }).length : 0;
+  let repliedMessageBadge = `<span class="badge bg-success float-right">${repliedMessageCount}</span>`;
+  let ignoredMessageCount = Object.keys(window.tableMap).includes('Messages') && window.tableMap['Messages'] ? window.tableMap['Messages'].find({ 'message_status': 3 }).length : 0;
+  let ignoredMessageBadge = `<span class="badge bg-danger float-right">${ignoredMessageCount}</span>`;
+
+
+  let replyMessageCount = Object.keys(window.tableMap).includes('Messages') && window.tableMap['Messages'] ? window.tableMap['Messages'].find({ 'message_status': 4 }).length : 0;
+  let replyMessageBadge = `<span class="badge bg-info float-right">${replyMessageCount}</span>`;
+  let draftMessageCount = Object.keys(window.tableMap).includes('Messages') && window.tableMap['Messages'] ? window.tableMap['Messages'].find({ 'message_status': 5 }).length : 0;
+  let draftMessageBadge = `<span class="badge bg-dark float-right">${draftMessageCount}</span>`;
+
+  let undeliveredMessageCount = Object.keys(window.tableMap).includes('Messages') && window.tableMap['Messages'] ? window.tableMap['Messages'].find({ 'message_status': 6 }).length : 0;
+  let undeliveredMessageBadge = `<span class="badge bg-dark float-right">${undeliveredMessageCount}</span>`;
+  
+
+  let status = currentStatus == 'new' ? 0 : currentStatus == 'seen' ? 1 : currentStatus == 'replied' ? 2 : currentStatus == 'ignored' ? 3 : currentStatus == 'reply'?4:currentStatus == 'draft'?5:currentStatus == 'undelivered'?6: -1;
+  
+  let message      = window.tableMap['Messages'] ? window.tableMap['Messages'].find({ 'message_id': parseInt(messageID) }) : null;
+  let replyMessage = null;
+  if (message && message.length > 0) { 
+
+    message = message[0];
+	replyMessage =  window.tableMap['Messages'] ? window.tableMap['Messages'].data.filter( (message)=> message.reply_message && '$oid' in message.reply_message && message.reply_message['$oid']) : null;
+	
+	if (replyMessage && replyMessage.length > 0) { 
+			replyMessage= replyMessage[0];
+	}
+  }
+  
+ let mailTemplates = Object.keys(window.tableMap).includes('MailTemplates') && window.tableMap['MailTemplates'].length > 0 ? window.tableMap['MailTemplates'] : [];        
+ let mailTemplateOptions = mailTemplates && mailTemplates.length > 0 ? mailTemplates.map((template) => {
+            let selected = "";
+            if (record && parseInt(record.template_id) == parseInt(template.template_id)){
+              selected = `selected="selected"`
+            }
+            return `<option value="${template.page_id}" ${selected}>${template.template_name}</option>`
+          }) : [];
+
+      $('#contentwrapper-node').html(`<section class="content">
+						  <div class="row">
+							<div class="col-md-3">
+			    <div class="card">
+			  	<div class="card-header">
+				  <h3 class="card-title">Inbox</h3>
+				  <div class="card-tools">
+					<button type="button" class="btn btn-tool" data-card-widget="collapse">
+					  <i class="fas fa-minus"></i>
+					</button>
+				  </div>
+				</div>
+				<div class="card-body p-0">
+				  <ul class="nav nav-pills flex-column">
+					<li class="nav-item ${status==0?'active':''}">
+					  <a href="#" class="nav-link ${status==0?'active':''}"  onclick="$.fn.showMessages('new')">
+						<i class="fa fa-envelope"></i> New
+						${newMessageBadge}
+					  </a>
+					</li>
+					<li class="nav-item ${status==1?'active':''}">
+					  <a href="#" class="nav-link ${status==1?'active':''}"  onclick="$.fn.showMessages('seen')">
+						<i class="fa fa-envelope-open"></i> Seen
+						${seenMessageBadge}
+					  </a>
+					</li>
+					<li class="nav-item ${status==2?'active':''}">
+					  <a href="#" class="nav-link ${status==2?'active':''}"  onclick="$.fn.showMessages('replied')">
+						<i class="fa fa-reply"></i> Replied
+						${repliedMessageBadge}
+					  </a>
+					</li>
+					<li class="nav-item ${status==3?'active':''}">
+					  <a href="#" class="nav-link ${status==3?'active':''}" onclick="$.fn.showMessages('ignored')">
+						<i class="fa fa-bell-slash"></i> Ignored
+						${ignoredMessageBadge}
+					  </a>
+					</li>
+            
+            <li class="nav-item ${status==6?'active':''}">
+  					  <a href="#" class="nav-link ${status==6?'active':''}" onclick="$.fn.showMessages('undelivered')">
+  						<i class="fa fa-ban"></i> Undelivered
+  						${undeliveredMessageBadge}
+  					  </a>
+					</li>
+				  </ul>
+				</div>
+				<!-- /.card-body -->
+			  </div>
+			  <!-- /.card -->
+			  <div class="card">
+          <div class="card-header">
+              <h3 class="card-title">Outbox</h3>
+                  <div class="card-tools">
+                      <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                        <i class="fas fa-minus"></i>
+                      </button>
+                      </div>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="nav nav-pills flex-column">
+                        <li class="nav-item ${status==4?'active':''}">
+                          <a href="#" class="nav-link ${status==4?'active':''}"  onclick="$.fn.showMessages('reply')">
+                          <i class="fas fa-paper-plane text-dark"></i>Sent
+                         ${replyMessageBadge}
+                          </a>
+                        </li>
+                       <li class="nav-item ${status==5?'active':''}">
+                          <a href="#" class="nav-link ${status==5?'active':''}"  onclick="$.fn.showMessages('draft')">
+                          <i class="fas fa-file-alt text-dark"></i>Drafts
+                           ${draftMessageBadge}
+                          </a>
+                        </li>
+                    </ul>
+                </div>
+          </div>
+			</div>
+						   <div class="col-md-9">
+						   <div class="row" id="message-content-display">
+                    <div class="col-md-12 card card-primary card-outline">
+                      <div class="card-header">
+                        <h3 class="card-title">Mail From: ${message.client_name}</h3>
+                      </div>
+
+                    <div class="card-body p-0">
+                  <div class="mailbox-read-info">
+                  <h5>${message.subject}</h5>
+                  <h6>From: ${message.client_email}
+                  <span class="mailbox-read-time float-right">${$.fn.displayDate(message, 'created_datetime')}</span></h6>
+                  </div>
+                  <div class="mailbox-controls with-border text-center">
+
+                  <div class="mailbox-read-message">
+                  ${message.message}
+                  </div>
+                  </div>
+                  <div class="card-footer bg-white">
+                  </div>
+                  <div class="card-footer">
+                  </div>
+
+                  </div>
+                  </div>
+	            </div>
+						   <div class="row">
+								<div class="col-md-12" card card-primary card-outline">
+								  <div class="card-header">
+									<h3 class="card-title">Reply Message</h3>
+								  </div>
+								  <!-- /.card-header -->
+								  <div class="card-body">
+									<div class="form-group row">
+                     <label  for="reply-to" class="col-md-2">To</label>
+									  <input class="form-control col-md-10" id="client-email" placeholder="To:" id="reply-to" value="${message?.client_email?message.client_email:''}"disabled="disabled" />
+									</div>
+									<div class="form-group row">
+                  <label  for="reply-subject" class="col-md-2">Subject</label>
+									  <input class="form-control col-md-10" placeholder="Subject:" id="reply-subject" value="Re:${message?.subject?message.subject:''}" disabled="disabled"/>
+									</div>
+                    <div class="form-group row">
+                      <label  for="mail-template" class="col-md-2">Template</label>
+                      <div class="col-md-10"> 
+                        <select name="mail_template" id="mail-template" class="form-control select2" style="width: 100%;">
+                          ${mailTemplateOptions}
+                        </select>
+                      </div>
+                    </div>
+									<div class="form-group">
+										<textarea id="reply-message-contents" class="form-control" style="height: 300px">
+										  ${replyMessage?.message?replyMessage.message:''}
+										</textarea>
+									</div>
+								  </div>
+								  <!-- /.card-body -->
+								  <div class="card-footer">
+									<div class="float-right">
+									  <button type="button" class="btn btn-default" id="save-reply-btn"><i class="fas fa-pencil-alt"></i> Save</button>
+									  <button type="submit" class="btn btn-primary" id="send-reply-btn"><i class="far fa-envelope"></i> Send</button>
+									</div>
+									<button type="reset" class="btn btn-default" onClick="$.fn.showMessages('seen')"><i class="fas fa-times"></i> Back</button>
+								  </div>
+								  <!-- /.card-footer -->
+													</div>
+								<!-- /.card -->
+								</div>
+							
+						  </div>
+              </div>
+						</section>`
+					
+					);
+
+
+	const ImageButton = function (context) {
+        let ui = $.summernote.ui;
+        var button = ui.button({
+          contents: '<i class="fa fa-images"/> Image</i>',
+          tooltip: 'Insert Image',
+          click: function () {
+            $.fn.selectImage(context)
+          }
+        });
+
+      return button.render();  
+      }
+
+      	const SwapButton = function (context) {
+        let ui = $.summernote.ui;
+        var button = ui.button({
+          contents: '<i class="fa fa-swap"/> Placeholder</i>',
+          tooltip: 'Insert Placeholder',
+          click: function () {
+            $.fn.selectPlaceholder(context)
+          }
+        });
+
+      return button.render();  
+      }
+
+      $('#reply-message-contents').summernote({
+
+			height: 600,                 
+			minHeight: 600,             
+			maxHeight: null,             
+			focus: true,                
+			toolbar: [
+				['style', ['style']],
+				['font', ['bold', 'italic', 'underline', 'clear']],
+				['fontname', ['fontname']],
+				['color', ['color']],
+				['para', ['ul', 'ol', 'paragraph']],
+				['height', ['height']],
+				['table', ['table']],
+				['insert', ['link', 'image','swap', 'hr']],
+				['view', ['fullscreen', 'codeview']],
+				['help', ['help']]
+			],
+			buttons: {
+        image: ImageButton,
+        swap: SwapButton
+			}
+			})
+  currentStatus = status > -1 ? $.fn.capitalize(currentStatus) : 'Response';
+  $('.page-title').text('Reply Messages');
+ 
+   $('.select2').select2();
+
+
+  $("#mail-template").on('change', (e) => { 
+      let templateID = e.target.value;
+      let template = window.tableMap['MailTemplates'].find({ 'template_id': templateID });
+      if (template && template.length > 0) { 
+        template.template[0];
+        $('#mail-template').summernote('destroy');  
+        document.getElementById('mail-template').value=(pageTemplate.contents);
+        convertToSummerNote('mail-template');
+
+      }
+
+  })
+
+  $('#send-reply-btn,#save-reply-btn').on('submit click',(e) => { 
+    let id = e.target.id
+    
+              e.preventDefault();
+              let clientName = message.client_name;
+              let originalMessageStatus = message.message_status;
+              let clientPhone = message.client_phone;
+              let originalMessageID =  message.message_id
+              let clientEmail = $('#reply-to').val();
+              let subject = $('#reply-subject').val();
+              let contents = $('#template-contents').val()
+              let  sendEmail = id == '#send-reply-btn'
+
+              if (contents && contents.length > 0) {
+                const formData  =  new FormData() 
+                formData.append("client_name", clientName);
+                formData.append("client_email", clientEmail);
+                formData.append("message_subject", subject);
+                formData.append("message_contents", subject);
+                formData.append("client_phone", clientPhone)
+                formData.append("message_subject", subject);
+                formData.append("original_message_id", originalMessageID)
+                formData.append("original_message_status", originalMessageStatus)
+                formData.append("send_email", sendEmail)
+                formData.append("acky", currentUser.acky);
+                $.ajax({
+                      url: `cpanel/message/reply`,
+                      type: "POST",
+                      data: formData,
+                      processData: false,
+                      contentType: false,
+                      crossDomain: true,
+                      success: (result) => {
+                        $.fn.showMessages('responded')
+                      },
+                  error: (e) => {
+                    if (id == '#save-reply-btn') {
+                      $.fn.showAlert('Error Saving Mail. Please try again later', 'warning', () => { $.fn.closeDialog() })
+                          
+
+                    } else  if (id == '#send-reply-btn') { 
+
+                      $.fn.showAlert('Error Sending Mail. Please try again later', 'danger', () => { $.fn.showMessages('seen') })
+                       
+                    }
+                            
+                       
+
+                      }
+                })
+
+              } else { 
+                  $.fn.showAlert("Mail contents should not be empty",'warning', () =>{$.fn.closeDialog()})
+              }
+                
+                  
+              })
+
+
+
+}
+
+$.fn.updateMessage = (messageID) => {
+  let modalOptions = {
+    keyboard: false,
+    focus: true,
+    backdrop: 'static'
+  }
+ 
+  let message = Object.keys(window.tableMap).includes('Messages') && window.tableMap['Messages'] ? window.tableMap['Messages'].find({ 'message_id': (messageID) }) : 0; 
+  message = message && message.length >= 1 ? message[0] : message
+
+  $('#modal-content').css('width', "60em");
+  
+let messageOptions = ['NEW','SEEN','RESPONDED','IGNORED'].map((opt, key) => {
+	let selected = "";
+	if (message  && message.message_status && message.message_status ==  key)  {
+	  selected = `selected="selected"`
+	}
+	return `<option value="${key}" ${selected}>${opt}</option>`
+});
+		  
+  
+  if (message) {
+    $('#modal-content').html(`
+   <form id="message-display-form">
+  <div class="card card-secondary" id="message-display">
+    <div class= "card-header">
+       <h3 class="card-title text-center" id="message-id">Message ID: ${message.message_id ? message.message_id : ''}</h3>
+   </div >
+ 
+    <div class="card-body">
+
+      <div class="form-group row">
+        <label for="client-name" class="form-label col-sm-2">Client Name</label>
+        <input type="text" class="form-control col-sm-10" name="client_name" id="client-name" value="${message?.client_name?message.client_name:''}" disabled="disabled">
+      </div>
+      <div class="form-group row">
+        <label for="client-email" class="form-label col-sm-2">Client Email</label>
+        <input type="text" class="form-control col-sm-10" name="client_email" id="client-email" value="${message?.client_email?message.client_email:''}" disabled="disabled">
+      </div>
+	  <div class="form-group row">
+        <label for="client-phone" class="form-label col-sm-2">Client Phone</label>
+        <input type="text" class="form-control col-sm-10" name="client_phone" id="client-phone" value="${message?.client_phone?message.client_phone:''}" disabled="disabled">
+      </div>
+      <div class="form-group row">
+        <label for="message-contents" class="form-label col-sm-2">Message</label>
+        <textarea name="message_contents" class="form-control col-sm-10" id="message-contents"   disabled="disabled" style="resize:none">${message?.message?message.message:''}</textarea>
+        </div>
+
+		<div class="form-group row">
+			<label  for="message-status" class="col-md-2">Message Status</label>
+			<div class="col-md-10"> 
+				<select name="message_status" id="message-status" class="form-control select2" style="width: 100%;">
+					${messageOptions}
+				</select>
+			</div>
+		</div>	
+
+      <div class="form-group row">
+        <label for="message-notes" class="form-label col-sm-2">Message Notes</label>
+        <textarea name="message_notes" class="form-control col-sm-10" id="message-notes"   style="resize:none">${message.message_notes?message.message_notes:''}</textarea>
+        </div>  
+
+    </div>
+    <div class="card-footer">
+
+      <div class="row">	          <div class="col-sm-6 text-left">
+              <button  id="display-cancel-bttn" onclick="$.fn.cancelDialog()"  class="btn btn-secondary">Close</button>
+          </div>
+           <div class="col-sm-6 text-right" >  <button  id="message-status-update-bttn" class="btn btn-success">Update</button> </div>
+
+      </div>
+    </div>
+  </div>
+</form>
+  `);
+   $('.select2').select2();
+    $("#message-status-update-bttn").on('click', (e) => {
+      e.preventDefault()
+      let messageStatus = $('#message-status').val();
+      let messageNotes = $('#message-notes').val();
+      let messageID = message.message_id;
+
+      const formData = new FormData();
+      formData.append("message_id", messageID);
+      formData.append("message_status", messageStatus);
+      formData.append("message_notes", messageNotes);
+     
+      if (messageStatus && messageID){
+          formData.append("acky", currentUser.acky);
           $.ajax({
-              url: `/cpanel/add/${objectType}`,
+              url: `cpanel/messages/update`,
               type: "POST",
               data: formData,
               processData: false,
               contentType: false,
               crossDomain: true,
-            success: (result) => {
-                
-                $.fn.showUpdatedTable(result, objectType)
+              success: (result) => {
+              $.fn.syncLokiCollection('Messages', () => { $.fn.showAlert("Message Updated Successfully", 'success', `$.fn.cancelDialog()`) });
               },
               error: (e) => {
-                    
-                $.fn.showAlert(errorHeader, 'danger', () => { $.fn.showTableRecords(objectType) });
+
+              $.fn.showAlert(`Error Reading Message from ${message.client_name}`, 'warning', `$.fn.cancelDialog()`)
 
               }
-          })
+          });
+    }
+   })
+   
+    $('#myModal').modal(modalOptions);
+    $('#myModal').show();
+  } else { 
 
-}
+    $.fn.showAlert(`Image:${imageID} could not be loaded`,"warning","$.fn.cancelDialog()")
+  }
+
+};
+/**
+ * =====================================================================================================================
+ * 
+ * This section is for functions that manage objects
+ * 
+ * =======================================================================================================================
+ */
+
+ 
 $.fn.editComponent = (
             objectType, 
 			      requiredTables,  
@@ -2868,6 +3915,7 @@ $.fn.editComponent = (
                   contentType: false,
                   crossDomain: true,
                   success: (results) => {
+                     $.fn.checkSession(results);
                     handleSuccess(results);
 
                     },
@@ -2879,7 +3927,7 @@ $.fn.editComponent = (
 
 }
 $.fn.editSettings = (query = 'none') => {
-  
+  $.fn.showLoadingDialog('Please wait...');
   const objectType = 'sitesettings';
   $.fn.highlightSidebar(objectType);
   DisplayManager.lastRunFunction = `$.fn.editSettings(${query == 'none' ? `'none'` : JSON.stringify(query)})`;
@@ -2893,7 +3941,7 @@ $.fn.editSettings = (query = 'none') => {
     contentType: false,
     crossDomain: true,
     success: (results) => {
-      
+      $.fn.checkSession(results);
       let record = Object.keys(results).includes(objectType) && results[objectType].length == 1 ? results[objectType][0] : null;
      // console.log(record)
       let titlePrefix = "Edit"
@@ -2914,7 +3962,6 @@ $.fn.editSettings = (query = 'none') => {
       const imapAccounts  = Object.keys(results).includes('imapaccounts') && results['imapaccounts'].length > 0 ? results['imapaccounts'] : [];
       const pages         = Object.keys(results).includes('pages') && results['pages'].length > 0 ? results['pages'] : [];
       const logoImages    = images && images.length > 0 ? images.filter((image) => image.image_type.toLowerCase() == "logo") : null;
-      console.log(logoImages)
       let imagePreview    = logoImages && logoImages.length>0?logoImages[0].google_url:'/static/images/placeholder.png';
       const imageOptions  = logoImages.map((image) => {
       let selected        = "";
@@ -3188,6 +4235,7 @@ $.fn.editSettings = (query = 'none') => {
         </form>
       </div></div></div>`
       );
+      $.fn.closeDialog()
       $('#settings-cancel-btn').on('click', (e) => {
             e.preventDefault();
             $.fn.showTableRecords('sitesettings');
@@ -3246,7 +4294,7 @@ $.fn.editSettings = (query = 'none') => {
         
        $('#google-map').on('change', (e) => {
 
-              if ($.fn.isValidURL(e.target.value.trim())) {
+              if (!$.fn.isValidURL(e.target.value.trim())) {
                           if (!$(this).hasClass('is-invalid')) {
                             $(this).addClass('is-invalid')
                           }
@@ -3284,10 +4332,11 @@ $.fn.editSettings = (query = 'none') => {
             let loginImage       = $('#login-image').val();
             let mailingAccount   = $('#mailing-account').val();
             // Object.keys(overrides).forEach((entry)=> console.log(entry, overrides[entry]))
- 		 let validCount = 0;
-		 ['contact-us-message','site-description','site-title','site-name','site-id','site-keywords'].forEach((id)=>{
+
+            let validCount = 0;
+            ['contact-us-message','site-description','site-title','site-name','site-id','site-keywords'].forEach((id)=>{
             
-              let message = $("#"+id).val()
+            let message = $("#"+id).val()
                     if (message && message == "") {
                       if (!$("#"+id).hasClass('is-invalid')) {
                       $("#"+id).addClass('is-invalid')
@@ -3305,7 +4354,8 @@ $.fn.editSettings = (query = 'none') => {
             let isValid =validCount ==6 && contactUsMessage.length > 0 && $.fn.areFieldsValid('settings-submit-btn', [ 'startup-message', 'secret-key', 'address', 'email', 'phone-number', 'time-out']) 
             
             if (isValid) {
-                  
+                  $.fn.showLoadingDialog('Applying changes...')
+                  $(this).attr('disabled','disabled');
                   const formData = new FormData();
                   formData.append("mode", "edit");
                   formData.append("acky", currentUser.acky);
@@ -3363,9 +4413,8 @@ $.fn.editSettings = (query = 'none') => {
   })
 
 }
-
 $.fn.editImage = (query = 'none') => {
-
+  $.fn.showLoadingDialog('Please wait...');
   const objectType = 'images';
   $.fn.highlightSidebar(objectType)
   DisplayManager.lastRunFunction = `$.fn.editImage(${query == 'none' ? query : JSON.stringify(query)})`;
@@ -3379,13 +4428,13 @@ $.fn.editImage = (query = 'none') => {
     crossDomain: true,
 
     success: (results) => {
-    
+       $.fn.checkSession(results);
       let record =  Object.keys(results).includes(objectType) && results[objectType].length == 1 ? results[objectType][0] : null;
       let titlePrefix = record ? 'Edit' : 'New';
       let button      = record ? 'Update' : 'Add';
       let disabled    = record ? `disabled="disabled"` : ``;
       let imageLabel = record  ? record.file_name : 'New Image'
-      let dimensions = record ? record.image_dimensions.replaceAll("\"", "'") : '';
+      let dimensions = record ?  record.image_dimensions.replaceAll("\"", "'") : '';
       
       const imageTypes = $.fn.getObjectType(window.appConfig.image_types)!="object"?JSON.parse(window.appConfig.image_types): window.appConfig.image_types;
 
@@ -3394,7 +4443,8 @@ $.fn.editImage = (query = 'none') => {
             
           if (record && record?.image_type && record.image_type == type) {
 
-            selected = `selected="selected"`;
+              selected = `selected="selected"`;
+              dimensions= JSON.stringify(imageTypes[type]).replaceAll("\"","'")
           }
         
               return `<option value="${type}" ${selected}>${type}</option>`
@@ -3410,17 +4460,22 @@ $.fn.editImage = (query = 'none') => {
         let height   = imgDimen.height
         previewImageHtml = `<div id="preview-div" class="text-center"><img  class="img-fluid" style="height:auto;max-width:100%"  id="preview-image" src="${imagePreview}" width="${width}" height="${height}" alt="logo preview"/> </div>`;
       };
-
+      console.log(record?.transparent_background?.toString().toLowerCase() );
       let bgTransparentOptions = ['No','Yes'].map((opt, key) => {
-            let selected = "";
-            if (opt=='No' || (record  && record.background_transpatent?.toString().toLowerCase() ==  "true") ) {
+        let selected = "";
+          if (opt == "Yes" && record && record.transparent_background) {
+            selected = `selected="selected"`
+          } else if (opt == "No" && record && !record.transparent_background)  {
               selected = `selected="selected"`
-            }
-            return `<option value="${key}" ${selected}>${opt}</option>`
-      });
+          }else if (opt == "No" && !record )  {
+              selected = `selected="selected"`
+          }
+        return `<option value="${key}" ${selected}>${opt}</option>`
+  });
+  
 		  
       
-      $('#contentwrapper-node').html(
+      $('#contentwrapper-node').html( 
         `<div class="container-fluid"><div class="row">       
          <div class="card card-dark col-md-12 w-100">
          <div class="card-header">
@@ -3448,10 +4503,10 @@ $.fn.editImage = (query = 'none') => {
 						</select>
 					</div>
 				</div>    
-      		        <div class="form-group row">
-			<label  for="background-transpatent" class="col-md-2">Transparent Background</label>
+    <div class="form-group row">
+			<label  for="background-transparent" class="col-md-2">Transparent Background</label>
 			<div class="col-md-10"> 
-				<select name="background_transpatent" id="background-transpatent" class="form-control select2" style="width: 100%;">
+				<select name="transparent_background" id="background-transparent" class="form-control select2" style="width: 100%;">
 					${bgTransparentOptions}
 				</select>
 			</div>
@@ -3461,6 +4516,7 @@ $.fn.editImage = (query = 'none') => {
         <label for="image-dimensions" class="form-label col-sm-2">Image Dimensions</label>
         <div class="col-sm-10"><input type="text" class="form-control " id="image-dimensions" name="image_dimensions" placeholder="" value="${dimensions}"></div>
       </div>
+      
 				<div class="form-group row">
 					<div class="col-md-2">  <label for="image-file">Image File</label> 
 					</div>
@@ -3482,8 +4538,9 @@ $.fn.editImage = (query = 'none') => {
         </form>
       </div></div></div>`
       );
+      $.fn.closeDialog();
       $('#image-dimensions').attr('disabled', 'diabled="disabled"')
-       $('#image-dimensions').val(JSON.stringify(imageTypes[Object.keys(imageTypes)[0]]));
+      //$('#image-dimensions').val(JSON.stringify(imageTypes[Object.keys(imageTypes)[0]]));
       let imageUpdated = false;
 
           if (record) {
@@ -3517,9 +4574,9 @@ $.fn.editImage = (query = 'none') => {
            imageUpdated = true;
            if (!$.fn.isValidImage('image-file')) {
               //console.log("Image is not valid o")
-              $('#image-file').addClass('is-invalid')
+              $('#image-file').addClass('is-invalid');
               $('#image-file').val('')
-             $('#preview-div').hide()
+             $('#preview-div').hide();
                               
           } else {
                                   
@@ -3611,7 +4668,7 @@ $.fn.editImage = (query = 'none') => {
               let imageType        = $('#image-type').val()
               let uploadedImage    = $('#image-file').val()
                let imageDimensions = $('#image-dimensions').val();
-               let isBgTransparent = $('#background-transpatent').val()
+               let isBgTransparent = $('#background-transparent').val()
                let imageElement    = document.getElementById("uploaded-image") 
                if (imageElement) { 
                    imageDimensions     = JSON.stringify({ 'width': imageElement.naturalWidth, 'height': imageElement.naturalHeight })
@@ -3620,6 +4677,8 @@ $.fn.editImage = (query = 'none') => {
               let isImageValid = imageUpdated ? $.fn.isValidImage('image-file') : true
                  
               if (isValid && isImageValid ) {
+                $.fn.showLoadingDialog('Applying changes...')
+                $(this).attr('disabled','disabled');
                  const formData = new FormData();
                  formData.append("mode", titlePrefix.toLowerCase());
                  if (titlePrefix.toLowerCase() == "edit") {
@@ -3680,9 +4739,10 @@ $.fn.editImage = (query = 'none') => {
   })
 
 }
-
 $.fn.editFile = (query = 'none') => {
-
+  $.fn.showLoadingDialog(
+    "Please wait ..."
+  )
   const objectType = 'files';
   $.fn.highlightSidebar(objectType)
   DisplayManager.lastRunFunction = `$.fn.editFile(${query == 'none' ? query : JSON.stringify(query)})`;
@@ -3696,7 +4756,7 @@ $.fn.editFile = (query = 'none') => {
     crossDomain: true,
 
     success: (results) => {
-
+      $.fn.checkSession(results);
       let record       = Object.keys(results).includes(objectType) && results[objectType].length == 1 ? results[objectType][0] : null;
       let titlePrefix  = record ? 'Edit' : 'New';
       let button       = record ? 'Update' : 'Add';
@@ -3766,6 +4826,7 @@ $.fn.editFile = (query = 'none') => {
         </form>
       </div></div></div>`
       );
+      $.fn.closeDialog();
       let fileUpdated = false;
 
           if (record) {
@@ -3848,6 +4909,8 @@ $.fn.editFile = (query = 'none') => {
                let isFileValid = fileUpdated ? $.fn.isValidFile('file-upload') : true;
                  
               if (isValid && isFileValid ) {
+                $.fn.showLoadingDialog('Applying changes...')
+                $(this).attr('disabled','disabled');
                  const formData = new FormData();
                  formData.append("mode", titlePrefix.toLowerCase());
                  if (titlePrefix.toLowerCase() == "edit") {
@@ -3905,7 +4968,7 @@ $.fn.editFile = (query = 'none') => {
 
 }
 $.fn.editTemplate = (query = 'none') => {
-
+  $.fn.showLoadingDialog('Please wait...');
   const objectType               = 'pagetemplates';
   $.fn.highlightSidebar(objectType)
   DisplayManager.lastRunFunction = `$.fn.editTemplate(${query == 'none' ? query : JSON.stringify(query)})`;
@@ -3919,10 +4982,10 @@ $.fn.editTemplate = (query = 'none') => {
     crossDomain: true,
 
     success: (results) => {
-    
+      
+      $.fn.checkSession(results);
       let record = Object.keys(results).includes(objectType) && results[objectType].length == 1 ? results[objectType][0] : null;
       $.fn.imageData = Object.keys(results).includes('images') && results['images'].length > 0 ? results['images'] : [];
-      //console.log($.fn.imageData)
       let titlePrefix = record ? 'Edit' : 'New';
       let button = record ? 'Update' : 'Add';
       let disabled = record ? `disabled="disabled"` : ``;
@@ -3971,6 +5034,8 @@ $.fn.editTemplate = (query = 'none') => {
         </form>
       </div></div></div>`
       );
+
+       $.fn.closeDialog()
       
       const ImageButton = function (context) {
         let ui = $.summernote.ui;
@@ -4052,6 +5117,8 @@ $.fn.editTemplate = (query = 'none') => {
               let isValid             = contents.length > 0 && $.fn.areFieldsValid('template-submit-btn', [ 'template-name','template-description'])
                  
               if (isValid ) {
+                $.fn.showLoadingDialog('Applying changes...')
+                $(this).attr('disabled','disabled');
                  const formData = new FormData();
                  formData.append("mode", titlePrefix.toLowerCase());
                  if (titlePrefix.toLowerCase() == "edit") {
@@ -4102,9 +5169,8 @@ $.fn.editTemplate = (query = 'none') => {
   })
 
 }
-
 $.fn.editPage = (query = 'none') => {
-
+  $.fn.showLoadingDialog('Please wait...');
   const objectType = 'pages';
   $.fn.highlightSidebar(objectType)
   DisplayManager.lastRunFunction = `$.fn.editPage(${query == 'none' ? query : JSON.stringify(query)})`;
@@ -4172,7 +5238,7 @@ $.fn.editPage = (query = 'none') => {
     crossDomain: true,
 
     success: (results) => {
-     
+      $.fn.checkSession(results);
       let record = Object.keys(results).includes('pages') ? results['pages'][0] : null;
 
       banners = Object.keys(results).includes('banners')   && results['banners'].length == 1 ? results['banners'] : banners;
@@ -4407,6 +5473,8 @@ $.fn.editPage = (query = 'none') => {
         </form>
       </div></div></div>`
       );
+
+      $.fn.closeDialog()
      
       if ($('#banner-type').val() == 1) {
         $('#banner-div').hide();
@@ -4664,7 +5732,9 @@ $.fn.editPage = (query = 'none') => {
       let isValid             = pageContents.length > 0 && $.fn.areFieldsValid('page-submit-btn', [ 'page-name', 'page-href']);
       
        if (isValid) {
-            pageContents = pageContents.replaceAll('="static', '="/static');
+            $.fn.showLoadingDialog('Applying changes...')
+            $(this).attr('disabled','disabled');
+             pageContents = pageContents.replaceAll('="static', '="/static');
             const formData = new FormData();
             formData.append("mode", titlePrefix.toLowerCase());
             if (titlePrefix.toLowerCase() == "edit") {
@@ -4727,8 +5797,8 @@ $.fn.editPage = (query = 'none') => {
   })
 
 }
-
 $.fn.editSection = (query = 'none') => {
+  $.fn.showLoadingDialog('Please wait...');
   const objectType = 'sections';
   $.fn.highlightSidebar(objectType)
   DisplayManager.lastRunFunction = `$.fn.editSection(${query == 'none' ? `'none'` : JSON.stringify(query)})`;
@@ -4741,7 +5811,7 @@ $.fn.editSection = (query = 'none') => {
     crossDomain: true,
 
     success: (results) => {
-
+       $.fn.checkSession(results);
 		  let record = Object.keys(results).includes(objectType) && results[objectType].length == 1 ? results[objectType][0] : null;
 		  let titlePrefix = record ? 'Edit' : 'New';
 		  let button = record ? 'Update' : 'Add';
@@ -4818,7 +5888,9 @@ $.fn.editSection = (query = 'none') => {
                 </div>
               </form>
               </div></div></div>`
-          )
+          );
+
+          $.fn.closeDialog()
 
           if (record) {
             
@@ -4855,7 +5927,8 @@ $.fn.editSection = (query = 'none') => {
               let isValid = $.fn.areFieldsValid('section-submit-btn', ['section-name',  'section-description'])
 
               if (isValid) {
-                    
+                $.fn.showLoadingDialog('Applying changes...')
+                $(this).attr('disabled','disabled');
 
                 const formData = new FormData();
                 formData.append("mode", titlePrefix.toLowerCase());
@@ -4901,6 +5974,7 @@ $.fn.editSection = (query = 'none') => {
 }
 
 $.fn.editTeamMember = (query = 'none') => {
+  $.fn.showLoadingDialog('Please wait...');
   const objectType = 'teammembers';
   $.fn.highlightSidebar(objectType)
   DisplayManager.lastRunFunction = `$.fn.editTeamMember(${query == 'none' ? `'none'` : JSON.stringify(query)})`;
@@ -4913,7 +5987,7 @@ $.fn.editTeamMember = (query = 'none') => {
     crossDomain: true,
 
     success: (results) => {
-
+       $.fn.checkSession(results);
       let record          = Object.keys(results).includes(objectType) && results[objectType].length == 1 ? results[objectType][0] : null;
       const imageData     = Object.keys(results).includes('images') && results['images'].length > 0 ? results['images'] : [];
       const profileImages = imageData ? imageData.filter((image) => image.image_type.toLowerCase() == "profile") : null;
@@ -5008,7 +6082,8 @@ $.fn.editTeamMember = (query = 'none') => {
                 </div>
               </form>
               </div></div></div>`
-          )
+          );
+          $.fn.closeDialog();
            $('.select2').select2();
            $('#teammember-cancel-btn').on('click', (e) => {
                 e.preventDefault();
@@ -5053,8 +6128,8 @@ $.fn.editTeamMember = (query = 'none') => {
               let isValid = $.fn.areFieldsValid('teammember-submit-btn', ['member-name', 'description', 'role']) 
 
               if (isValid  && $.fn.isValidJSON('#social-media',socialMedia)) {
-                    
-
+                $(this).attr('disabled','disabled');  
+                $.fn.showLoadingDialog('Applying changes...')
                 const formData = new FormData();
                 formData.append("mode", titlePrefix.toLowerCase());
                 if (titlePrefix.toLowerCase() == "edit") {
@@ -5103,6 +6178,7 @@ $.fn.editTeamMember = (query = 'none') => {
 }
 
 $.fn.editBanner = (query = 'none') => {
+  $.fn.showLoadingDialog('Please wait...');
   const objectType = 'banners';
   $.fn.highlightSidebar(objectType)
   DisplayManager.lastRunFunction = `$.fn.editBanner(${query == 'none' ? `'none'` : JSON.stringify(query)})`;
@@ -5115,7 +6191,7 @@ $.fn.editBanner = (query = 'none') => {
     crossDomain: true,
 
     success: (results) => {
-
+         $.fn.checkSession(results);
         let record = Object.keys(results).includes(objectType) && results[objectType].length == 1 ? results[objectType][0] : null;
         let titlePrefix = record ? 'Edit' : 'New';
         let button = record ? 'Update' : 'Add';
@@ -5231,7 +6307,8 @@ $.fn.editBanner = (query = 'none') => {
                 </div>
               </form>
               </div></div></div>`
-          )
+          );
+          $.fn.closeDialog();
 
           $('#banner-cancel-btn').on('click', (e) => {
                 e.preventDefault();
@@ -5267,7 +6344,8 @@ $.fn.editBanner = (query = 'none') => {
         let isValidPageLink = $.fn.checkMappedProps(pageLinks, [1, 1, 1]);
         
         if ($.fn.areFieldsValid('banner-submit-btn', ['title', 'name']) && isValidPageLink) {
-              
+              $(this).attr('disabled','disabled');
+              $.fn.showLoadingDialog('Applying changes...')
               const formData = new FormData();
               formData.append("mode", titlePrefix.toLowerCase());
               if (titlePrefix.toLowerCase() == "edit") {
@@ -5314,6 +6392,7 @@ $.fn.editBanner = (query = 'none') => {
 
 $.fn.editSlider = (query = 'none') => {
   const objectType = 'sliders';
+  $.fn.showLoadingDialog('Please wait...');
   $.fn.highlightSidebar(objectType)
   DisplayManager.lastRunFunction = `$.fn.editSlider(${query == 'none' ? `'none'` : JSON.stringify(query)})`;
   DisplayManager.lastObjectType = objectType;
@@ -5325,7 +6404,7 @@ $.fn.editSlider = (query = 'none') => {
     crossDomain: true,
 
     success: (results) => {
-
+         $.fn.checkSession(results);
         let record = Object.keys(results).includes(objectType) && results[objectType].length == 1 ? results[objectType][0] : null;
         let titlePrefix = record ? 'Edit' : 'New';
         let button = record ? 'Update' : 'Add';
@@ -5494,7 +6573,8 @@ $.fn.editSlider = (query = 'none') => {
                 </div>
               </form>
               </div></div></div>`
-          )
+          );
+          $.fn.closeDialog();
 
           $('#slider-cancel-btn').on('click', (e) => {
                 e.preventDefault();
@@ -5529,7 +6609,8 @@ $.fn.editSlider = (query = 'none') => {
         let isActive                 = $('#is-active').val();
         
         if ($.fn.areFieldsValid('slider-submit-btn', ['name', 'line1', 'line2'])) {
-              
+              $(this).attr('disabled','disabled');
+              $.fn.showLoadingDialog('Applying changes...');
               const formData = new FormData();
               formData.append("mode", titlePrefix.toLowerCase());
               if (titlePrefix.toLowerCase() == "edit") {
@@ -5574,6 +6655,7 @@ $.fn.editSlider = (query = 'none') => {
 
 }
 $.fn.editRole = (query = 'none') => {
+  $.fn.showLoadingDialog('Please wait...');
   const objectType = 'roles';
   $.fn.highlightSidebar(objectType)
   DisplayManager.lastRunFunction = `$.fn.editRole(${query == 'none' ? `'none'` : JSON.stringify(query)})`;
@@ -5586,7 +6668,7 @@ $.fn.editRole = (query = 'none') => {
     crossDomain: true,
 
     success: (results) => {
-
+       $.fn.checkSession(results);
       let record = Object.keys(results).includes(objectType) && results[objectType].length == 1 ? results[objectType][0] : null;
       let titlePrefix = record ? 'Edit' : 'New';
       let button = record ? 'Update' : 'Add';
@@ -5639,7 +6721,8 @@ $.fn.editRole = (query = 'none') => {
                 </div>
               </form>
               </div></div></div>`
-          )
+          );
+          $.fn.closeDialog()
 
           if (record) {
             
@@ -5691,7 +6774,7 @@ $.fn.editRole = (query = 'none') => {
               let isValid = $.fn.areFieldsValid('role-submit-btn', ['role-name']) && description.length > 0
 
               if (isValid) {
-                    
+                $.fn.showLoadingDialog('Applying changes...')
 
                 const formData = new FormData();
                 formData.append("mode", titlePrefix.toLowerCase());
@@ -5749,7 +6832,7 @@ $.fn.editUser = (query = 'none') => {
     crossDomain: true,
 
     success: (results) => {
-
+         $.fn.checkSession(results);
         let record = Object.keys(results).includes(objectType) && results[objectType].length == 1 ? results[objectType][0] : null;
       
         let titlePrefix      = record ? 'Edit' : 'New';
@@ -6321,7 +7404,7 @@ $.fn.editGmailBox = (query = 'none') => {
     contentType: false,
     crossDomain: true,
     success: (results) => {
-
+       $.fn.checkSession(results);
       //let record = results && Object.keys(results).length == 1 ? results['gmailaccounts'][0] : null
       let record = Object.keys(results).includes(objectType) && results[objectType].length == 1 ? results[objectType][0] : null;
       let titlePrefix = record ? 'Edit' : 'New'
@@ -6463,7 +7546,9 @@ $("#gmail-api-key,#gmail-confirm-api-key").on('change', (e)=>{
          let credFile = $('#credentials-file').prop('files')[0]
          
          if ($.fn.areFieldsValid('gmail-submit-btn', ['gmail-account-name', 'gmail-server-address', 'gmail-email-address','gmail-api-key','confirm-gmail-api-key']) && apiKey.length > 0) {
-           const formData = new FormData();
+          $(this).attr('disabled','disabled');
+          $.fn.showLoadingDialog('Applying changes...')
+            const formData = new FormData();
            formData.append("mode", titlePrefix.toLowerCase());
            if (titlePrefix.toLowerCase() == "edit") {
              formData.append('account_id', record.account_id)
@@ -6519,6 +7604,7 @@ $("#gmail-api-key,#gmail-confirm-api-key").on('change', (e)=>{
 
 }
 $.fn.editMailTemplate = (query = 'none') => {
+  $.fn.showLoadingDialog();
   const objectType = 'mailtemplates';
   $.fn.highlightSidebar(objectType)
   DisplayManager.lastRunFunction = `$.fn.editMailTemplate(${query == 'none' ? `'none'` : JSON.stringify(query)})`;
@@ -6531,7 +7617,7 @@ $.fn.editMailTemplate = (query = 'none') => {
     crossDomain: true,
 
     success: (results) => {
-
+       $.fn.checkSession(results);
       let record = Object.keys(results).includes(objectType) && results[objectType].length == 1 ? results[objectType][0] : null;
       let titlePrefix = record ? 'Edit' : 'New';
       let button = record ? 'Update' : 'Add';
@@ -6591,7 +7677,7 @@ $.fn.editMailTemplate = (query = 'none') => {
               </form>
               </div></div></div>`
           )
-
+      $.fn.closeDialog()
 	  
 	const ImageButton = function (context) {
         let ui = $.summernote.ui;
@@ -6672,8 +7758,8 @@ $.fn.editMailTemplate = (query = 'none') => {
               let isValid = $.fn.areFieldsValid('template-submit-btn', ['template-name','template-description']) && description.length > 0
 
               if (isValid) {
-                    
-
+                $.fn.showLoadingDialog('Applying changes...')
+                $(this).attr('disabled','disabled');
                 const formData = new FormData();
                 formData.append("mode", titlePrefix.toLowerCase());
                 if (titlePrefix.toLowerCase() == "edit") {
@@ -6731,7 +7817,7 @@ $.fn.editClient = (query = 'none') => {
     crossDomain: true,
 
     success: (results) => {
-
+     $.fn.checkSession(results);
 		let record = Object.keys(results).includes(objectType) && results[objectType].length == 1 ? results[objectType][0] : null;
 		let titlePrefix = record ? 'Edit' : 'New';
 		let button = record ? 'Update' : 'Add';
@@ -7014,7 +8100,8 @@ $.fn.editClient = (query = 'none') => {
               let valid           = $.fn.areFieldsValid('creator-submit-btn', [ 'first-name', 'last-name','email-address', 'address', 'phone-number'])
               if (valid) {
                     
-
+                $(this).attr('disabled','disabled');
+                $.fn.showLoadingDialog('Applying changes...')
                 const formData = new FormData();
                 formData.append("mode", titlePrefix.toLowerCase());
                 if (titlePrefix.toLowerCase() == "edit") {
@@ -7067,6 +8154,7 @@ $.fn.editClient = (query = 'none') => {
 
 }
 $.fn.editPartner = (query = 'none') => {
+  $.fn.showLoadingDialog('Please wait...');
   const objectType = 'partners';
   $.fn.highlightSidebar(objectType)
   DisplayManager.lastRunFunction = `$.fn.editPartner(${query == 'none' ? `'none'` : JSON.stringify(query)})`;
@@ -7079,7 +8167,7 @@ $.fn.editPartner = (query = 'none') => {
     crossDomain: true,
 
     success: (results) => {
-
+         $.fn.checkSession(results);
         let record = Object.keys(results).includes(objectType) && results[objectType].length == 1 ? results[objectType][0] : null;
         let titlePrefix = record ? 'Edit' : 'New';
         let button = record ? 'Update' : 'Add';
@@ -7154,7 +8242,7 @@ $.fn.editPartner = (query = 'none') => {
                           </form>
                           </div></div></div>`
       );
-          
+          $.fn.closeDialog()
               $('#partner-cancel-btn').on('click', (e) => {
                     e.preventDefault();
                     $.fn.showTableRecords('partners');
@@ -7209,7 +8297,8 @@ $.fn.editPartner = (query = 'none') => {
 
                   if (isValid) {
                         
-
+                    $(this).attr('disabled','disabled');
+                    $.fn.showLoadingDialog('Applying changes...')
                     const formData = new FormData();
                     formData.append("mode", titlePrefix.toLowerCase());
                     if (titlePrefix.toLowerCase() == "edit") {
@@ -7256,6 +8345,7 @@ $.fn.editPartner = (query = 'none') => {
 
 }
 $.fn.editServiceType = (query = 'none') => {
+  $.fn.showLoadingDialog('Please wait...');
   const objectType = 'servicetypes';
   $.fn.highlightSidebar(objectType)
   DisplayManager.lastRunFunction = `$.fn.editServiceType(${query == 'none' ? `'none'` : JSON.stringify(query)})`;
@@ -7268,7 +8358,7 @@ $.fn.editServiceType = (query = 'none') => {
     crossDomain: true,
 
     success: (results) => {
-
+       $.fn.checkSession(results);
       let record = Object.keys(results).includes(objectType) && results[objectType].length == 1 ? results[objectType][0] : null;
       let titlePrefix = record ? 'Edit' : 'New';
       let button = record ? 'Update' : 'Add';
@@ -7321,7 +8411,8 @@ $.fn.editServiceType = (query = 'none') => {
                 </div>
               </form>
               </div></div></div>`
-          )
+          );
+          $.fn.closeDialog()
 
 
           $('#type-cancel-btn').on('click', (e) => {
@@ -7353,7 +8444,8 @@ $.fn.editServiceType = (query = 'none') => {
               let isValid = $.fn.areFieldsValid('type-submit-btn', ['type-name']) && typeDescription.length > 0
 
               if (isValid) {
-                    
+                $(this).attr('disabled','disabled');
+                $.fn.showLoadingDialog('Applying changes...')
 
                 const formData = new FormData();
                 formData.append("mode", titlePrefix.toLowerCase());
@@ -7398,6 +8490,7 @@ $.fn.editServiceType = (query = 'none') => {
 
 }
 $.fn.editService = (query = 'none') => {
+      $.fn.showLoadingDialog('Please wait...');
 			const objectType = 'services';
 			$.fn.highlightSidebar(objectType)
 			DisplayManager.lastRunFunction = `$.fn.editService(${query == 'none' ? `'none'` : JSON.stringify(query)})`;
@@ -7411,6 +8504,7 @@ $.fn.editService = (query = 'none') => {
 
 			success: (results) => {
         //console.log(results);
+         $.fn.checkSession(results);
 			  let record = Object.keys(results).includes(objectType) && results[objectType].length == 1 ? results[objectType][0] : null;
 			  let titlePrefix = record ? 'Edit' : 'New';
 			  let button = record ? 'Update' : 'Add';
@@ -7736,7 +8830,7 @@ $.fn.editService = (query = 'none') => {
 					  </form>
 					  </div></div></div>`
         );
-
+       $.fn.closeDialog();
       $('#avail-feature-rm-btn').on('click', (e) => {
                 e.preventDefault();
                 let optionsText  = $('#available-features').val();
@@ -7905,7 +8999,8 @@ $.fn.editService = (query = 'none') => {
             }
             let isValid = $.fn.areFieldsValid('service-submit-btn', ['name', 'description']) && price.length > 0 && currency.length > 0 && availableFeatures.length > 0 && restrictedFeatures.length > 0
             if (isValid) {
-                
+              $(this).attr('disabled','disabled');
+              $.fn.showLoadingDialog('Applying changes...')
               const formData = new FormData();
               formData.append("mode", titlePrefix.toLowerCase());
               if (titlePrefix.toLowerCase() == "edit") {
@@ -7976,6 +9071,7 @@ $.fn.editService = (query = 'none') => {
 
 }
 $.fn.editEventType = (query = 'none') => {
+  $.fn.showLoadingDialog('Please wait...');
   const objectType = 'eventtypes';
   $.fn.highlightSidebar(objectType)
   DisplayManager.lastRunFunction = `$.fn.editEventType(${query == 'none' ? `'none'` : JSON.stringify(query)})`;
@@ -7989,7 +9085,7 @@ $.fn.editEventType = (query = 'none') => {
 
 
     success: (results) => {
-
+       $.fn.checkSession(results);
       let record = Object.keys(results).includes(objectType) && results[objectType].length == 1 ? results[objectType][0] : null;
       let titlePrefix = record ? 'Edit' : 'New';
       let button = record ? 'Update' : 'Add';
@@ -8082,7 +9178,7 @@ $.fn.editEventType = (query = 'none') => {
               </div></div></div>`
        );
 
-      
+        $.fn.closeDialog()
           $('#type-cancel-btn').on('click', (e) => {
                 e.preventDefault();
                 $.fn.showTableRecords('eventtypes');
@@ -8132,7 +9228,8 @@ $.fn.editEventType = (query = 'none') => {
 
               if (isValid) {
                     
-
+                $(this).attr('disabled','disabled');
+                $.fn.showLoadingDialog('Applying changes...')
                 const formData = new FormData();
                 formData.append("mode", titlePrefix.toLowerCase());
                 if (titlePrefix.toLowerCase() == "edit") {
@@ -8191,15 +9288,40 @@ $.fn.editSchedule = (query = 'none') => {
 
 
     success: (results) => {
-
+     $.fn.checkSession(results);
 	  let record = Object.keys(results).includes(objectType) && results[objectType].length == 1 ? results[objectType][0] : null;
 	  let titlePrefix = record ? 'Edit' : 'New';
 	  let button = record ? 'Update' : 'Add';
 	  $('.page-title').text(titlePrefix + ' Schedule');
 		let scheduleName = record && record.name ? record.name : '';
 		let scheduleDescription = record && record.description ? record.description : '';
-		let startTime = record && record.startTime ? moment(new Date(record.startTime['$date'])).format('YYYY-MM-DD hh:mm:ss') : ''
-		let repeat = record && record.repeat ? $.fn.getRepeatString(record.repeat) : 'No';
+    let startTime = record && record.start_time ? moment(new Date(record.start_time['$date'])).format('YYYY-MM-DD hh:mm:ss') : '';
+    let endTime = record && record.end_time ? moment(new Date(record.end_time['$date'])).format('YYYY-MM-DD hh:mm:ss') : '';
+      let repeat = '';
+      let repeatString = record?$.fn.getRepeatString(record.repeat):'';
+     
+      const repeatOptions = Object.entries({
+                "none": "No",
+                "hourly" :"Hourly",
+                "daily" :"Daily",
+                "weekly" :"Weekly",
+                "bi-weekly" :"Bi-weekly",
+                "monthly" :"Monthly",
+                "quarterly" :"Quarterly",
+                "twice-a-year" :"Twice-a-year",
+                "yearly": "Yearly",
+                "custom": "Custom"
+    }).map((keyValMap) => {
+      const key = keyValMap[0];
+      const value = keyValMap[1];
+      let selected   = "";              
+      if (repeatString === key) {
+        selected = `selected="selected"`;
+      }
+      return `<option value="${key}" ${selected}>${value}</option>`
+
+    });
+      
       $('#contentwrapper-node').html(`<div class="container-fluid"><div class="row">       
       <div class="card card-dark col-md-12 w-100">
       <div class="card-header">
@@ -8233,19 +9355,22 @@ $.fn.editSchedule = (query = 'none') => {
           <div class="col-md-2"><label>Repeat</label></div>
           <div class="col-md-10">
             <select  name="schedule_repeat" id="schedule-repeat" class="form-control select2" style="width: 100%;">
-              <option selected="selected" value="none">No</option>
-              <option value="hourly" >Hourly</option>
-              <option value="daily" >Daily</option>
-              <option value="weekly" >Weekly</option>
-              <option value="bi-weekly" >Bi-weekly</option>
-              <option value="monthly" >Monthly</option>
-            <option value="quarterly" >Quarterly</option>
-            <option value="twice-a-year" >Twice-a-year</option>
-            <option value="yearly" >Yearly</option>
-            <option value="custom" >Custom</option>
+                 ${repeatOptions}
           </select>
         </div>
         </div>
+
+        <div class="form-group row">
+          <div class="col-md-2">  <label for="end-time">End Time</label></div>
+          <div class="col-md-10">   <div class="input-group date" data-target-input="nearest">
+                  <input type="text"  name="end_time" id="end-time"  class="form-control datetimepicker-input" data-target="#start-time" value="${endTime}"/>
+                  <div class="input-group-append" data-target="#end-time" data-toggle="datetimepicker">
+                      <div class="input-group-text"><i class="fa fa-calendar"></i></div>
+                  </div>
+                  </div>
+              </div>
+          </div>
+
         <div class="form-group row custom d-none">
         <div class="col-md-2">
             <label> Custom</label>
@@ -8266,7 +9391,7 @@ $.fn.editSchedule = (query = 'none') => {
                     </select>
               </div>
           </div>
-          <div class="form-group row custom d-none">
+          <div id="schedule-time-comps" class="form-group row custom d-none">
             <div class="col-md-2">
             </div>
             <div class="col-2"><label for="schedule-hours">Hours</label>
@@ -8304,25 +9429,25 @@ $.fn.editSchedule = (query = 'none') => {
 
       if (record) {
     
-        $('#start-time').datetimepicker({ "date": $.fn.getDateFromObject(moment(record.startTime['$date'])), format: 'DD/MM/YYYY HH:mm', icons: { time: 'far fa-clock' } })
-        $("#schedule-repeat").val(repeat);
+        $('#start-time').datetimepicker({ "date": $.fn.getDateFromObject(moment(record.start_time['$date'])), format: 'DD/MM/YYYY HH:mm', icons: { time: 'far fa-clock' } })
+        //$("#schedule-repeat").val(repeat);
         $("#schedule-months").val(record.months);
         $("#schedule-weeks").val(record.weeks);
         $("#schedule-day").val(record.days);
         $("#schedule-hours").val(record.hours);
         $("#schedule-minutes").val(record.minutes);
         $("#schedule-seconds").val('value', record.seconds);
-    
+        if(record.end_time){
+             $('#end-time').datetimepicker({ "date": $.fn.getDateFromObject(moment(record.end_time['$date'])), format: 'DD/MM/YYYY HH:mm', icons: { time: 'far fa-clock' } })
+        }
       } else { 
 
         
         $('#start-time').datetimepicker({format: 'DD/MM/YYYY HH:mm', icons: { time: 'far fa-clock' }  });
-        
+        $('#end-time').datetimepicker({format: 'DD/MM/YYYY HH:mm', icons: { time: 'far fa-clock' }  });
 
       }
-
-
-  //$('#start-time').datetimepicker({ });
+  //$('#start-time').datetimepicker({ }); Replacing the contents of a select option
   $('#schedule-months').find('option').remove().end()
   for (let i = 0; i < 12; i++) {
     $('#schedule-months').append(`<option value="${i}">${i}</option>`);
@@ -8372,6 +9497,11 @@ $.fn.editSchedule = (query = 'none') => {
     $("#schedule-minutes,#schedule-seconds").append(`<option value="${i}">${i}</option>`);
   }
 
+      
+  if ($('#schedule-repeat').val() == 'custom') { 
+      $('#schedule-time-comps').removeClass('d-none');
+  }
+
   $("#schedule-repeat").on('change', (e) => {
     let value = e.target.value;
     if (value === 'custom') {
@@ -8389,9 +9519,9 @@ $.fn.editSchedule = (query = 'none') => {
   $('#schedule-name').on('change', (e) => { $.fn.isFieldValid(e.target, 'schedule-submit-btn', ['schedule-name', 'schedule-description']) })
   $('#schedule-description').on('change', (e) => { $.fn.isFieldValid(e.target, 'schedule-submit-btn', ['schedule-name', 'schedule-description']) })
 
-  $('#start-time').on('change', (e) => {
-    // console.log('Start time changed')
-    $.fn.isValidDate('#start-time', 'schedule-submit-btn', ['schedule-name', 'schedule-description']);
+  $('#start-time,#end-time').on('change', (e) => {
+    let id = e.target.id;
+    $.fn.isValidDate(id, 'schedule-submit-btn', ['schedule-name', 'schedule-description']);
   })
 
       $('#schedule-cancel-btn').on('click', (e) => {
@@ -8399,10 +9529,11 @@ $.fn.editSchedule = (query = 'none') => {
          $.fn.showTableRecords('schedules');
       })
   $('#schedule-submit-btn').on('click', (e) => {
-
+     e.preventDefault();
     let scheduleName = $('#schedule-name').val()
     let scheduleDescription = $('#schedule-description').val()
-    let startTime = $('#start-time').val()
+    let startTime = $('#start-time').val();
+    let endTime = $('#end-time').val();
     let status = $('#schedule-status').val()
     let scheduleRepeat = $('#schedule-repeat').val()
 
@@ -8422,9 +9553,9 @@ $.fn.editSchedule = (query = 'none') => {
       minutes = $('#schedule-minutes').val();
       seconds = $('#schedule-seconds').val();
     }
-    e.preventDefault();
+   
     if (startTime.length > 0 && (Date.parse(startTime) - (new Date())) < 0) {
-      $.fn.showAlert('Start time cannot be in the past unless you are The Flash', 'danger')
+      $.fn.showAlert('Start time cannot be in the past!', 'danger')
     } else if (scheduleName.length > 0 && scheduleDescription.length > 0 && startTime.length > 0) {
 
 
@@ -8435,7 +9566,8 @@ $.fn.editSchedule = (query = 'none') => {
       }
       formData.append("schedule_name", scheduleName);
       formData.append("schedule_description", scheduleDescription);
-      formData.append("startTime", startTime);
+      formData.append("start_time", startTime);
+      formData.append("end_time", endTime);
       formData.append("scheduleStatus", status);
       formData.append("schedule_repeat", scheduleRepeat);
       formData.append("months", months);
@@ -8480,6 +9612,7 @@ $.fn.editSchedule = (query = 'none') => {
   
 }
 $.fn.editEventTrigger = (query = 'none') => {
+  $.fn.showLoadingDialog('Please wait...');
   const objectType = 'eventtriggers';
   $.fn.highlightSidebar(objectType)
   DisplayManager.lastRunFunction = `$.fn.editEventTrigger(${query == 'none' ? `'none'` : JSON.stringify(query)})`;
@@ -8492,7 +9625,7 @@ $.fn.editEventTrigger = (query = 'none') => {
     crossDomain: true,
 
     success: (results) => {
-
+       $.fn.checkSession(results);
       let record = Object.keys(results).includes(objectType) && results[objectType].length == 1 ? results[objectType][0] : null;
       let titlePrefix = record ? 'Edit' : 'New';
       let button = record ? 'Update' : 'Add';
@@ -8628,7 +9761,8 @@ $.fn.editEventTrigger = (query = 'none') => {
                 </div>
               </form>
               </div></div></div>`
-      )
+      );
+      $.fn.closeDialog()
       if ($('#history-table')) {
              $('#history-table').dataTable();
             }
@@ -8672,7 +9806,7 @@ $.fn.editEventTrigger = (query = 'none') => {
                   let description = $('#trigger-description').val();  
                   let eventType = $("#event-type").val();
                   let schedule = $("#schedule").val();
-              let parameters = JSON.stringify($.fn.getObjectFromMapper('parameters'))
+              let parameters = JSON.stringify($.fn.getObjectFromMapperOld('parameters'))
 
                   if (description.length == 0) {
                     $('#trigger-description').addClass('is-invalid')
@@ -8682,7 +9816,8 @@ $.fn.editEventTrigger = (query = 'none') => {
 
                   if (isValid) {
                         
-
+                    $(this).attr('disabled','disabled');
+                    $.fn.showLoadingDialog('Applying changes...')
                     const formData = new FormData();
                     formData.append("mode", titlePrefix.toLowerCase());
                     if (titlePrefix.toLowerCase() == "edit") {
@@ -8766,11 +9901,7 @@ $.fn.updateDashboard = (mode) => {
     } else if (syncMode === 'LOCAL') {
       $.fn.localDataFetch(startDate, endDate, transDomain, mode);
     }
-  }
-
-  ;
-
-
+  };
 }
 
 $.fn.loadDashboard= () => {
@@ -8779,114 +9910,49 @@ $.fn.loadDashboard= () => {
                "itemClass":"nav-item",   
               "href": "#",
               "navLinkClass":"nav-link",
-              "itemIconClass": "fas fa-cog nav-icon",
-              "text": "Dashboard",
-              "spanClass": "",
-              "spanText": "",
-              "position": 0
-              , "actions": { "event": "onClick", "functionName": " $.fn.updateDashboard(1)", "parameters": {} }
-              
-        }, {
-        "itemClass":"nav-item",   
-       "href": "#",
-       "navLinkClass":"nav-link",
-          "itemIconClass": "fas fa-user-secret nav-icon",
-       "text": "Client Services",
-       "spanClass": "",
-       "spanText": "",
-       "position": 1
-          , "actions": { "event": "onClick", "functionName": "$.fn.showClientServices()", "parameters": {} }
-        ,"subNavItemList": [ {
-                      "href": "#",
-          "itemIconClass": "fa fa-plus nav-icon",
-          "text": "Add"
-                      ,"actions":{"event":"onClick", "functionName":"$.fn.editClientService()", "parameters":{}}
-                      }
-                      ]
-        },, {
-        "itemClass":"nav-item",   
-       "href": "#",
-       "navLinkClass":"nav-link",
-          "itemIconClass": "fas fa-user-secret nav-icon",
-       "text": "Client Status",
-       "spanClass": "",
-       "spanText": "",
-       "position": 2
-          , "actions": { "event": "onClick", "functionName": "$.fn.showClientStatus()", "parameters": {} }
-        ,"subNavItemList": [ {
-                      "href": "#",
-          "itemIconClass": "fa fa-plus nav-icon",
-          "text": "Add"
-                      ,"actions":{"event":"onClick", "functionName":"$.fn.editClientStatus()", "parameters":{}}
-                      }
-                      ]
-        },	      {
-               "itemClass":"nav-item",   
-              "href": "#",
-              "navLinkClass":"nav-link",
-              "itemIconClass": "fas fa-users nav-icon",
+              "itemIconClass": `${$.fn.getObjectIcon('messages')} nav-icon`,
               "text": "Messages",
               "spanClass": "",
               "spanText": "",
-              "position": 3
-              , "actions": { "event": "onClick", "functionName": "$.fn.showMessages()", "parameters": {} }
-              ,"subNavItemList": [ {
-                      "href": "#",
-                "itemIconClass": "fa fa-plus nav-icon",
-                "text": "Add"
-                      ,"actions":{"event":"onClick", "functionName":"$.fn.updateMessage()", "parameters":{}}
-                      }
-                      ]
-        }, {
-                  "itemClass":"nav-item",   
-                  "href": "#",
-                  "navLinkClass":"nav-link",
-          "itemIconClass": "fa fa-space-shuttle nav-icon",
-                  "text": "FAQs",
-                  "spanClass": "",
-                  "spanText": "",
-                   "position": 4
-                    , "actions": { "event": "onClick", "functionName": "$.fn.showFAQs()", "parameters": {} }
-                   ,"subNavItemList": [ {
-                      "href": "#",
-                     "itemIconClass": "fa fa-plus nav-icon",
-                     "text": "Add"
-                      ,"actions":{"event":"onClick", "functionName":"$.fn.editFAQs()", "parameters":{}}
-                      }
-                      ]
+              "position": 0
+            , "actions": { "event": "onClick", "functionName": "$.fn.showMessages('new');", "parameters": {} }
+              
         }
-
   ]
   };
-       const sidebarNav = { ...window.defaultComponents.sidebar.sidebarNav, sidebarNavItems: sNavItems }
+  const sidebarNav = { ...window.defaultComponents.sidebar.sidebarNav, sidebarNavItems: sNavItems }
+
+  if (!DisplayManager.pageUpdateHistory.has('Dashboard') && DisplayManager.pageUpdateHistory.size == 0) {
+    let sidebarLogo = { ...window.defaultComponents.sidebar.sidebarLogo, image: window.appConfig.site_logo }
+    DisplayManager.addComponentDisplay(Preloader, { ...window.defaultComponents.preloader, image: window.appConfig.login_image });
+    DisplayManager.addComponentDisplay(Navbar, window.defaultComponents.navbar);
+    DisplayManager.addComponentDisplay(Sidebar, { ...window.defaultComponents.sidebar, sidebarNav: sidebarNav, sidebarLogo:sidebarLogo});
+    let resultsTable = DashboardTable({ "statsTitle": `<a href="#" onclick="$.fn.showMessages('new')">New Messages</a>`, "statsIcon": "fa fa-users", "tableData":  $.fn.getTableRecords('messages'), "id": "message", "statsClass": "secondary", "tableClass":"table-hover table-striped" });
+    //let tableHtml = `<div class="container-fluid"><div class="row">${resultsTable}</div>`;
+    let setupContentWrapper = { ...window.defaultComponents.contentHeader.contentWrapper, contentRows: [{ "htmlText": resultsTable }], dashboardReportRange: {} }
+    DisplayManager.addComponentDisplay(ContentHeader, { ...window.defaultComponents.contentHeader, parentPage: "Dashboard", pageTitle: "New Messages", contentWrapper: setupContentWrapper });
+    DisplayManager.addComponentDisplay(Footer, {});
+    DisplayManager.display('dashboard');
+
+  } else { 
+     let sidebarLogo = { ...window.defaultComponents.sidebar.sidebarLogo, image: window.appConfig.site_logo }
+    DisplayManager.updateComponentDisplay(Sidebar, { ...window.defaultComponents.sidebar, sidebarNav: sidebarNav ,sidebarLogo:sidebarLogo });
+    let setupContentWrapper = { ...window.defaultComponents.contentHeader.contentWrapper, contentRows: [{ "htmlText": '' }], dashboardReportRange: {} }
+    DisplayManager.updateComponentDisplay(ContentHeader, { ...window.defaultComponents.contentHeader, parentPage: "Dashboard", pageTitle: "Messages", contentWrapper: setupContentWrapper });
     
-    if (!DisplayManager.pageUpdateHistory.has('dashboard')) {
-      let sidebarLogo = { ...window.defaultComponents.sidebar.sidebarLogo, image: window.appConfig.site_logo }
-      DisplayManager.addComponentDisplay(Preloader, { ...window.defaultComponents.preloader, image: window.appConfig.login_image });
-      DisplayManager.addComponentDisplay(Navbar, window.defaultComponents.navbar);
-      DisplayManager.addComponentDisplay(Sidebar, { ...window.defaultComponents.sidebar, sidebarNav: sidebarNav,sidebarLogo: sidebarLogo });
-      DisplayManager.addComponentDisplay(ContentHeader, window.defaultComponents.contentHeader);
-      DisplayManager.addComponentDisplay(Footer, {});
-      DisplayManager.display('dashboard');
-
-  } else {
-    let sidebarLogo = {...window.defaultComponents.sidebar.sidebarLogo, image: window.appConfig.site_logo  }
-    DisplayManager.addComponentDisplay(Sidebar, { ...window.defaultComponents.sidebar, sidebarNav: sidebarNav,sidebarLogo:sidebarLogo });
-    DisplayManager.updateComponentDisplay(ContentHeader, window.defaultComponents.contentHeader);
-
   }
-  clearInterval(window.dashboardUpdateID);
-  $.fn.updateDashboard(1);
-DisplayManager.currentTab ='Dashboard'
-    db.loadDatabase({}, function (result) { 
+  
+  DisplayManager.currentTab = 'Dashboard';
+  
+  db.loadDatabase({}, function (result) { 
     $.fn.databaseInitialize();
+      $.fn.showMessages('new');
     if(!syncWorker ){
       $.fn.localSync() 
-      }
-      $.fn.highlightNavHeader(DisplayManager.currentTab);   
+    }
+     $.fn.highlightNavHeader(DisplayManager.currentTab);  
   });
-
-     
+ 
 }
 
 $.fn.loadComponents=()=>{
@@ -8906,7 +9972,7 @@ $.fn.loadComponents=()=>{
               , "actions": { "event": "onClick", "functionName": "$.fn.showTableRecords('images')", "parameters": {} }
               ,"subNavItemList": [ {
                       "href": "#",
-                "itemIconClass": "fa fa-plus nav-icon",
+                "itemIconClass": "fas fa-chevron-right nav-icon",
                 "text": "Add"
                       ,"actions":{"event":"onClick", "functionName":"$.fn.editImage()", "parameters":{}}
                       }
@@ -8923,7 +9989,7 @@ $.fn.loadComponents=()=>{
               , "actions": { "event": "onClick", "functionName": "$.fn.showTableRecords('files')", "parameters": {} }
               ,"subNavItemList": [ {
                       "href": "#",
-                "itemIconClass": "fa fa-plus nav-icon",
+                "itemIconClass": "fas fa-chevron-right nav-icon",
                 "text": "Add"
                       ,"actions":{"event":"onClick", "functionName":"$.fn.editFile()", "parameters":{}}
                       }
@@ -8940,7 +10006,7 @@ $.fn.loadComponents=()=>{
           , "actions": { "event": "onClick", "functionName": "$.fn.showTableRecords('banners')", "parameters": {} }
         ,"subNavItemList": [ {
                       "href": "#",
-          "itemIconClass": "fa fa-plus nav-icon",
+          "itemIconClass": "fas fa-chevron-right nav-icon",
           "text": "Add"
                       ,"actions":{"event":"onClick", "functionName":"$.fn.editBanner()", "parameters":{}}
                       }
@@ -8957,7 +10023,7 @@ $.fn.loadComponents=()=>{
           , "actions": { "event": "onClick", "functionName": "$.fn.showTableRecords('sliders')", "parameters": {} }
         ,"subNavItemList": [ {
                       "href": "#",
-          "itemIconClass": "fa fa-plus nav-icon",
+          "itemIconClass": "fas fa-chevron-right nav-icon",
           "text": "Add"
                       ,"actions":{"event":"onClick", "functionName":"$.fn.editSlider()", "parameters":{}}
                       }
@@ -8974,7 +10040,7 @@ $.fn.loadComponents=()=>{
               , "actions": { "event": "onClick", "functionName": "$.fn.showTableRecords('pagetemplates')", "parameters": {} }
               ,"subNavItemList": [ {
                       "href": "#",
-                "itemIconClass": "fa fa-plus nav-icon",
+                "itemIconClass": "fas fa-chevron-right nav-icon",
                 "text": "Add"
                       ,"actions":{"event":"onClick", "functionName":"$.fn.editTemplate()", "parameters":{}}
                       }
@@ -8991,7 +10057,7 @@ $.fn.loadComponents=()=>{
               , "actions": { "event": "onClick", "functionName": "$.fn.showTableRecords('pages')", "parameters": {} }
               ,"subNavItemList": [ {
                       "href": "#",
-                "itemIconClass": "fa fa-plus nav-icon",
+                "itemIconClass": "fas fa-chevron-right nav-icon",
                 "text": "Add"
                       ,"actions":{"event":"onClick", "functionName":"$.fn.editPage()", "parameters":{}}
                       }
@@ -9054,7 +10120,7 @@ $.fn.loadConfigurations=()=>{
               , "actions": { "event": "onClick", "functionName": "$.fn.showTableRecords('sitesettings')", "parameters": {} }
               ,"subNavItemList": [ {
                       "href": "#",
-                "itemIconClass": "fa fa-plus nav-icon",
+                "itemIconClass": "fas fa-chevron-right nav-icon",
                 "text": "Edit"
                       ,"actions":{"event":"onClick", "functionName":"$.fn.editSettings({'settings_id':1})", "parameters":{}}
                       }
@@ -9071,7 +10137,7 @@ $.fn.loadConfigurations=()=>{
           , "actions": { "event": "onClick", "functionName": "$.fn.showTableRecords('roles')", "parameters": {} }
         ,"subNavItemList": [ {
                       "href": "#",
-          "itemIconClass": "fa fa-plus nav-icon",
+          "itemIconClass": "fas fa-chevron-right nav-icon",
           "text": "Add"
                       ,"actions":{"event":"onClick", "functionName":"$.fn.editRole()", "parameters":{}}
                       }
@@ -9088,7 +10154,7 @@ $.fn.loadConfigurations=()=>{
               , "actions": { "event": "onClick", "functionName": "$.fn.showTableRecords('users')", "parameters": {} }
               ,"subNavItemList": [ {
                       "href": "#",
-                "itemIconClass": "fa fa-plus nav-icon",
+                "itemIconClass": "fas fa-chevron-right nav-icon",
                 "text": "Add"
                       ,"actions":{"event":"onClick", "functionName":"$.fn.editUser()", "parameters":{}}
                       }
@@ -9152,17 +10218,7 @@ $.fn.loadConfigurations=()=>{
 			  ,"actions":{"event":"onClick", "functionName":"$.fn.editEventType()", "parameters":{}}
 			  }
 			  ]
-	}	, {
-		  "itemClass":"nav-item",   
-		  "href": "#",
-		  "navLinkClass":"nav-link",
-	"itemIconClass": "fa fa-graduation-cap nav-icon",
-		  "text": "Events",
-		  "spanClass": "",
-		  "spanText": "",
-		   "position": 6
-			, "actions": { "event": "onClick", "functionName": "$.fn.showTableRecords('events')", "parameters": {} }
-	}	, {
+	}		, {
 		  "itemClass":"nav-item",   
 		  "href": "#",
 		  "navLinkClass":"nav-link",
@@ -9170,7 +10226,7 @@ $.fn.loadConfigurations=()=>{
 		  "text": "Schedules",
 		  "spanClass": "",
 		  "spanText": "",
-		   "position": 7
+		   "position": 6
 			, "actions": { "event": "onClick", "functionName": "$.fn.showTableRecords('schedules')", "parameters": {} }
 		   ,"subNavItemList": [ {
 			  "href": "#",
@@ -9183,11 +10239,11 @@ $.fn.loadConfigurations=()=>{
 		  "itemClass":"nav-item",   
 		  "href": "#",
 		  "navLinkClass":"nav-link",
-	"itemIconClass": "fa fa-graduation-cap nav-icon",
+	     "itemIconClass": "fa fa-graduation-cap nav-icon",
 		  "text": "Event Triggers",
 		  "spanClass": "",
 		  "spanText": "",
-		   "position": 8
+		   "position": 7
 			, "actions": { "event": "onClick", "functionName": "$.fn.showTableRecords('eventtriggers')", "parameters": {} }
 		   ,"subNavItemList": [ {
 			  "href": "#",
@@ -9196,6 +10252,16 @@ $.fn.loadConfigurations=()=>{
 			  ,"actions":{"event":"onClick", "functionName":"$.fn.editEventTrigger()", "parameters":{}}
 			  }
 			  ]
+	}, {
+		  "itemClass":"nav-item",   
+		  "href": "#",
+		  "navLinkClass":"nav-link",
+	"itemIconClass": "fa fa-graduation-cap nav-icon",
+		  "text": "Events",
+		  "spanClass": "",
+		  "spanText": "",
+		   "position": 8
+			, "actions": { "event": "onClick", "functionName": "$.fn.showTableRecords('events')", "parameters": {} }
 	}
 		        , {
           "itemClass": "nav-item",
@@ -9222,7 +10288,7 @@ $.fn.loadConfigurations=()=>{
 				]};
       const sidebarNav = { ...window.defaultComponents.sidebar.sidebarNav, sidebarNavItems: sNavItems }
   
-  if (!DisplayManager.pageUpdateHistory.has('configurations')) {
+  if (!DisplayManager.pageUpdateHistory.has('configurations')&& DisplayManager.pageUpdateHistory.size == 0) {
     let sidebarLogo = { ...window.defaultComponents.sidebar.sidebarLogo, image: window.appConfig.site_logo }
     DisplayManager.addComponentDisplay(Preloader, { ...window.defaultComponents.preloader, image: window.appConfig.site_logo });
     DisplayManager.addComponentDisplay(Navbar, window.defaultComponents.navbar);
@@ -9289,7 +10355,7 @@ $.fn.removeRecord = (deleteInfo) => {
       contentType: false,
       crossDomain: true,
       success: (results) => {
-
+         $.fn.checkSession(results);
         $.fn.syncLokiCollection($.fn.capitalize(objectType), () => { $.fn.showTableRecords(objectType) }) 
 
       }
@@ -9303,140 +10369,170 @@ $.fn.removeRecord = (deleteInfo) => {
 }
 
 
+
 $.fn.localSync = () => { 
-    /**
-    *  Syncs LokiDatabase with online database
-    **/
+  /**
+  *  Syncs LokiDatabase with online database
+  **/
 
-    if (window.Worker) {
-  
-      syncWorker = new Worker("/static/cpanel/dist/custom/js/workers/worker.js");
-      let tableData ={}
-      Object.keys(window.tableMap).forEach((table)=> tableData[table] =window.tableMap[table].data)
-      syncWorker.postMessage(['start', window.config,tableData,currentUser.acky]);
-      syncWorker.onmessage = (e) => {
-        let isUpdated = e?.data?.count > 0;
-        let updatedCollections = e?.data?.collections;
-        let deletedRecords = e?.data?.deleted;
-        let updatedRecords = e?.data?.records;
-        let isActiveSession = e?.data?.session;
-        let dataPass = e?.data.dataPass
-       // console.log(e.data)
-        //console.log("session: ", isActiveSession)
-        //console.log("dataPass: ", dataPass)
-        if (!isActiveSession && dataPass ==currentUser.acky) { 
-          window.location = 'auth/logout';
-        }
+  if (window.Worker) {
 
-
-        if (deletedRecords && Object.keys(deletedRecords).length > 0) { 
-          Object.keys(deletedRecords).forEach((table) => { 
-            let removedList = deletedRecords[table];
-            let idField            = window.config.syncInfo.cpanel.filter((tableName) => tableName.collectionName == table)[0]['idField']
-              let query = {}
-            query[idField] = { "$in": removedList };
-              window.tableMap[table].chain().find(query).remove();         
-          })
+    syncWorker = new Worker("/static/cpanel/dist/custom/js/workers/worker.js");
+    let tableData ={}
+    Object.keys(window.tableMap).forEach((table)=> tableData[table] =window.tableMap[table].data)
+    syncWorker.postMessage(['start', window.config,tableData,currentUser.acky]);
+    syncWorker.onmessage = (e) => {
+      let isUpdated = e?.data?.count > 0;
+      let updatedCollections = e?.data?.collections;
+      let deletedRecords = e?.data?.deleted;
+      let updatedRecords = e?.data?.records;
+      let isActiveSession = e?.data?.session;
+      let dataPass = e?.data.dataPass
+     // console.log(e.data)
+      //console.log("session: ", isActiveSession)
+      //console.log("dataPass: ", dataPass)
+      if (!isActiveSession && dataPass ==currentUser.acky) { 
+        history.pushState(null, null, ' ')
+        window.location = 'auth/logout';
+      }
 
 
-          
-        }
+      if (deletedRecords && Object.keys(deletedRecords).length > 0) { 
+        Object.keys(deletedRecords).forEach((table) => { 
+          let removedList = deletedRecords[table];
+          let idField            = window.config.syncInfo.cpanel.filter((tableName) => tableName.collectionName == table)[0]['idField']
+            let query = {}
+          query[idField] = { "$in": removedList };
+            window.tableMap[table].chain().find(query).remove();         
+        })
 
-        //console.log("updated: " + isUpdated)
-        if (isUpdated) {
+
+        
+      }
+
+      //console.log("updated: " + isUpdated)
+      if (isUpdated) {
 
 
-          if (updatedCollections){
-            Object.keys(updatedRecords).forEach((collection) => {
-            // console.log(collection)
-              let idField = window.config.syncInfo.cpanel.filter((x) => { return x.collectionName.toLowerCase() == collection.toLowerCase() })[0]['idField']
-              //  console.log(updatedRecords[collection])
-              updatedRecords[collection].forEach((record) => {
 
-                let tempQuery = {}
-                tempQuery[idField] = record[idField];
-                let filteredRecord = null;
-                filteredRecord = Object.keys(window.tableMap).includes(collection) && window.tableMap[collection].data.length > 0 ? window.tableMap[collection].find(tempQuery) : null;
-                
-                if (filteredRecord && Object.keys(filteredRecord).length > 0) {
-                // console.log(`filtered record`)
-                // console.log(filteredRecord)
-                  let tempRecord = { ...filteredRecord[0] }
-                  Object.keys(record).filter((field) => ['$loki', 'meta'].indexOf(field) < 0).forEach((field) => {
-                                    
-                    tempRecord[field] = record[field];
-                                    
-                  })
-                  try {
+          Object.keys(updatedRecords).forEach((collection) => {
+            //console.log(collection)
+            let idField = window.config.syncInfo.cpanel.filter((x) => { return x.collectionName.toLowerCase() == collection.toLowerCase() })[0]['idField']
+            //  console.log(updatedRecords[collection])
+            updatedRecords[collection].forEach((record) => {
+
+              let tempQuery = {}
+              tempQuery[idField] = record[idField];
+              let filteredRecord = null;
+              filteredRecord = Object.keys(window.tableMap).includes(collection) && window.tableMap[collection].data.length > 0 ? window.tableMap[collection].data.filter((entry)=> entry[idField]==record[idField]) : null; //.findOne(tempQuery) : null;
+              
+              if (filteredRecord  && Object.keys(filteredRecord).length > 0
+            
+              ) {
+               // console.log("record: ", record)
+              // console.log(`filtered record`,filteredRecord)
+               
+                let tempRecord = { ...filteredRecord[0] }
+               
+               
+                Object.keys(record).filter((field) => ['$loki', 'meta'].indexOf(field) < 0).forEach((field) => {
+                                  
+                  tempRecord[field] = record[field];
+                                  
+                })
+                try {
+                  if (tempRecord['$loki'] != null) {
                     window.tableMap[collection].update(tempRecord)
-                  } catch (e) {
-                   console.log(e)   
+                  } else { 
+                        window.tableMap[collection].insert(tempRecord)
                   }
-                } else {
+                  
+                  // console.log("tempRecord: ", tempRecord)
+                  // console.log("tempQuery: ", tempQuery)
+                   //window.tableMap[collection].chain().find(tempQuery).remove();
+                 
 
-                  try {
+                } catch (e) {
+                  console.log(e)  
 
-                    let tempRecord = {  }
+                }
+              } else {
+
+                try {
+
+                  let tempRecord = {  }
+                  Object.keys(record).filter((field) => ['$loki', 'meta'].indexOf(field) < 0).forEach((field) => {
+                    tempRecord[field] = record[field]
+                  })
+                  
+                  window.tableMap[collection].insert(tempRecord);
+                    
+                } catch (e) {
+                
+                  filteredRecord = Object.keys(window.tableMap).includes(collection) && window.tableMap[collection].data.length > 0 ? window.tableMap[collection].find(tempQuery) : null;
+                        
+                  if (filteredRecord && Object.keys(filteredRecord).length > 0) {
+                    let tempRecord = { ...filteredRecord[0] }
                     Object.keys(record).filter((field) => ['$loki', 'meta'].indexOf(field) < 0).forEach((field) => {
                       tempRecord[field] = record[field]
                     })
-                    
+                    window.tableMap[collection].update(tempRecord);
+                              
+                  } else {
+                    let tempRecord = {}
+                    Object.keys(record).filter((field) => ['$loki', 'meta'].indexOf(field) < 0).forEach((field) => {
+                      tempRecord[field] = record[field]
+                    })
+
                     window.tableMap[collection].insert(tempRecord);
-                      
-                  } catch (e) {
-                  
-                    filteredRecord = Object.keys(window.tableMap).includes(collection) && window.tableMap[collection].data.length > 0 ? window.tableMap[collection].find(tempQuery) : null;
-                          
-                    if (filteredRecord && Object.keys(filteredRecord).length > 0) {
-                      let tempRecord = { ...filteredRecord[0] }
-                      Object.keys(record).filter((field) => ['$loki', 'meta'].indexOf(field) < 0).forEach((field) => {
-                        tempRecord[field] = record[field]
-                      })
-                      window.tableMap[collection].update(tempRecord);
-                                
-                    } else {
-                      let tempRecord = {}
-                      Object.keys(record).filter((field) => ['$loki', 'meta'].indexOf(field) < 0).forEach((field) => {
-                        tempRecord[field] = record[field]
-                      })
-
-                      window.tableMap[collection].insert(tempRecord);
-                    }
                   }
-
-
                 }
-              })
-          //    
 
 
+              }
             })
-            db.saveDatabase((data) => {
+        //    
+
+
+          })
+          if (updatedCollections) {
+            //eval(DisplayManager.lastRunFunction);
+          
+              db.saveDatabase((data) => {
 
               if (DisplayManager.lastRunFunction && DisplayManager.lastRunFunction.trim() != "" && DisplayManager.lastRunFunction.trim() != "none") {
                 //console.log(`Executing: '${DisplayManager.lastRunFunction}'`)
-                eval(DisplayManager.lastRunFunction);
+                var regExp = /\(([^)]+)\)/;
+                var matches = regExp.exec(DisplayManager.lastRunFunction);
+                let collectionName = matches?matches[1].toLowerCase():'';
+                let matchingCollection = Object.keys(updatedCollections).filter((table) => table.toLowerCase()==collectionName)
+                if  (matchingCollection && matchingCollection.length>0){
+                  eval(DisplayManager.lastRunFunction);
+
+                }
+                
               }
 
 
             });
-
           }
+         
 
         }
-      }
-    } else {
-      startSync();
-      syncWorker = true
-    }
-}
 
+     // }
+    }
+  } else {
+    startSync();
+    syncWorker = true
+  }
+}
 
 $("#index-root").ready((e) => { 
     DisplayManager.setCurrentPageID("index-root");
     // console.log(JSON.stringify(currentUser))
     if (currentUserRoleID == 1) {
-      $.fn.loadConfigurations();
+      $.fn.loadDashboard();
     } else if (currentUserRoleID == 2 ) { 
       $.fn.loadComponents()
     }

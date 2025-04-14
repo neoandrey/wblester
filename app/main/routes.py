@@ -20,25 +20,13 @@ from app.models import (
     Users,
     SiteSettings,
     Images,
-    Roles,
+    Events,
+    EventTriggers,
     PageTemplates,
     Pages,
     Sliders,
-    # Sections,
-    # TeamMembers,
-    # IMAPAccounts,
-    # GMailAccounts,
-    # Clients,
-    Banners,
+    Messages,
     Files,
-    # Partners,
-    # ServiceTypes,
-    # Services,
-    # Faqs,
-    # Ratings,
-    # ClientPersonalInformation,
-    # ClientTravelInformation,
-    # Timelines,
 )
 from app.main import bp
 from jinja2 import (
@@ -74,7 +62,6 @@ from PIL import Image, ImageFilter
 # from uuid import uuid4
 import traceback, inspect
 
-
 @bp.before_request
 def make_session_permanent():
     """
@@ -84,7 +71,6 @@ def make_session_permanent():
     bp.permanent_session_lifetime = timedelta(
         minutes=current_app.config["SESSION_DURATION_MINS"]
     )
-
 
 def format_data(data):
     """
@@ -103,7 +89,6 @@ def format_data(data):
     else:
         return str(data)
 
-
 def convert_row_data(row):
     """
     Convert a single row into a object -  seems redundant
@@ -112,7 +97,6 @@ def convert_row_data(row):
     for k, v in row.items():
         new_row[k] = format_data(v)
     return new_row
-
 
 def get_row_data(data):
     """
@@ -123,7 +107,6 @@ def get_row_data(data):
     for k, v in json.loads(data).items():
         temp_data[k] = format_data(v)
     return temp_data
-
 
 def get_found_records(data):
     """
@@ -150,7 +133,6 @@ def get_found_records(data):
             results.append(temp_data)
     return results
 
-
 def get_collection_data(data):
     """
     Return all records from a query cursor.
@@ -165,7 +147,6 @@ def get_collection_data(data):
                 temp_data[k] = format_data(v)
         table_data.append(temp_data)
     return table_data
-
 
 def get_file_format(ext):
     """
@@ -252,7 +233,6 @@ def get_file_format(ext):
     )
     return file_format
 
-
 def get_collection_from_name(name):
     """
     Return collection object from name
@@ -266,11 +246,9 @@ def get_collection_from_name(name):
     collection = models.__dict__[table_key]
     return collection
 
-
 @login.user_loader
 def user_loader(id):
     return session["current_user"]
-
 
 def convert_to_type(image_path, image_type):
     """
@@ -289,7 +267,6 @@ def convert_to_type(image_path, image_type):
         profile_image = profile_image.filter(ImageFilter.SMOOTH)
         profile_image.save(image_path, quality=100, optimize=True)
         return profile_image.size
-
 
 def resize_image(image_path, dimensions):
     """
@@ -315,26 +292,41 @@ def original():
     """
     This function handles the /index  route
     """
-    opts = {}
-    opts["logo"] = "/static/logo_mini.png"
-    opts["startTime"] = datetime.now()
-    opts["timeOut"] = None
-    opts["siteName"] = settings["SITE_ID"]
-    opts["siteDescription"] = settings["SITE_DESCRIPTION"]
-    opts["siteKeywords"] = settings["SITE_KEYWORDS"]
-    opts["sitetTitle"] = settings["SITE_TITLE"]
-    opts["userName"] = None
-    opts["previousDest"] = None
+    try:
+        opts = {}
+        opts["logo"] = "/static/logo_mini.png"
+        opts["startTime"] = datetime.now()
+        opts["timeOut"] = None
+        opts["siteName"] = settings["SITE_ID"]
+        opts["siteDescription"] = settings["SITE_DESCRIPTION"]
+        opts["siteKeywords"] = settings["SITE_KEYWORDS"]
+        opts["sitetTitle"] = settings["SITE_TITLE"]
+        opts["userName"] = None
+        opts["previousDest"] = None
 
-    version = str(round(time.time() * 1000))
+        version = str(round(time.time() * 1000))
 
-    return render_template(
-        "index_default.html",
-        title="index",
-        pageID="index",
-        options=opts,
-        version=version,
-    )
+        return render_template(
+            "index_default.html",
+            title="index",
+            pageID="index",
+            options=opts,
+            version=version,
+        )
+    except Exception as exception:
+        tb = traceback.format_exc()
+        timestamp = datetime.now().strftime("[%Y-%b-%d %H:%M]")
+        current_app.logger.error(
+            f"%s %s %s %s %s INTERNAL SERVER ERROR\n%s",
+            timestamp,
+            request.remote_addr,
+            request.method,
+            request.scheme,
+            request.full_path,
+            tb,
+        )
+        traceback.print_exc()
+        return jsonify({"is_successful": False, "message": str(exception)}), 500
 
 
 @bp.route("/", methods=["GET", "POST"])
@@ -346,358 +338,398 @@ def index():
     """
     This function handles the /index route
     """
-    opts = {}
-    opts["site_logo"] = "/static/logo_mini.png"
-    opts["startTime"] = datetime.now()
-    opts["currentTime"] = datetime.now()
-    opts["timeOut"] = None
-    opts["year"] = datetime.now().strftime("%Y")
-    opts["site_name"] = settings["SITE_ID"]
-    opts["site_description"] = settings["SITE_DESCRIPTION"]
-    opts["site_keywords"] = settings["SITE_KEYWORDS"]
-    opts["site_title"] = settings["SITE_TITLE"]
-    opts["userName"] = None
-    opts["previousDest"] = None
-    siteSettings = SiteSettings.get({"settings_id": 1})
-    opts["siteSettings"] = {}
-    client = None
-    if "current_client" in session and session["current_client"] is not None:
-        client = session["current_client"]
-    opts["client"] = client
+    try:
+        opts = {}
+        opts["site_logo"] = "/static/logo_mini.png"
+        opts["startTime"] = datetime.now()
+        opts["currentTime"] = datetime.now()
+        opts["timeOut"] = None
+        opts["year"] = datetime.now().strftime("%Y")
+        opts["site_name"] = settings["SITE_ID"]
+        opts["site_description"] = settings["SITE_DESCRIPTION"]
+        opts["site_keywords"] = settings["SITE_KEYWORDS"]
+        opts["site_title"] = settings["SITE_TITLE"]
+        opts["userName"] = None
+        opts["previousDest"] = None
+        siteSettings = SiteSettings.get({"settings_id": 1})
+        opts["siteSettings"] = {}
+        client = None
+        if "current_client" in session and session["current_client"] is not None:
+            client = session["current_client"]
+        opts["client"] = client
 
-    if siteSettings:
-        opts["siteSettings"] = siteSettings
-        opts["site_tile"] = siteSettings.site_title
-        opts["timeOut"] = siteSettings.time_out_minutes
-        opts["siteName"] = siteSettings.site_name
-        opts["siteSettings"]["site_logo"] = (
-            siteSettings.site_logo
-            if siteSettings and siteSettings.site_logo
-            else "/static/logo_mini.png"
-        )
-        opts["siteSettings"]["site_icon"] = (
-            "/static/favico.ico" if not siteSettings else siteSettings.site_icon
-        )
+        if siteSettings:
+            opts["siteSettings"] = siteSettings
+            opts["site_tile"] = siteSettings.site_title
+            opts["timeOut"] = siteSettings.time_out_minutes
+            opts["siteName"] = siteSettings.site_name
+            opts["siteSettings"]["site_logo"] = (
+                siteSettings.site_logo
+                if siteSettings and siteSettings.site_logo
+                else "/static/logo_mini.png"
+            )
+            opts["siteSettings"]["site_icon"] = (
+                "/static/favico.ico" if not siteSettings.site_icon or siteSettings.site_icon==''  else siteSettings.site_icon
+            )
+            opts["siteSettings"]["google_map"] = (
+                siteSettings.google_map
+                if siteSettings.google_map or siteSettings.google_map != ""
+                else "http://maps.google.com/maps?f=q&amp;source=s_q&amp;hl=en&amp;geocode=&amp;q=Brooklyn,+New+York,+NY,+United+States&amp;aq=0&amp;sll=37.0625,-95.677068&amp;sspn=61.282355,146.513672&amp;ie=UTF8&amp;hq=&amp;hnear=Brooklyn,+Kings,+New+York&amp;ll=40.649974,-73.950005&amp;spn=0.01628,0.025663&amp;z=14&amp;iwloc=A&amp;output=embed"
+            )
 
-    else:
-        opts["siteSettings"]["=site_name"] = current_app.config["APP_CONFIG"][
-            "SITE_NAME"
-        ]
-        opts["siteSettings"]["site_title"] = current_app.config["APP_CONFIG"][
-            "SITE_TITLE"
-        ]
-        opts["siteSettings"]["site_description"] = current_app.config["APP_CONFIG"][
-            "SITE_DESCRIPTION"
-        ]
-        opts["siteSettings"]["site_logo"] = "/static/logo_mini.png"
-        opts["siteSettings"]["site_icon"] = "/static/favico.ico"
-        opts["siteSettings"]["login_image"] = "/static/login_image.png"
-    ### Redirect Page ###
-    # if len(Pages.objects()) == 0 or len(Sections.objects()) == 0:
-    #    return redirect(url_for("main.original"))
-
-    # opts["clients"] = Clients.objects()
-    opts["banner"] =  None #Banners.objects()[0] if(len(Banners.find({}))>0) else None
-    opts["startTime"] = datetime.now()
-    opts["userName"] = ""
-    opts["previousDestination"] = ""
-    opts["currentTime"] = datetime.now()
-    opts["isConfirmed"] = False
-    # opts["faqs"] = Faqs.objects()
-    # opts["services"] = []
-    # opts["serviceTypes"] = ServiceTypes.objects()
-
-    # opts["pricePlans"] = []
-    # opts["servicesSection"] = {}
-    ##opts["servicesSection"]["header"] = "Services"
-    # opts["servicesSection"]["text"] = "All available services"
-    # opts["ratingsSection"] = {}
-    # opts["ratingsSection"]["text"] = "Ratings"
-    # opts["ratings"] = Ratings.objects()
-    # opts["teamMembers"] = TeamMembers.objects()
-    # partners = Partners.objects()
-    # if len(partners) > 0:
-    #    opts["partners"] = partners
-    
-    version = str(round(time.time() * 1000))
-    page_contents = {}
-    opts["pages"] = []
-  
-    basedir = os.path.dirname(os.path.abspath(os.path.dirname(__file__)))
-    templates_folder = basedir + os.path.sep + "templates" ""
-
-    if Pages.objects():
-        for page in Pages.objects():
-            try:
-                # page.contents = page.contents.replace("&nbsp;", "")
-                # page.contents = html.unescape(page.contents)
-                rtemplate = None
-                if "include" in page.contents:
-                    page_path = (
-                        page.contents.replace("{%", "")
-                        .replace("%}", "")
-                        .replace("include", "")
-                        .replace(" ", "")
-                        .replace('"', "")
-                    )
-                    rtemplate = Environment(
-                        loader=FileSystemLoader(searchpath=templates_folder)
-                    ).get_template(page_path)
-                else:
-                    rtemplate = Environment(loader=BaseLoader()).from_string(page.contents)
-                page_data = rtemplate.render(options=opts)
-                page.contents = page_data  # html.escape(page_data)
-                if page.is_nav_page:
-                    page.href = page.href.replace("/pages/", "#")
-                page_contents[page.page_id] = page.contents
-                opts["pages"].append(page)
-            except:
-                traceback.format_exc()
-        opts["navPages"] = [
-            page
-            for page in opts["pages"]
-            if page.is_nav_page == True
-        ]  # Pages.objects(__raw__={"is_nav_page": True})
-        sub_pages = [
-            page for page in opts["pages"] if page.is_child == True
-        ]  # Pages.objects(__raw__={"is_child": True})
-        opts["sub_pages"] = sub_pages
-        opts["page_map"] = {}
-
-        for page in sub_pages:
-            parentPage = [
-                par_page
-                for par_page in opts["pages"]
-                if page.parent_page and page.parent_page.page_id == par_page.page_id
+        else:
+            opts["siteSettings"]["=site_name"] = current_app.config["APP_CONFIG"][
+                "SITE_NAME"
             ]
-            if parentPage:
-                parent_page = parentPage[0]
-                opts["page_map"][page.page_id] = parent_page
-    # for service in Services.objects():
-    #     service.page.contents = page_contents[service.page.page_id]
-    #    opts["services"].append(service)
-    # opts['topbar'] = Pages.get({"page_name":"topbar"})
-    opts["current_page"] = Pages.get({"page_name": "home"})
+            opts["siteSettings"]["site_title"] = current_app.config["APP_CONFIG"][
+                "SITE_TITLE"
+            ]
+            opts["siteSettings"]["site_description"] = current_app.config["APP_CONFIG"][
+                "SITE_DESCRIPTION"
+            ]
+            opts["siteSettings"]["site_logo"] = "/static/logo_mini.png"
+            opts["siteSettings"]["site_icon"] = "/static/favico.ico"
+            opts["siteSettings"]["login_image"] = "/static/login_image.png"
+        ### Redirect Page ###
+        # if len(Pages.objects()) == 0 or len(Sections.objects()) == 0:
+        #    return redirect(url_for("main.original"))
 
-    opts["sliders"] = []
-    carousels = Sliders.find({"is_active":True})
-    carousels= get_found_records(carousels) if len(carousels) > 0 else []
-    if len(carousels) >0:
-        for carousel in carousels:
+        # opts["clients"] = Clients.objects()
+        opts["banner"] =  None #Banners.objects()[0] if(len(Banners.find({}))>0) else None
+        opts["startTime"] = datetime.now()
+        opts["userName"] = ""
+        opts["previousDestination"] = ""
+        opts["currentTime"] = datetime.now()
+        opts["isConfirmed"] = False
+        # opts["faqs"] = Faqs.objects()
+        # opts["services"] = []
+        # opts["serviceTypes"] = ServiceTypes.objects()
 
-            carousel["google_url"] = Images.get({'id':carousel['image']['$oid']}).google_url if Images.get({'id':carousel['image']['$oid']}) else  ''
-            opts["sliders"].append(carousel)
-    
-    opts["footer"] = Pages.get({"page_name": "footer"})
-    service_page = Pages.get({"page_name":"services"})
-    services = Pages.find({"parent_page": service_page})
-    services = get_found_records(services) if len(services) > 0 else None
-    opts['services']= []
+        # opts["pricePlans"] = []
+        # opts["servicesSection"] = {}
+        ##opts["servicesSection"]["header"] = "Services"
+        # opts["servicesSection"]["text"] = "All available services"
+        # opts["ratingsSection"] = {}
+        # opts["ratingsSection"]["text"] = "Ratings"
+        # opts["ratings"] = Ratings.objects()
+        # opts["teamMembers"] = TeamMembers.objects()
+        # partners = Partners.objects()
+        # if len(partners) > 0:
+        #    opts["partners"] = partners
 
-    if services and len(services)>0:
-        for page in  services:
-            service =  Pages.get({'page_id': int(page['page_id'])})
-            opts['services'].append(service)
-  
-    # optss["banner"] =None
-    # if   opts["current_page"].banner is not None:
-    #    opts["banner"]=  opts["current_page"].banner
-    # else:
-    #    opts["banner"] = Banners.get({"is_active": True})
+        version = str(round(time.time() * 1000))
+        page_contents = {}
+        opts["pages"] = []
 
-    # if isinstance(opts["banner"], list) and len(opts["banner"]) > 1:
-    #    opts['banner'] = opts['banner'][0]
-    # opts["banner"]["google_url"] = opts["banner"].image.google_url
-    # opts["call_to_action"] = Pages.get({"page_name": "call_to_action"})
+        basedir = os.path.dirname(os.path.abspath(os.path.dirname(__file__)))
+        templates_folder = basedir + os.path.sep + "templates" ""
 
-    # opts["sections"] = []
-    # print("getting sections..")
-    # for section in Sections.objects():
-    # print("section_name: ", section.name)
-    #    for page in section.pages:
-    # print("page_name: ", page.page_name)
-    #        page.contents = (
-    #            page_contents[page.page_id] if page.page_id in page_contents else ""
-    #        )
-    #    opts["sections"].append(section)
-    # print("rendering page: ")
-    #
-    # print("site_description: ", opts["siteSettings"]["site_description"])
-    
-    return render_template(
-        "main/index.html",
-        title="index",
-        pageID="index",
-        options=opts,
-        version=version
-    )
+        if Pages.objects():
+            for page in Pages.objects():
+                try:
+                    # page.contents = page.contents.replace("&nbsp;", "")
+                    # page.contents = html.unescape(page.contents)
+                    rtemplate = None
+                    if "include" in page.contents:
+                        page_path = (
+                            page.contents.replace("{%", "")
+                            .replace("%}", "")
+                            .replace("include", "")
+                            .replace(" ", "")
+                            .replace('"', "")
+                        )
+                        rtemplate = Environment(
+                            loader=FileSystemLoader(searchpath=templates_folder)
+                        ).get_template(page_path)
+                    else:
+                        rtemplate = Environment(loader=BaseLoader()).from_string(page.contents)
+                    page_data = rtemplate.render(options=opts)
+                    page.contents = page_data  # html.escape(page_data)
+                    if page.is_nav_page:
+                        page.href = page.href.replace("/pages/", "#")
+                    page_contents[page.page_id] = page.contents
+                    opts["pages"].append(page)
+                except:
+                    traceback.format_exc()
+            opts["navPages"] = [
+                page
+                for page in opts["pages"]
+                if page.is_nav_page == True
+            ]  # Pages.objects(__raw__={"is_nav_page": True})
+            sub_pages = [
+                page for page in opts["pages"] if page.is_child == True
+            ]  # Pages.objects(__raw__={"is_child": True})
+            opts["sub_pages"] = sub_pages
+            opts["page_map"] = {}
+
+            for page in sub_pages:
+                parentPage = [
+                    par_page
+                    for par_page in opts["pages"]
+                    if page.parent_page and page.parent_page.page_id == par_page.page_id
+                ]
+                if parentPage:
+                    parent_page = parentPage[0]
+                    opts["page_map"][page.page_id] = parent_page
+        # for service in Services.objects():
+        #     service.page.contents = page_contents[service.page.page_id]
+        #    opts["services"].append(service)
+        # opts['topbar'] = Pages.get({"page_name":"topbar"})
+        opts["current_page"] = Pages.get({"page_name": "home"})
+
+        opts["sliders"] = []
+        carousels = Sliders.find({"is_active":True})
+        carousels= get_found_records(carousels) if len(carousels) > 0 else []
+        if len(carousels) >0:
+            for carousel in carousels:
+
+                carousel["google_url"] = Images.get({'id':carousel['image']['$oid']}).google_url if Images.get({'id':carousel['image']['$oid']}) else  ''
+                opts["sliders"].append(carousel)
+
+        opts["footer"] = Pages.get({"page_name": "footer"})
+        service_page = Pages.get({"page_name":"services"})
+        services = Pages.find({"parent_page": service_page})
+        services = get_found_records(services) if len(services) > 0 else None
+        opts['services']= []
+
+        if services and len(services)>0:
+            for page in  services:
+                service =  Pages.get({'page_id': int(page['page_id'])})
+                opts['services'].append(service)
+
+        # optss["banner"] =None
+        # if   opts["current_page"].banner is not None:
+        #    opts["banner"]=  opts["current_page"].banner
+        # else:
+        #    opts["banner"] = Banners.get({"is_active": True})
+
+        # if isinstance(opts["banner"], list) and len(opts["banner"]) > 1:
+        #    opts['banner'] = opts['banner'][0]
+        # opts["banner"]["google_url"] = opts["banner"].image.google_url
+        # opts["call_to_action"] = Pages.get({"page_name": "call_to_action"})
+
+        # opts["sections"] = []
+        # print("getting sections..")
+        # for section in Sections.objects():
+        # print("section_name: ", section.name)
+        #    for page in section.pages:
+        # print("page_name: ", page.page_name)
+        #        page.contents = (
+        #            page_contents[page.page_id] if page.page_id in page_contents else ""
+        #        )
+        #    opts["sections"].append(section)
+        # print("rendering page: ")
+        #
+        # print("site_description: ", opts["siteSettings"]["site_description"])
+
+        return render_template(
+            "main/index.html",
+            title="index",
+            pageID="index",
+            options=opts,
+            version=version
+        )
+    except Exception as exception:
+        tb = traceback.format_exc()
+        timestamp = datetime.now().strftime("[%Y-%b-%d %H:%M]")
+        current_app.logger.error(
+            f"%s %s %s %s %s INTERNAL SERVER ERROR\n%s",
+            timestamp,
+            request.remote_addr,
+            request.method,
+            request.scheme,
+            request.full_path,
+            tb,
+        )
+        traceback.print_exc()
+        return jsonify({"is_successful": False, "message": str(exception)}), 500
 
 
 def get_page(page_name):
     """
     This function handles the /pages  route
     """
-
-    pages = [
-        page
-        for page in Pages.objects()
-        if page.page_name.replace(" ", "").replace("_", "").lower()
-        == page_name.replace(" ", "").replace("_", "").lower()
-    ]
-
-    current_page = pages[0] if pages else None
-
-    if not current_page:
-        abort(404)
-
-    opts = {}
-
-    opts["site_logo"] = "/static/logo_mini.png"
-    opts["startTime"] = datetime.now()
-    opts["currentTime"] = datetime.now()
-    opts["year"] = datetime.now().strftime("%Y")
-    opts["timeOut"] = None
-    opts["site_name"] = settings["SITE_ID"]
-    opts["site_description"] = settings["SITE_DESCRIPTION"]
-    opts["site_keywords"] = settings["SITE_KEYWORDS"]
-    opts["site_title"] = settings["SITE_TITLE"]
-    opts["userName"] = None
-    opts["previousDest"] = None
-    siteSettings = SiteSettings.get({"settings_id": 1})
-    opts["siteSettings"] = {}
-    if siteSettings:
-        opts["siteSettings"] = siteSettings
-        opts["siteTitle"] = siteSettings.site_title
-        opts["timeOut"] = siteSettings.time_out_minutes
-        opts["siteName"] = siteSettings.site_name
-        opts["siteSettings"]["site_logo"] = (
-            siteSettings.site_logo
-            if siteSettings and siteSettings.site_logo
-            else "/static/logo_mini.png"
-        )
-        opts["siteSettings"]["site_icon"] = (
-            "/static/favico.ico" if not siteSettings else siteSettings.site_icon
-        )
-        opts["timeOut"] = siteSettings.time_out_minutes
-    else:
-        opts["siteSettings"]["site_name"] = current_app.config["APP_CONFIG"][
-            "SITE_NAME"
+    try:
+        pages = [
+            page
+            for page in Pages.objects()
+            if page.page_name.replace(" ", "").replace("_", "").lower()
+            == page_name.replace(" ", "").replace("_", "").lower()
         ]
-        opts["siteSettings"]["site_title"] = current_app.config["APP_CONFIG"][
-            "SITE_TITLE"
-        ]
-        opts["siteSettings"]["site_description"] = current_app.config["APP_CONFIG"][
-            "SITE_DESCRIPTION"
-        ]
-        opts["siteSettings"]["site_logo"] = "/static/logo_mini.png"
-        opts["siteSettings"]["site_icon"] = "/static/favico.ico"
-        opts["siteSettings"]["login_image"] = "/static/login_image.png"
-    opts["banner"] =  None #Banners.objects()[0] if(len(Banners.find({}))>0) else None
-    opts["startTime"] = datetime.now()
-    opts["userName"] = ""
-    opts["previousDestination"] = ""
-    opts["currentTime"] = datetime.now()
-    opts["isConfirmed"] = False
-    version = str(round(time.time() * 1000))
-    page_contents = {}
-    opts["pages"] = []
-    basedir = os.path.dirname(os.path.abspath(os.path.dirname(__file__)))
-    templates_folder = basedir + os.path.sep + "templates"
 
-    if len(Pages.find({})) > 0:
-        for page in Pages.objects():
-            try:
-                # page.contents = page.contents.replace("&nbsp;", "")
-                # page.contents = html.unescape(page.contents)
-                rtemplate = None
-                if "include" in page.contents:
-                    page_path = (
-                        page.contents.replace("{%", "")
-                        .replace("%}", "")
-                        .replace("include", "")
-                        .replace(" ", "")
-                        .replace('"', "")
-                    )
-                    rtemplate = Environment(
-                        loader=FileSystemLoader(searchpath=templates_folder)
-                    ).get_template(page_path)
-                else:
-                    rtemplate = Environment(loader=BaseLoader()).from_string(
-                        page.contents
-                    )
-                page_data = rtemplate.render(options=opts)
-                page.contents = page_data  # html.escape(page_data)
-                if page.is_nav_page:
-                    page.href = page.href.replace("/pages/", "#")
-                page_contents[page.page_id] = page.contents
-                opts["pages"].append(page)
-            except:
-                traceback.format_exc()
-        opts["navPages"] = [
-            page for page in opts["pages"] if page.is_nav_page == True
-        ]  # Pages.objects(__raw__={"is_nav_page": True})
-        sub_pages = [
-            page for page in opts["pages"] if page.is_child == True
-        ]  # Pages.objects(__raw__={"is_child": True})
-        opts["sub_pages"] = sub_pages
-        opts["page_map"] = {}
+        current_page = pages[0] if pages else None
 
-        for page in sub_pages:
-            parentPage = [
-                par_page
-                for par_page in opts["pages"]
-                if page.parent_page and page.parent_page.page_id == par_page.page_id
+        if not current_page:
+            abort(404)
+
+        opts = {}
+
+        opts["site_logo"] = "/static/logo_mini.png"
+        opts["startTime"] = datetime.now()
+        opts["currentTime"] = datetime.now()
+        opts["year"] = datetime.now().strftime("%Y")
+        opts["timeOut"] = None
+        opts["site_name"] = settings["SITE_ID"]
+        opts["site_description"] = settings["SITE_DESCRIPTION"]
+        opts["site_keywords"] = settings["SITE_KEYWORDS"]
+        opts["site_title"] = settings["SITE_TITLE"]
+        opts["userName"] = None
+        opts["previousDest"] = None
+        siteSettings = SiteSettings.get({"settings_id": 1})
+        opts["siteSettings"] = {}
+        if siteSettings:
+            opts["siteSettings"] = siteSettings
+            opts["siteTitle"] = siteSettings.site_title
+            opts["timeOut"] = siteSettings.time_out_minutes
+            opts["siteName"] = siteSettings.site_name
+            opts["siteSettings"]["site_logo"] = (
+                siteSettings.site_logo
+                if siteSettings and siteSettings.site_logo
+                else "/static/logo_mini.png"
+            )
+            opts["siteSettings"]["site_icon"] = (
+                "/static/favico.ico"
+                if not siteSettings.site_icon or siteSettings.site_icon == ""
+                else siteSettings.site_icon
+            )
+            opts["siteSettings"]["google_map"] = (
+                siteSettings.google_map
+                if siteSettings.google_map or siteSettings.google_map != ""
+                else "http://maps.google.com/maps?f=q&amp;source=s_q&amp;hl=en&amp;geocode=&amp;q=Brooklyn,+New+York,+NY,+United+States&amp;aq=0&amp;sll=37.0625,-95.677068&amp;sspn=61.282355,146.513672&amp;ie=UTF8&amp;hq=&amp;hnear=Brooklyn,+Kings,+New+York&amp;ll=40.649974,-73.950005&amp;spn=0.01628,0.025663&amp;z=14&amp;iwloc=A&amp;output=embed"
+            )
+            opts["timeOut"] = siteSettings.time_out_minutes
+        else:
+            opts["siteSettings"]["site_name"] = current_app.config["APP_CONFIG"][
+                "SITE_NAME"
             ]
-            if parentPage:
-                parent_page = parentPage[0]
-                opts["page_map"][page.page_id] = parent_page
-    opts["topbar"] = Pages.get({"page_name": "topbar"})
-    page_name = page_name.strip()
-    opts["current_page"] = Pages.get({"page_name": page_name})
-    opts["sliders"] = []
-    carousels = Sliders.get({"is_active": True})
-    if isinstance(carousels, list):
-        for carousel in carousels:
-            carousel["google_url"] = carousel.image.google_url
-            opts["sliders"].append(carousel)
-    else:
-        carousels["google_url"] = carousels.image.google_url
-        opts["sliders"].append(carousels)
-    opts["banner"] = None
-    opts["footer"] = Pages.get({"page_name": "footer"})
-    service_page = Pages.get({"page_name": "services"})
-    services = Pages.find({"parent_page": service_page})
-    services = get_found_records(services) if len(services) > 0 else None
-    opts["services"] = []
-    for page in services:
-        service = Pages.get({"page_id": int(page["page_id"])})
-        opts["services"].append(service)
-    
-    # if  opts["current_page"] and opts["current_page"].banner is not None:
-    #    opts["banner"] = opts["current_page"].banner
-    ##else:
-    #    opts["banner"] = Banners.get({"is_active": True})
-    # if isinstance(opts["banner"], list) and len(opts["banner"]) > 1:
-    #    opts["banner"] = opts["banner"][0]
-    # opts["banner"]["google_url"] = opts["banner"].image.google_url
-    # opts["call_to_action"] = Pages.get({"page_name": "call_to_action"})
+            opts["siteSettings"]["site_title"] = current_app.config["APP_CONFIG"][
+                "SITE_TITLE"
+            ]
+            opts["siteSettings"]["site_description"] = current_app.config["APP_CONFIG"][
+                "SITE_DESCRIPTION"
+            ]
+            opts["siteSettings"]["site_logo"] = "/static/logo_mini.png"
+            opts["siteSettings"]["site_icon"] = "/static/favico.ico"
+            opts["siteSettings"]["login_image"] = "/static/login_image.png"
+        opts["banner"] =  None #Banners.objects()[0] if(len(Banners.find({}))>0) else None
+        opts["startTime"] = datetime.now()
+        opts["userName"] = ""
+        opts["previousDestination"] = ""
+        opts["currentTime"] = datetime.now()
+        opts["isConfirmed"] = False
+        version = str(round(time.time() * 1000))
+        page_contents = {}
+        opts["pages"] = []
+        basedir = os.path.dirname(os.path.abspath(os.path.dirname(__file__)))
+        templates_folder = basedir + os.path.sep + "templates"
 
-    # opts["current_page"] = [
-    #     page
-    #     for page in opts["pages"]
-    #     if page.page_name.replace(" ", "").replace("_", "").lower().lower()
-    #     == page_name.replace(" ", "").replace("_", "").lower().lower()
-    # ]
-    # opts["current_page"] = opts["current_page"][0]
+        if len(Pages.find({})) > 0:
+            for page in Pages.objects():
+                try:
+                    # page.contents = page.contents.replace("&nbsp;", "")
+                    # page.contents = html.unescape(page.contents)
+                    rtemplate = None
+                    if "include" in page.contents:
+                        page_path = (
+                            page.contents.replace("{%", "")
+                            .replace("%}", "")
+                            .replace("include", "")
+                            .replace(" ", "")
+                            .replace('"', "")
+                        )
+                        rtemplate = Environment(
+                            loader=FileSystemLoader(searchpath=templates_folder)
+                        ).get_template(page_path)
+                    else:
+                        rtemplate = Environment(loader=BaseLoader()).from_string(
+                            page.contents
+                        )
+                    page_data = rtemplate.render(options=opts)
+                    page.contents = page_data  # html.escape(page_data)
+                    if page.is_nav_page:
+                        page.href = page.href.replace("/pages/", "#")
+                    page_contents[page.page_id] = page.contents
+                    opts["pages"].append(page)
+                except:
+                    traceback.format_exc()
+            opts["navPages"] = [
+                page for page in opts["pages"] if page.is_nav_page == True
+            ]  # Pages.objects(__raw__={"is_nav_page": True})
+            sub_pages = [
+                page for page in opts["pages"] if page.is_child == True
+            ]  # Pages.objects(__raw__={"is_child": True})
+            opts["sub_pages"] = sub_pages
+            opts["page_map"] = {}
 
-    return render_template(
-        "main/index.html",
-        title=page_name,
-        pageID=page_name,
-        options=opts,
-        version=version
-    )
+            for page in sub_pages:
+                parentPage = [
+                    par_page
+                    for par_page in opts["pages"]
+                    if page.parent_page and page.parent_page.page_id == par_page.page_id
+                ]
+                if parentPage:
+                    parent_page = parentPage[0]
+                    opts["page_map"][page.page_id] = parent_page
+        opts["topbar"] = Pages.get({"page_name": "topbar"})
+        page_name = page_name.strip()
+        opts["current_page"] = Pages.get({"page_name": page_name})
+        opts["sliders"] = []
+        carousels = Sliders.get({"is_active": True})
+        if isinstance(carousels, list):
+            for carousel in carousels:
+                carousel["google_url"] = carousel.image.google_url
+                opts["sliders"].append(carousel)
+        else:
+            carousels["google_url"] = carousels.image.google_url
+            opts["sliders"].append(carousels)
+        opts["banner"] = None
+        opts["footer"] = Pages.get({"page_name": "footer"})
+        service_page = Pages.get({"page_name": "services"})
+        services = Pages.find({"parent_page": service_page})
+        services = get_found_records(services) if len(services) > 0 else None
+        opts["services"] = []
+        for page in services:
+            service = Pages.get({"page_id": int(page["page_id"])})
+            opts["services"].append(service)
 
+        # if  opts["current_page"] and opts["current_page"].banner is not None:
+        #    opts["banner"] = opts["current_page"].banner
+        ##else:
+        #    opts["banner"] = Banners.get({"is_active": True})
+        # if isinstance(opts["banner"], list) and len(opts["banner"]) > 1:
+        #    opts["banner"] = opts["banner"][0]
+        # opts["banner"]["google_url"] = opts["banner"].image.google_url
+        # opts["call_to_action"] = Pages.get({"page_name": "call_to_action"})
+
+        # opts["current_page"] = [
+        #     page
+        #     for page in opts["pages"]
+        #     if page.page_name.replace(" ", "").replace("_", "").lower().lower()
+        #     == page_name.replace(" ", "").replace("_", "").lower().lower()
+        # ]
+        # opts["current_page"] = opts["current_page"][0]
+
+        return render_template(
+            "main/index.html",
+            title=page_name,
+            pageID=page_name,
+            options=opts,
+            version=version
+        )
+    except Exception as exception:
+        tb = traceback.format_exc()
+        timestamp = datetime.now().strftime("[%Y-%b-%d %H:%M]")
+        current_app.logger.error(
+            f"%s %s %s %s %s INTERNAL SERVER ERROR\n%s",
+            timestamp,
+            request.remote_addr,
+            request.method,
+            request.scheme,
+            request.full_path,
+            tb,
+        )
+        traceback.print_exc()
+        return jsonify({"is_successful": False, "message": str(exception)}), 500
 
 def get_image_from_request(form_field, image_form_id, request):
     image_file = request.files.get(image_form_id)
@@ -978,318 +1010,333 @@ def process_form_entries(form_type):
     """
     Processes data received from forms
     """
-    check_key = request.form.get("fmky")
-    error_message = None
-    #print("form_type", form_type)
-    if form_type == "registration":
+    try:
+        check_key = request.form.get("fmky")
+        error_message = None
+        #print("form_type", form_type)
+        if form_type == "registration":
 
-        first_name = request.form.get("first_name")
-        last_name = request.form.get("last_name")
-        email_address = request.form.get("email_address")
-        address = request.form.get("address")
-        date_of_birth = request.form.get("date_of_birth")
-        phone_number = request.form.get("phone_number")
-        status = 0
-        # profile_image = request.form.get("profile_image")
-        password = request.form.get("password")
+            first_name = request.form.get("first_name")
+            last_name = request.form.get("last_name")
+            email_address = request.form.get("email_address")
+            address = request.form.get("address")
+            date_of_birth = request.form.get("date_of_birth")
+            phone_number = request.form.get("phone_number")
+            status = 0
+            # profile_image = request.form.get("profile_image")
+            password = request.form.get("password")
 
-        image_updated = request.form.get("image_name")
-        image_name = request.form.get("image_name")
-        image_updated = request.form.get("image_updated")
-        image_file = request.files.get("image_file") if image_updated else None
-        file_name = image_file.filename.split(os.sep)[-1] if image_file else None
-        image_format = file_name.split(".")[-1]
-        image_size = request.form.get("size")
-        image_type = request.form.get("image_type")
-        file_type = request.form.get("type")
-        image_last_modified = request.form.get("lastModified")
-        image_webkit_relative_path = request.form.get("webkitRelativePath")
-        image_dimensions = current_app.config["APP_CONFIG"][
-            "PROFILE_IMAGE_DIMENSIONS"
-        ]  # request.form.get("image_dimensions")
+            image_updated = request.form.get("image_name")
+            image_name = request.form.get("image_name")
+            image_updated = request.form.get("image_updated")
+            image_file = request.files.get("image_file") if image_updated else None
+            file_name = image_file.filename.split(os.sep)[-1] if image_file else None
+            image_format = file_name.split(".")[-1]
+            image_size = request.form.get("size")
+            image_type = request.form.get("image_type")
+            file_type = request.form.get("type")
+            image_last_modified = request.form.get("lastModified")
+            image_webkit_relative_path = request.form.get("webkitRelativePath")
+            image_dimensions = current_app.config["APP_CONFIG"][
+                "PROFILE_IMAGE_DIMENSIONS"
+            ]  # request.form.get("image_dimensions")
 
-        client_image = None
-        if image_updated:
-            filename = secure_filename(image_file.filename)
-            image_file_name = image_file.filename.split(os.sep)[-1]
-            filename = filename.split(os.sep)[-1]
-            if filename != "":
-                file_ext = os.path.splitext(filename)[1].replace(".", "")
-                if file_ext not in current_app.config["IMAGE_FORMATS"]:
-                    print("File extension is not valid: " + file_ext)
-                    abort(400)
-            image_path = os.path.join(
-                current_app.config["IMAGE_UPLOAD_DIRECTORY"]
-                + os.sep
-                + image_type.upper()
-            )
-            try:
-                if not os.path.exists(image_path):
-                    os.makedirs(image_path)
-                    os.chmod(image_path, stat.S_IWRITE)
-            except Exception as _:
-                traceback.print_exc()
-            upload_directory = image_path  # .replace("\\","\\\\"))
-            filepath = os.path.join(upload_directory, image_file_name)
-            existing_image = Images.get({"file_path": filepath})
-            folders = filepath.split(os.sep)
-            index_of_static = folders.index("static")
-            url_folders = folders[index_of_static:]
-            image_url = "/" + "/".join(url_folders)
-            image_check = True if existing_image else False
+            client_image = None
+            if image_updated:
+                filename = secure_filename(image_file.filename)
+                image_file_name = image_file.filename.split(os.sep)[-1]
+                filename = filename.split(os.sep)[-1]
+                if filename != "":
+                    file_ext = os.path.splitext(filename)[1].replace(".", "")
+                    if file_ext not in current_app.config["IMAGE_FORMATS"]:
+                        print("File extension is not valid: " + file_ext)
+                        abort(400)
+                image_path = os.path.join(
+                    current_app.config["IMAGE_UPLOAD_DIRECTORY"]
+                    + os.sep
+                    + image_type.upper()
+                )
+                try:
+                    if not os.path.exists(image_path):
+                        os.makedirs(image_path)
+                        os.chmod(image_path, stat.S_IWRITE)
+                except Exception as _:
+                    traceback.print_exc()
+                upload_directory = image_path  # .replace("\\","\\\\"))
+                filepath = os.path.join(upload_directory, image_file_name)
+                existing_image = Images.get({"file_path": filepath})
+                folders = filepath.split(os.sep)
+                index_of_static = folders.index("static")
+                url_folders = folders[index_of_static:]
+                image_url = "/" + "/".join(url_folders)
+                image_check = True if existing_image else False
 
-            if not image_check:
-                image_id = Images.get_next("image_id")
-                image = Images(
-                    image_id=image_id,
-                    image_name=image_name,
-                    file_name=image_file_name,
-                    image_format=image_format,
-                    file_path=filepath,
-                    file_size=image_size,
-                    image_type=image_type,
-                    file_type=file_type,
-                    image_last_modified=image_last_modified,
-                    image_dimensions=image_dimensions,
-                    image_url=image_url,
-                    webkit_relative_path=image_webkit_relative_path,
-                    google_file_id=str(image_id),
-                    google_url=image_url,
-                    created_datetime=datetime.now(),
+                if not image_check:
+                    image_id = Images.get_next("image_id")
+                    image = Images(
+                        image_id=image_id,
+                        image_name=image_name,
+                        file_name=image_file_name,
+                        image_format=image_format,
+                        file_path=filepath,
+                        file_size=image_size,
+                        image_type=image_type,
+                        file_type=file_type,
+                        image_last_modified=image_last_modified,
+                        image_dimensions=image_dimensions,
+                        image_url=image_url,
+                        webkit_relative_path=image_webkit_relative_path,
+                        google_file_id=str(image_id),
+                        google_url=image_url,
+                        created_datetime=datetime.now(),
+                        last_modified_date=datetime.now(),
+                        current_version=0,
+                    )
+
+                    image_file.save(image.file_path)
+                    image.save()
+                    client_image = image
+                    resize_image(image.file_path, json.loads(image_dimensions))
+                    user_id = 0
+                    user_name = "System"
+                    AuditTrail.log_to_trail(
+                        {
+                            "old_object": None,
+                            "new_object": image,
+                            "description": "New record added to Images",
+                            "change_type": "INSERT",
+                            "object_type": "Image",
+                            "user_id": str(user_id),
+                            "username": user_name,
+                        }
+                    )
+                    queue = rq.Queue(
+                        current_app.config["REDIS_QUEUE_NAME"], connection=current_app.redis
+                    )
+                    queue.enqueue(
+                        "app.tasks.upload_file_to_gdrive",
+                        args=[image.image_id, "image", image.image_name],
+                        job_timeout=current_app.config["SYNC_INTERVAL"],
+                    )
+
+            client = Clients.get({"email_address": email_address})
+            is_existing_client = True if client else False
+            if not is_existing_client:
+                client_id = Clients.get_next("client_id")
+                client = Clients(
+                    client_id=client_id,
+                    first_name=str(first_name).strip(),
+                    last_name=str(last_name).strip(),
+                    email_address=email_address.strip(),
+                    address=address,
+                    date_of_birth=date_of_birth,
+                    phone_number=phone_number,
+                    status=status,
+                    profile_image=client_image,
                     last_modified_date=datetime.now(),
+                    created_datetime=datetime.now(),
                     current_version=0,
                 )
-
-                image_file.save(image.file_path)
-                image.save()
-                client_image = image
-                resize_image(image.file_path, json.loads(image_dimensions))
+                client.set_password(password)
+                client.save()
                 user_id = 0
-                user_name = "System"
+                user_name = "system"
                 AuditTrail.log_to_trail(
                     {
                         "old_object": None,
-                        "new_object": image,
-                        "description": "New record added to Images",
+                        "new_object": client,
+                        "description": f"{form_type} record created",
                         "change_type": "INSERT",
-                        "object_type": "Image",
+                        "object_type": "Client",
                         "user_id": str(user_id),
                         "username": user_name,
                     }
                 )
-                queue = rq.Queue(
-                    current_app.config["REDIS_QUEUE_NAME"], connection=current_app.redis
+
+                return jsonify({"message": "Client created successfully"})
+            return jsonify({"message": "Client already exists"})
+
+        elif form_type == "personal_information":
+            client_id = request.form.get("client_id")
+            client = Clients.get({"client_id": int(client_id)})
+            mailing_address = request.form.get("mailing_address")
+            identification = request.form.get("identification")
+            education_history = request.form.get("education_history")
+            employment_status = request.form.get("employment_status")
+            employment_history = request.form.get("employment_history")
+            spouse_information = request.form.get("spouse_information")
+            dependants_information = request.form.get("dependants_information")
+            language_proficiency = request.form.get("language_proficiency")
+            gender = request.form.get("gender")
+            nationality = request.form.get("nationality")
+            marital_status = request.form.get("marital_status")
+            disability = request.form.get("disability")
+            disability_info = request.form.get("disability_info")
+            consent = request.form.get("consent")
+            identification = get_client_data(request, "identification", identification, 4)
+            education_history = get_client_data(
+                request, "education_history", education_history, 5
+            )
+            employment_history = get_client_data(
+                request, "employment_history", employment_history, 5
+            )
+            spouse_information = get_client_data(
+                request, "spouse_information", spouse_information, 9
+            )
+            dependants_information = get_client_data(
+                request, "dependants_information", dependants_information, 7
+            )
+            language_proficiency = get_client_data(
+                request, "language_proficiency", language_proficiency, 7
+            )
+
+            client_info = ClientPersonalInformation.get({"client_id": int(client_id)})
+            is_existing_client_info = True if client_info else False
+            if not is_existing_client_info:
+                
+                info_id = ClientPersonalInformation.get_next("personal_info_id")
+                disability = False if disability.lower() == "no" else True
+                consent = True if consent.lower() == "yes" else False
+                disability_info = (
+                    disability_info
+                    if disability_info is not None or disability_info != ""
+                    else ""
                 )
-                queue.enqueue(
-                    "app.tasks.upload_file_to_gdrive",
-                    args=[image.image_id, "image", image.image_name],
-                    job_timeout=current_app.config["SYNC_INTERVAL"],
+                client_info = ClientPersonalInformation(
+                    personal_info_id=int(info_id),
+                    client=client,
+                    mailing_address=mailing_address,
+                    identification=identification,
+                    education_history=education_history,
+                    employment_status=employment_status,
+                    employment_history=employment_history,
+                    spouse_information=spouse_information,
+                    dependants_information=dependants_information,
+                    language_proficiency=language_proficiency,
+                    gender=gender,
+                    nationality=nationality,
+                    marital_status=marital_status,
+                    disability=disability,
+                    disabiliy_info=disability_info,
+                    consent=consent,
+                    last_modified_date=datetime.now(),
+                    created_datetime=datetime.now(),
+                    current_version=0,
+                )
+                client_info.save()
+                user_id = 0
+                user_name = "system"
+                AuditTrail.log_to_trail(
+                    {
+                        "old_object": None,
+                        "new_object": client_info,
+                        "description": "Client Personal Information record created",
+                        "change_type": "INSERT",
+                        "object_type": "ClientPersonalInformation",
+                        "user_id": str(user_id),
+                        "username": user_name,
+                    }
                 )
 
-        client = Clients.get({"email_address": email_address})
-        is_existing_client = True if client else False
-        if not is_existing_client:
-            client_id = Clients.get_next("client_id")
-            client = Clients(
-                client_id=client_id,
-                first_name=str(first_name).strip(),
-                last_name=str(last_name).strip(),
-                email_address=email_address.strip(),
-                address=address,
-                date_of_birth=date_of_birth,
-                phone_number=phone_number,
-                status=status,
-                profile_image=client_image,
-                last_modified_date=datetime.now(),
-                created_datetime=datetime.now(),
-                current_version=0,
+                return jsonify(
+                    {"message": "ClientPersonalInformation created successfully"}
+                )
+            return jsonify({"message": "ClientPersonalInformation already exists"})
+
+        elif form_type == "travel_information":
+            client_id = request.form.get("client_id")
+            client = Clients.get({"client_id": int(client_id)})
+            country_of_interest = request.form.get("country_of_interest")
+            immigration_status = request.form.get("immigration_status")
+            desired_visa_type = request.form.get("desired_visa_type")
+            immigration_reasons = request.form.get("immigration_reasons")
+            passport_details = request.form.get("passport_details")
+            proof_of_funds = request.form.get("proof_of_funds")
+            previous_visa_applications = request.form.get("previous_visa_applications")
+            travel_history = request.form.get("travel_history")
+            police_records = request.form.get("police_records")
+            medical_records = request.form.get("medical_records")
+            insurance_information = request.form.get("insurance_information")
+            documents = request.form.get("documents")
+
+            passport_details = get_client_data(
+                request, "passport_details", passport_details, 5
             )
-            client.set_password(password)
-            client.save()
-            user_id = 0
-            user_name = "system"
-            AuditTrail.log_to_trail(
-                {
-                    "old_object": None,
-                    "new_object": client,
-                    "description": f"{form_type} record created",
-                    "change_type": "INSERT",
-                    "object_type": "Client",
-                    "user_id": str(user_id),
-                    "username": user_name,
-                }
+            proof_of_funds = get_client_data(request, "proof_of_funds", proof_of_funds, 10)
+            previous_visa_applications = get_client_data(
+                request, "previous_visa_applications", previous_visa_applications, 7
             )
-
-            return jsonify({"message": "Client created successfully"})
-        return jsonify({"message": "Client already exists"})
-
-    elif form_type == "personal_information":
-        client_id = request.form.get("client_id")
-        client = Clients.get({"client_id": int(client_id)})
-        mailing_address = request.form.get("mailing_address")
-        identification = request.form.get("identification")
-        education_history = request.form.get("education_history")
-        employment_status = request.form.get("employment_status")
-        employment_history = request.form.get("employment_history")
-        spouse_information = request.form.get("spouse_information")
-        dependants_information = request.form.get("dependants_information")
-        language_proficiency = request.form.get("language_proficiency")
-        gender = request.form.get("gender")
-        nationality = request.form.get("nationality")
-        marital_status = request.form.get("marital_status")
-        disability = request.form.get("disability")
-        disability_info = request.form.get("disability_info")
-        consent = request.form.get("consent")
-        identification = get_client_data(request, "identification", identification, 4)
-        education_history = get_client_data(
-            request, "education_history", education_history, 5
-        )
-        employment_history = get_client_data(
-            request, "employment_history", employment_history, 5
-        )
-        spouse_information = get_client_data(
-            request, "spouse_information", spouse_information, 9
-        )
-        dependants_information = get_client_data(
-            request, "dependants_information", dependants_information, 7
-        )
-        language_proficiency = get_client_data(
-            request, "language_proficiency", language_proficiency, 7
-        )
-
-        client_info = ClientPersonalInformation.get({"client_id": int(client_id)})
-        is_existing_client_info = True if client_info else False
-        if not is_existing_client_info:
-            
-            info_id = ClientPersonalInformation.get_next("personal_info_id")
-            disability = False if disability.lower() == "no" else True
-            consent = True if consent.lower() == "yes" else False
-            disability_info = (
-                disability_info
-                if disability_info is not None or disability_info != ""
-                else ""
+            travel_history = get_client_data(request, "travel_history", travel_history, 6)
+            police_records = get_client_data(request, "police_records", police_records, 4)
+            medical_records = get_client_data(
+                request, "medical_records", medical_records, 4
             )
-            client_info = ClientPersonalInformation(
-                personal_info_id=int(info_id),
-                client=client,
-                mailing_address=mailing_address,
-                identification=identification,
-                education_history=education_history,
-                employment_status=employment_status,
-                employment_history=employment_history,
-                spouse_information=spouse_information,
-                dependants_information=dependants_information,
-                language_proficiency=language_proficiency,
-                gender=gender,
-                nationality=nationality,
-                marital_status=marital_status,
-                disability=disability,
-                disabiliy_info=disability_info,
-                consent=consent,
-                last_modified_date=datetime.now(),
-                created_datetime=datetime.now(),
-                current_version=0,
+            insurance_information = get_client_data(
+                request, "insurance_information", insurance_information, 4
             )
-            client_info.save()
-            user_id = 0
-            user_name = "system"
-            AuditTrail.log_to_trail(
-                {
-                    "old_object": None,
-                    "new_object": client_info,
-                    "description": "Client Personal Information record created",
-                    "change_type": "INSERT",
-                    "object_type": "ClientPersonalInformation",
-                    "user_id": str(user_id),
-                    "username": user_name,
-                }
-            )
+            documents = get_client_data(request, "documents", documents, 5)
+            consent = request.form.get("consent")
+            travel_info = ClientTravelInformation.get({"client_id": int(client_id)})
+            is_existing_travel_info = True if travel_info else False
 
-            return jsonify(
-                {"message": "ClientPersonalInformation created successfully"}
-            )
-        return jsonify({"message": "ClientPersonalInformation already exists"})
+            if not is_existing_travel_info:
+                info_id = ClientTravelInformation.get_next("travel_info_id")
+                consent = True if consent.lower() == "yes" else False
 
-    elif form_type == "travel_information":
-        client_id = request.form.get("client_id")
-        client = Clients.get({"client_id": int(client_id)})
-        country_of_interest = request.form.get("country_of_interest")
-        immigration_status = request.form.get("immigration_status")
-        desired_visa_type = request.form.get("desired_visa_type")
-        immigration_reasons = request.form.get("immigration_reasons")
-        passport_details = request.form.get("passport_details")
-        proof_of_funds = request.form.get("proof_of_funds")
-        previous_visa_applications = request.form.get("previous_visa_applications")
-        travel_history = request.form.get("travel_history")
-        police_records = request.form.get("police_records")
-        medical_records = request.form.get("medical_records")
-        insurance_information = request.form.get("insurance_information")
-        documents = request.form.get("documents")
+                travel_info = ClientTravelInformation(
+                    travel_info_id=int(info_id),
+                    client=client,
+                    country_of_interest=country_of_interest,
+                    immigration_status=immigration_status,
+                    desired_visa_type=desired_visa_type,
+                    immigration_reasons=immigration_reasons,
+                    passport_details=passport_details,
+                    proof_of_funds=proof_of_funds,
+                    previous_visa_applications=previous_visa_applications,
+                    travel_history=travel_history,
+                    police_records=police_records,
+                    medical_records=medical_records,
+                    insurance_information=insurance_information,
+                    documents=documents,
+                    consent=consent,
+                    last_modified_date=datetime.now(),
+                    created_datetime=datetime.now(),
+                    current_version=0,
+                )
+                travel_info.save()
+                user_id = 0
+                user_name = "system"
+                AuditTrail.log_to_trail(
+                    {
+                        "old_object": None,
+                        "new_object": travel_info,
+                        "description": "Client Personal Information record created",
+                        "change_type": "INSERT",
+                        "object_type": "ClientTravelInformation",
+                        "user_id": str(user_id),
+                        "username": user_name,
+                    }
+                )
 
-        passport_details = get_client_data(
-            request, "passport_details", passport_details, 5
+                return jsonify({"message": "ClientTravelInformation created successfully"})
+            return jsonify({"message": "ClientTravelInformation already exists"})
+        else:
+            print("invalid resource requested")
+            abort(400)
+    except Exception as exception:
+        tb = traceback.format_exc()
+        timestamp = datetime.now().strftime("[%Y-%b-%d %H:%M]")
+        current_app.logger.error(
+            f"%s %s %s %s %s INTERNAL SERVER ERROR\n%s",
+            timestamp,
+            request.remote_addr,
+            request.method,
+            request.scheme,
+            request.full_path,
+            tb,
         )
-        proof_of_funds = get_client_data(request, "proof_of_funds", proof_of_funds, 10)
-        previous_visa_applications = get_client_data(
-            request, "previous_visa_applications", previous_visa_applications, 7
-        )
-        travel_history = get_client_data(request, "travel_history", travel_history, 6)
-        police_records = get_client_data(request, "police_records", police_records, 4)
-        medical_records = get_client_data(
-            request, "medical_records", medical_records, 4
-        )
-        insurance_information = get_client_data(
-            request, "insurance_information", insurance_information, 4
-        )
-        documents = get_client_data(request, "documents", documents, 5)
-        consent = request.form.get("consent")
-        travel_info = ClientTravelInformation.get({"client_id": int(client_id)})
-        is_existing_travel_info = True if travel_info else False
-
-        if not is_existing_travel_info:
-            info_id = ClientTravelInformation.get_next("travel_info_id")
-            consent = True if consent.lower() == "yes" else False
-
-            travel_info = ClientTravelInformation(
-                travel_info_id=int(info_id),
-                client=client,
-                country_of_interest=country_of_interest,
-                immigration_status=immigration_status,
-                desired_visa_type=desired_visa_type,
-                immigration_reasons=immigration_reasons,
-                passport_details=passport_details,
-                proof_of_funds=proof_of_funds,
-                previous_visa_applications=previous_visa_applications,
-                travel_history=travel_history,
-                police_records=police_records,
-                medical_records=medical_records,
-                insurance_information=insurance_information,
-                documents=documents,
-                consent=consent,
-                last_modified_date=datetime.now(),
-                created_datetime=datetime.now(),
-                current_version=0,
-            )
-            travel_info.save()
-            user_id = 0
-            user_name = "system"
-            AuditTrail.log_to_trail(
-                {
-                    "old_object": None,
-                    "new_object": travel_info,
-                    "description": "Client Personal Information record created",
-                    "change_type": "INSERT",
-                    "object_type": "ClientTravelInformation",
-                    "user_id": str(user_id),
-                    "username": user_name,
-                }
-            )
-
-            return jsonify({"message": "ClientTravelInformation created successfully"})
-        return jsonify({"message": "ClientTravelInformation already exists"})
-    else:
-        print("invalid resource requested")
-        abort(400)
+        traceback.print_exc()
+        return jsonify({"is_successful": False, "message": str(exception)}), 500
 
 
 @bp.route("/main/timeline/<client_id>", methods=["GET", "POST"])
@@ -1298,8 +1345,105 @@ def get_timeline_items(client_id):
     """
     Manages timeline information for clients
     """
-    if request.method == "GET":
-        pass
-    elif request.method == "POST":
-        pass
-    return jsonify({})
+    try:
+        if request.method == "GET":
+            pass
+        elif request.method == "POST":
+            pass
+        return jsonify({})
+    except Exception as exception:
+        tb = traceback.format_exc()
+        timestamp = datetime.now().strftime("[%Y-%b-%d %H:%M]")
+        current_app.logger.error(
+            f"%s %s %s %s %s INTERNAL SERVER ERROR\n%s",
+            timestamp,
+            request.remote_addr,
+            request.method,
+            request.scheme,
+            request.full_path,
+            tb,
+        )
+        traceback.print_exc()
+        return jsonify({"is_successful": False, "message": str(exception)}), 500
+
+
+@csrf.exempt
+@bp.route("/main/messages", methods=["POST"])
+def save_client_messages():
+    """
+    Saves messages sent from clients
+    """
+    try:
+        client_name  = request.form.get("name")
+        client_email = request.form.get("email")
+        client_phone = request.form.get("phone")
+        subject      = request.form.get("subject")
+        message      = request.form.get("message")
+        siteSettings = SiteSettings.get({"settings_id": 1})
+        recipient = (
+            siteSettings.default_mailing_account
+            if "default_mailing_account" in siteSettings
+            else current_app.config["APP_CONFIG"]["MAIL_USERNAME"]
+        )
+
+        message_status = 0
+        if not recipient or recipient =='':
+            message_status =6
+
+        message_id = Messages.get_next("message_id")
+        message = Messages(
+            message_id=message_id,
+            client_name=client_name.strip(),
+            client_email=client_email.strip(),
+            client_phone=client_phone.strip(),
+            message_status=message_status,
+            subject=subject.strip(),
+            message=message.strip(),
+            last_modified_date=datetime.now(),
+            created_datetime=datetime.now(),
+            current_version=0,
+        )
+        message.save()
+        AuditTrail.log_to_trail(
+            {
+                "old_object": None,
+                "new_object": message,
+                "description": "Message record added",
+                "change_type": "INSERT",
+                "object_type": "Message",
+                "user_id":  0,
+                "username": "system",
+            }
+        )
+        if message_status != 6:
+            trigger_name = "client_message_delivery_trigger"
+            trigger = EventTriggers.get({"trigger_name": trigger_name})
+
+            if trigger:
+                parameters = trigger.parameters
+
+                if parameters:
+                    parameters["subject"] = subject.strip()
+                    parameters["recipient"] = recipient
+                    parameters["sender_name"] = client_email
+                    parameters["message"] = message.message
+                    parameters["client_name"] = client_name
+                    parameters["trigger_id"] = trigger.trigger_id
+                    parameters["start"] = True
+                    Events.create(parameters)
+
+        return jsonify({"message": "Your message has been sent!"})
+    except Exception as exception:
+        tb = traceback.format_exc()
+        timestamp = datetime.now().strftime("[%Y-%b-%d %H:%M]")
+        current_app.logger.error(
+            f"%s %s %s %s %s INTERNAL SERVER ERROR\n%s",
+            timestamp,
+            request.remote_addr,
+            request.method,
+            request.scheme,
+            request.full_path,
+            tb,
+        )
+        traceback.print_exc()
+        return jsonify({"is_successful": False, "message": str(exception)}), 500

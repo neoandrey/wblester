@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 import json, os
 import redis
 import socket
-
+from urllib.parse import unquote,quote_plus
 
 def isOpen(ip, port):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -125,10 +125,12 @@ class Config(object):
     )  # ,'redis')  filesystem - Note that the session_type configuration is case sensitive
 
     REDIS_URL = get_configured_value("REDIS_URL", configuration["REDIS_URL"])
-    # print("REDIS_URL", REDIS_URL)
+   
+   
+   
     SESSION_REDIS = None
     #if SESSION_TYPE == "redis":
-    SESSION_REDIS = redis.from_url(REDIS_URL)
+    SESSION_REDIS = redis.from_url((REDIS_URL))
         # redis_port = REDIS_URL.split(':')
         # if REDIS_URL and ("queue" in REDIS_URL.lower() or "localhost" in REDIS_URL) and not isOpen("queue", 6379):
         #     REDIS_URL = (
@@ -204,7 +206,8 @@ class Config(object):
     MONGODB_AUTH_MECHANISM = get_configured_value(
         "MONGODB_AUTH_MECHANISM", configuration["MONGODB_AUTH_MECHANISM"]
     )
-    MONGODB_URL = get_configured_value("MONGODB_URL", configuration["MONGODB_URL"])
+    MONGODB_URL = (get_configured_value("MONGODB_URL", configuration["MONGODB_URL"]))
+ 
     # MONGODB_URL = (
     #     MONGODB_URL.replace("@db", f"@{ip_address}").replace(
     #         "@localhost", f"@{ip_address}"

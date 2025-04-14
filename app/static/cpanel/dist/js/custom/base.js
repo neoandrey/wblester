@@ -441,10 +441,12 @@ $.fn.closeDialog = function (callback) {
 
     if($('#myModal').is(":visible")) { 
         $('#myModal').modal('hide');
-        $('#dialog-message-div').show()
+       
         $('#dialog-bttns').html('');
         $('#myModal').modal('hide');
         $('#myModal').hide();
+        $(document.body).removeClass('modal-open');
+        $('.modal-backdrop').remove();
     }
     
     if (callback){

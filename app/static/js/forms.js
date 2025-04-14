@@ -1,3 +1,34 @@
+
+$.fn.showMessageDialog = function (header, message, callback = null) {
+    $.fn.resetModal();
+    $('#modal-content').css('width', $.fn.dialogWidth);
+    let modalOptions = {
+        keyboard: false,
+        focus: true,
+        backdrop: 'static'
+    }
+    let logo = $('#site-logo').val();
+    let name = $('#site-name').val()
+    logo = '<img src="' + logo + '" alt="' + name + '  Logo" />';
+    header = (header !== '' || header !== null) ? ('<div class="row"><div class="col-md-2">' + logo + '</div><div class="col-md-8 font-weight-bold">' + header + '</div></div>') : '<div class="h2">' + logo + ' ' + name + ' </div>';
+    $('#dialog-header-span').html(header);
+    $('#dialog-message-div').html(message);
+    $('#dialog-message-div').css('float', 'center');
+    $('#dialog-message-div').css('text-align', 'center');
+    callback = callback?callback:'';
+    $('#dialog-footer-div').html('<a href="#" type="button" onclick="{ $.fn.closeDialog(); '+callback+';}" class="btn btn-info btn" data-dismiss="modal" id="dialog-ok-bttn">OK</a>')
+    $('#myModal').modal(modalOptions);
+    $('#myModal').show();
+
+}
+$.fn.showAlert = function (message, alertType, callback=null) {
+    //primary,secondary,success, danger, warning, info, light, dark
+    message = $.fn.getObjectType(message) == "object" ? JSON.stringify(message) : message
+    message = message ? '<div  class="alert alert-' + alertType + '" role="alert">' + message + '</div>' : '';
+    let siteName = $('#site-name').val()
+    $.fn.showMessageDialog('<div>'+siteName+'</div>', message,callback);
+}
+
 //forms
 ;(function($){
 	$.fn.forms=function(o){
@@ -10,7 +41,7 @@
 					notRequiredCl:'notRequired',
 					successCl:'success',
 					successShow:'4000',
-					mailHandlerURL:'#',
+					mailHandlerURL:'/main/messages',
 					ownerEmail:'#',
 					stripHTML:true,
 					smtpMailServer:'localhost',
@@ -22,8 +53,9 @@
 						".state":{rx:/^[a-zA-Z'][a-zA-Z-' ]+[a-zA-Z']?$/,target:'input'},
 						".email":{rx:/^(("[\w-\s]+")|([\w-]+(?:\.[\w-]+)*)|("[\w-\s]+")([\w-]+(?:\.[\w-]+)*))(@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$)|(@\[?((25[0-5]\.|2[0-4][0-9]\.|1[0-9]{2}\.|[0-9]{1,2}\.))((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\.){2}(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\]?$)/i,target:'input'},
 						".phone":{rx:/^\+?(\d[\d\-\+\(\) ]{5,}\d$)/,target:'input'},
-						".fax":{rx:/^\+?(\d[\d\-\+\(\) ]{5,}\d$)/,target:'input'},
-						".message":{rx:/.{20}/,target:'textarea'}
+						".subject":{rx: /.{5}/,target:'input'},
+						".message": { rx: /.{20}/, target: 'textarea' },
+						
 					},
 					preFu:function(){
 						_.labels.each(function(){
@@ -95,26 +127,33 @@
 							,defVal=label.data('defVal')								
 						return label.length?val==defVal?'nope':val:'nope'
 					}
-					,submitFu:function(){
-						_.validateFu(_.labels)							
-						if(!_.form.has('.'+_.invalidCl).length)
+					, submitFu: function () {
+						$('#submit-message').attr("disabled", "disabled")
+						_.validateFu(_.labels)
+						if (!_.form.has('.' + _.invalidCl).length) {
 							$.ajax({
 								type: "POST",
-								url:_.mailHandlerURL,
-								data:{
-									name:_.getValFromLabel($('.name',_.form)),
-									email:_.getValFromLabel($('.email',_.form)),
-									phone:_.getValFromLabel($('.phone',_.form)),
-									fax:_.getValFromLabel($('.fax',_.form)),
-									state:_.getValFromLabel($('.state',_.form)),
-									message:_.getValFromLabel($('.message',_.form)),
-									owner_email:_.ownerEmail,
-									stripHTML:_.stripHTML
+								url: _.mailHandlerURL,
+								data: {
+									name: _.getValFromLabel($('.name', _.form)),
+									email: _.getValFromLabel($('.email', _.form)),
+									phone: _.getValFromLabel($('.phone', _.form)),
+									subject: _.getValFromLabel($('.subject', _.form)),
+									state: _.getValFromLabel($('.state', _.form)),
+									message: _.getValFromLabel($('.message', _.form)),
+									owner_email: _.ownerEmail,
+									stripHTML: _.stripHTML
 								},
-								success: function(){
+								success: function () {
+									$('#submit-message').removeAttr("disabled")
 									_.showFu()
+									
+								},
+								error: function () {
+									$('#submit-message').removeAttr("disabled");
 								}
-							})			
+							})
+					}
 					},
 					showFu:function(){
 						_.success.slideDown(function(){
