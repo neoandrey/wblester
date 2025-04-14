@@ -21,3 +21,4 @@ gha-creds-*.json
 *.acky
 encrypt_settings.cmd
 data/*
+!app/static/cpanel/dist/custom/js/data/*
