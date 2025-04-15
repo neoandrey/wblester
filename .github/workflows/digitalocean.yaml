@@ -64,7 +64,7 @@ jobs:
         username: ${{ secrets.APP_SERVER_USERNAME }}
         password: ${{ secrets.APP_SERVER_PASSWORD }}
         port: ${{ secrets.APP_SERVER_PORT }}
-        envs: APP_NAME,REPOSITORY,DOCKER_USERNAME,WORKER_COUNT,BRANCH,RELEASE_VERSION
+        envs: APP_NAME,REPOSITORY,APP_PORT,DOCKER_USERNAME,WORKER_COUNT,BRANCH,RELEASE_VERSION
         script: |
           docker pull  "$DOCKER_USERNAME/$APP_NAME-$BRANCH:$RELEASE_VERSION" 
           docker rm -f $DOCKER_USERNAME/$APP_NAME-$BRANCH:$RELEASE_VERSION &>/dev/null
