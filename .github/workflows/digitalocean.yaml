@@ -57,11 +57,14 @@ jobs:
         APP_NAME: "${{ vars. APP_NAME }}"
         APP_PORT: "${{ vars. APP_PORT }}"
         DOCKER_USERNAME: "${{ secrets.DOCKER_USERNAME }}"
+        BRANCH: "$BRANCH"
+        RELEASE_VERSION: "$RELEASE_VERSION"
       with:
         host: ${{ secrets.APP_SERVER_IP }}
         username: ${{ secrets.APP_SERVER_USERNAME }}
         password: ${{ secrets.APP_SERVER_PASSWORD }}
         port: ${{ secrets.APP_SERVER_PORT }}
+        envs: APP_NAME,REPOSITORY,DOCKER_USERNAME,WORKER_COUNT,BRANCH,RELEASE_VERSION
         script: |
           docker push  "$DOCKER_USERNAME/$APP_NAME-$BRANCH:$RELEASE_VERSION" 
           docker rm -f $DOCKER_USERNAME/$APP_NAME-$BRANCH:$RELEASE_VERSION
@@ -73,11 +76,14 @@ jobs:
         REPOSITORY: "${{ vars.REPOSITORY }}"
         DOCKER_USERNAME: "${{ secrets.DOCKER_USERNAME }}"
         WORKER_COUNT: "${{ vars.WORKER_COUNT}}"
+        BRANCH: "$BRANCH"
+        RELEASE_VERSION: "$RELEASE_VERSION"
       with:
         host: ${{ secrets.WORKER_SERVER_IP }}
         username: ${{ secrets.WORKER_SERVER_USERNAME }}
         password: ${{ secrets.WORKER_SERVER_PASSWORD }}
         port: ${{ secrets.WORKER_SERVER_PORT }}
+        envs: APP_NAME,REPOSITORY,DOCKER_USERNAME,WORKER_COUNT,BRANCH,RELEASE_VERSION
         script: |
           docker push "$DOCKER_USERNAME/$APP_NAME-$BRANCH:$RELEASE_VERSION" 
           docker rm -f $DOCKER_USERNAME/$APP_NAME-$BRANCH:$RELEASE_VERSION
