@@ -52,7 +52,7 @@ jobs:
        docker push  "$DOCKER_USERNAME/$APP_NAME-$BRANCH:$RELEASE_VERSION" 
 
     - name: deploying app to digital ocean
-      uses: appleboy/ssh-action@v1
+      uses: appleboy/ssh-action@master
       with:
         host: ${{ secrets.APP_SERVER_IP }}
         username: ${{ secrets.APP_SERVER_USERNAME }}
@@ -66,7 +66,7 @@ jobs:
           docker rm -f $DOCKER_USERNAME/$APP_NAME-$BRANCH:$RELEASE_VERSION
           docker run -d  --name ${APP_NAME}-server  --restart=always --privileged -u 0 -v /var/lib/snapd/void/${APP_NAME}_data:/opt/${APP_NAME}/static/uploads -p ${APP_PORT}:${APP_PORT} PORT=${APP_PORT}  -e FLASK_APP=$APP_NAME  -e  FLASK_ENV=production  -e SESSION_TYPE=redis  $DOCKER_USERNAME/$APP_NAME-$BRANCH:$RELEASE_VERSION web
     - name: deploying worker to digital ocean
-      uses: appleboy/ssh-action@v1
+      uses: appleboy/ssh-action@master
       with:
         host: ${{ secrets.WORKER_SERVER_IP }}
         username: ${{ secrets.WORKER_SERVER_USERNAME }}
