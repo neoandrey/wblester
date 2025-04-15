@@ -51,7 +51,7 @@ jobs:
        docker tag $APP_NAME-$BRANCH "$DOCKER_USERNAME/$APP_NAME-$BRANCH:$RELEASE_VERSION" 
        docker push  "$DOCKER_USERNAME/$APP_NAME-$BRANCH:$RELEASE_VERSION" 
 
-    - name: deploying app to digital ocean
+    - name: deploy app to digital ocean
       uses: appleboy/ssh-action@master
       env:
         APP_NAME: "${{ vars. APP_NAME }}"
@@ -66,8 +66,8 @@ jobs:
         port: ${{ secrets.APP_SERVER_PORT }}
         envs: APP_NAME,REPOSITORY,DOCKER_USERNAME,WORKER_COUNT,BRANCH,RELEASE_VERSION
         script: |
-          docker push  "$DOCKER_USERNAME/$APP_NAME-$BRANCH:$RELEASE_VERSION" 
-          docker rm -f $DOCKER_USERNAME/$APP_NAME-$BRANCH:$RELEASE_VERSION
+          docker pull  "$DOCKER_USERNAME/$APP_NAME-$BRANCH:$RELEASE_VERSION" 
+          docker rm -f $DOCKER_USERNAME/$APP_NAME-$BRANCH:$RELEASE_VERSION|| true
           docker run -d  --name ${APP_NAME}-server  --restart=always --privileged -u 0 -v /var/lib/snapd/void/${APP_NAME}_data:/opt/${APP_NAME}/static/uploads -p ${APP_PORT}:${APP_PORT} PORT=${APP_PORT}  -e FLASK_APP=$APP_NAME  -e  FLASK_ENV=production  -e SESSION_TYPE=redis  $DOCKER_USERNAME/$APP_NAME-$BRANCH:$RELEASE_VERSION web
     - name: deploying worker to digital ocean
       uses: appleboy/ssh-action@master
@@ -85,7 +85,7 @@ jobs:
         port: ${{ secrets.WORKER_SERVER_PORT }}
         envs: APP_NAME,REPOSITORY,DOCKER_USERNAME,WORKER_COUNT,BRANCH,RELEASE_VERSION
         script: |
-          docker push "$DOCKER_USERNAME/$APP_NAME-$BRANCH:$RELEASE_VERSION" 
-          docker rm -f $DOCKER_USERNAME/$APP_NAME-$BRANCH:$RELEASE_VERSION
+          docker pull "$DOCKER_USERNAME/$APP_NAME-$BRANCH:$RELEASE_VERSION" 
+          docker rm -f $DOCKER_USERNAME/$APP_NAME-$BRANCH:$RELEASE_VERSION||true
           for i in \$(seq 1 $WORKER_COUNT); do docker run -d --name ${APP_NAME}-worker-\$i  --restart=always --privileged -u 0 -v /var/lib/snapd/void/${APP_NAME}_worker_data:/opt/$APP_NAME/static/uploads -p 500\$i:5000 -p 8\$i:80 -p 44\$i:443 -e FLASK_APP=$APP_NAME  -e  FLASK_ENV=production  -e SESSION_TYPE=redis $DOCKER_USERNAME/$APP_NAME-$BRANCH:$RELEASE_VERSION worker; done
 
