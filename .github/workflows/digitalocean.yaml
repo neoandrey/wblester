@@ -54,9 +54,9 @@ jobs:
     - name: deploying app to digital ocean
       uses: appleboy/ssh-action@master
       env:
-        APP_NAME: ${{ vars. APP_NAME }}
-        APP_PORT:  ${{ vars. APP_PORT }}
-        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+        APP_NAME: "${{ vars. APP_NAME }}"
+        APP_PORT: "${{ vars. APP_PORT }}"
+        DOCKER_USERNAME: "${{ secrets.DOCKER_USERNAME }}"
       with:
         host: ${{ secrets.APP_SERVER_IP }}
         username: ${{ secrets.APP_SERVER_USERNAME }}
@@ -69,10 +69,10 @@ jobs:
     - name: deploying worker to digital ocean
       uses: appleboy/ssh-action@master
       env:
-        APP_NAME: ${{ vars. APP_NAME }}
-        REPOSITORY: ${{ vars.REPOSITORY }}
-        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-        WORKER_COUNT: ${{ vars.WORKER_COUNT}}
+        APP_NAME: "${{ vars. APP_NAME }}"
+        REPOSITORY: "${{ vars.REPOSITORY }}"
+        DOCKER_USERNAME: "${{ secrets.DOCKER_USERNAME }}"
+        WORKER_COUNT: "${{ vars.WORKER_COUNT}}"
       with:
         host: ${{ secrets.WORKER_SERVER_IP }}
         username: ${{ secrets.WORKER_SERVER_USERNAME }}
