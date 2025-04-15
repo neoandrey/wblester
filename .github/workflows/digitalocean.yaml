@@ -68,7 +68,7 @@ jobs:
         script: |
           docker pull  "$DOCKER_USERNAME/$APP_NAME-$BRANCH:$RELEASE_VERSION" 
           docker rm -f $DOCKER_USERNAME/$APP_NAME-$BRANCH:$RELEASE_VERSION &>/dev/null
-          docker run -d  --name $APP_NAME-server  --restart=always --privileged -u 0 -v /var/lib/snapd/void/$APP_NAME/data:/opt/$APP_NAME/static/uploads -p $APP_PORT:$APP_PORT PORT=$APP_PORT  -e FLASK_APP=$APP_NAME  -e  FLASK_ENV=production  -e SESSION_TYPE=redis  $DOCKER_USERNAME/$APP_NAME-$BRANCH:$RELEASE_VERSION web
+          docker run -d  --name ${APP_NAME}-server  --restart=always --privileged -u 0 -v /var/lib/snapd/void/$APP_NAME/data:/opt/$APP_NAME/static/uploads -p ${APP_PORT}:${APP_PORT} -e PORT=$APP_PORT  -e FLASK_APP=$APP_NAME  -e  FLASK_ENV=production  -e SESSION_TYPE=redis  $DOCKER_USERNAME/$APP_NAME-$BRANCH:$RELEASE_VERSION web
     - name: deploying worker to digital ocean
       uses: appleboy/ssh-action@master
       env:
@@ -87,5 +87,5 @@ jobs:
         script: |
           docker pull "$DOCKER_USERNAME/$APP_NAME-$BRANCH:$RELEASE_VERSION" 
           docker rm -f $DOCKER_USERNAME/$APP_NAME-$BRANCH:$RELEASE_VERSION &>/dev/null
-          for i in \$(seq 1 $WORKER_COUNT); do docker run -d --name $APP_NAME-worker-\$i  --restart=always --privileged -u 0 -v /var/lib/snapd/void/$APP_NAME/worker_data:/opt/$APP_NAME/static/uploads -p 500\$i:5000 -p 8\$i:80 -p 44\$i:443 -e FLASK_APP=$APP_NAME  -e  FLASK_ENV=production  -e SESSION_TYPE=redis $DOCKER_USERNAME/$APP_NAME-$BRANCH:$RELEASE_VERSION worker; done
+          for i in \$(seq 1 $WORKER_COUNT); do docker run -d --name ${APP_NAME}-worker-\$i  --restart=always --privileged -u 0 -v /var/lib/snapd/void/$APP_NAME/worker_data:/opt/$APP_NAME/static/uploads -p 501\$i:5000 -p 8\$i:80 -p 44\$i:443 -e FLASK_APP=$APP_NAME  -e  FLASK_ENV=production  -e SESSION_TYPE=redis $DOCKER_USERNAME/$APP_NAME-$BRANCH:$RELEASE_VERSION worker; done
 
