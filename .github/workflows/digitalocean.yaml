@@ -53,13 +53,14 @@ jobs:
 
     - name: deploying app to digital ocean
       uses: appleboy/ssh-action@master
+      env:
+        APP_NAME: ${{ vars. APP_NAME }}
+        APP_PORT:  ${{ vars. APP_PORT }}
+        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       with:
         host: ${{ secrets.APP_SERVER_IP }}
         username: ${{ secrets.APP_SERVER_USERNAME }}
         password: ${{ secrets.APP_SERVER_PASSWORD }}
-        APP_NAME: ${{ vars. APP_NAME }}
-        APP_PORT:  ${{ vars. APP_PORT }}
-        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
         port: ${{ secrets.APP_SERVER_PORT }}
         script: |
           docker push  "$DOCKER_USERNAME/$APP_NAME-$BRANCH:$RELEASE_VERSION" 
@@ -67,15 +68,16 @@ jobs:
           docker run -d  --name ${APP_NAME}-server  --restart=always --privileged -u 0 -v /var/lib/snapd/void/${APP_NAME}_data:/opt/${APP_NAME}/static/uploads -p ${APP_PORT}:${APP_PORT} PORT=${APP_PORT}  -e FLASK_APP=$APP_NAME  -e  FLASK_ENV=production  -e SESSION_TYPE=redis  $DOCKER_USERNAME/$APP_NAME-$BRANCH:$RELEASE_VERSION web
     - name: deploying worker to digital ocean
       uses: appleboy/ssh-action@master
+      env:
+        APP_NAME: ${{ vars. APP_NAME }}
+        REPOSITORY: ${{ vars.REPOSITORY }}
+        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+        WORKER_COUNT: ${{ vars.WORKER_COUNT}}
       with:
         host: ${{ secrets.WORKER_SERVER_IP }}
         username: ${{ secrets.WORKER_SERVER_USERNAME }}
         password: ${{ secrets.WORKER_SERVER_PASSWORD }}
-        APP_NAME: ${{ vars. APP_NAME }}
-        REPOSITORY: ${{ vars.REPOSITORY }}
-        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
         port: ${{ secrets.WORKER_SERVER_PORT }}
-        WORKER_COUNT: ${{ vars.WORKER_COUNT}}
         script: |
           docker push "$DOCKER_USERNAME/$APP_NAME-$BRANCH:$RELEASE_VERSION" 
           docker rm -f $DOCKER_USERNAME/$APP_NAME-$BRANCH:$RELEASE_VERSION
