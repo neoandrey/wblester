@@ -1,4 +1,4 @@
-$.fn.dialogWidth ="40em"
+$.fn.dialogWidth ="30em"
 function compareNames(a, b) {
     // Use toUpperCase() to ignore character casing
     const bandA = a.name.toLowerCase();
@@ -437,8 +437,12 @@ function previousWeek() {
     return nextweek;
 }
 
-$.fn.closeDialog = function (callback) {
 
+$.fn.closeDialog = function (callback) {
+      let closed = false;
+      let intervalId = 0;
+   if(! closed){
+     intervalId = setInterval(() => {
     if($('#myModal').is(":visible")) { 
         $('#myModal').modal('hide');
        
@@ -447,11 +451,20 @@ $.fn.closeDialog = function (callback) {
         $('#myModal').hide();
         $(document.body).removeClass('modal-open');
         $('.modal-backdrop').remove();
+        closed = true;
+        
+        clearInterval(intervalId)
+        if (callback){
+	            callback();
+     }
+    } 
+    
+
+    }, interval); 
+    
     }
     
-    if (callback){
-        callback();
-    }
+
 }
 $.fn.editDialog = function (header, message, bttns) {
 
