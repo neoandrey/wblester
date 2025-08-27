@@ -441,6 +441,7 @@ function previousWeek() {
 $.fn.closeDialog = function (callback) {
       let closed = false;
       let intervalId = 0;
+      let interval = 500;
    if(! closed){
      intervalId = setInterval(() => {
     if($('#myModal').is(":visible")) { 
