@@ -1,0 +1,91 @@
+name: Digital Ocean CI Workflow
+on:
+  push:
+    branches: [ "prod" ]  
+jobs:
+  build:
+    permissions:
+      id-token: write
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+    - name:  Get Branch Name
+      shell: bash
+      run:  |
+             echo "BRANCH=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_ENV   
+    
+    - name: Check Out Latest Commit
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 
+
+    - name: Get Docker Image Tag
+      env:
+        MAJOR_VERSION: ${{ vars.MAJOR_VERSION }}
+        MINOR_VERSION: ${{ vars.MINOR_VERSION }}
+      run: |
+           echo "branch: $BRANCH"
+           BUILD_NUMBER=$(/usr/bin/git rev-list --count HEAD $BRANCH) && echo "RELEASE_VERSION=$MAJOR_VERSION.$MINOR_VERSION.$BUILD_NUMBER" >> $GITHUB_ENV
+      shell: bash
+
+    - name: Create Docker Image
+      env:
+        APP_NAME: ${{ vars.APP_NAME }}
+        FLASK_ENV: ${{ vars.FLASK_ENV }}
+        GPG_KEY: ${{ secrets.GPG_KEY}}
+
+      run: |
+        docker build  --build-arg FLASK_APP="$APP_NAME" --build-arg FLASK_ENV="$FLASK_ENV"  --build-arg GPG_KEY="$GPG_KEY"  -t  $APP_NAME-$BRANCH .
+
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Tag the image with release version and push to dockerhub
+      env:
+        APP_NAME: ${{ vars. APP_NAME }}
+        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      run: |
+       docker tag $APP_NAME-$BRANCH "$DOCKER_USERNAME/$APP_NAME-$BRANCH:$RELEASE_VERSION" 
+       docker push  "$DOCKER_USERNAME/$APP_NAME-$BRANCH:$RELEASE_VERSION" 
+
+    - name: deploy app to digital ocean
+      uses: appleboy/ssh-action@master
+      env:
+        APP_NAME: "${{ vars. APP_NAME }}"
+        APP_PORT: "${{ vars. APP_PORT }}"
+        DOCKER_USERNAME: "${{ secrets.DOCKER_USERNAME }}"
+        #BRANCH: "${BRANCH}"
+        #RELEASE_VERSION: "${RELEASE_VERSION}"
+      with:
+        host: ${{ secrets.APP_SERVER_IP }}
+        username: ${{ secrets.APP_SERVER_USERNAME }}
+        password: ${{ secrets.APP_SERVER_PASSWORD }}
+        port: ${{ secrets.APP_SERVER_PORT }}
+        envs: APP_NAME,REPOSITORY,APP_PORT,DOCKER_USERNAME,WORKER_COUNT,BRANCH,RELEASE_VERSION
+        script: |
+          docker pull  "$DOCKER_USERNAME/$APP_NAME-$BRANCH:$RELEASE_VERSION" 
+          docker rm -f ${APP_NAME}-${BRANCH}-${RELEASE_VERSION}-server &>/dev/null
+          docker run -d  --name ${APP_NAME}-${BRANCH}-${RELEASE_VERSION}-server --restart=always --privileged -u 0 -v /var/lib/snapd/void/$APP_NAME/data:/opt/$APP_NAME/static/uploads -p ${APP_PORT}:${APP_PORT} -e PORT=$APP_PORT  -e FLASK_APP=$APP_NAME  -e  FLASK_ENV=production  -e SESSION_TYPE=redis  $DOCKER_USERNAME/$APP_NAME-$BRANCH:$RELEASE_VERSION web
+    - name: deploying worker to digital ocean
+      uses: appleboy/ssh-action@master
+      env:
+        APP_NAME: "${{ vars. APP_NAME }}"
+        REPOSITORY: "${{ vars.REPOSITORY }}"
+        DOCKER_USERNAME: "${{ secrets.DOCKER_USERNAME }}"
+        WORKER_COUNT: "${{ vars.WORKER_COUNT}}"
+        ##BRANCH: "${BRANCH}"
+        #RELEASE_VERSION: "${RELEASE_VERSION}"
+      with:
+        host: ${{ secrets.WORKER_SERVER_IP }}
+        username: ${{ secrets.WORKER_SERVER_USERNAME }}
+        password: ${{ secrets.WORKER_SERVER_PASSWORD }}
+        port: ${{ secrets.WORKER_SERVER_PORT }}
+        envs: APP_NAME,REPOSITORY,DOCKER_USERNAME,WORKER_COUNT,BRANCH,RELEASE_VERSION
+        script: |
+          docker pull "$DOCKER_USERNAME/$APP_NAME-$BRANCH:$RELEASE_VERSION" 
+          docker rm -f  ${APP_NAME}-${BRANCH}-${RELEASE_VERSION}-worker-01 &>/dev/null
+          docker run -d --name ${APP_NAME}-${BRANCH}-${RELEASE_VERSION}-worker-01  --restart=always --privileged -u 0 -v /var/lib/snapd/void/$APP_NAME/worker_data:/opt/$APP_NAME/static/uploads -p 5011:5000 -p 81:80 -p 441:443 -e FLASK_APP=$APP_NAME  -e  FLASK_ENV=production  -e SESSION_TYPE=redis $DOCKER_USERNAME/$APP_NAME-$BRANCH:$RELEASE_VERSION worker
+

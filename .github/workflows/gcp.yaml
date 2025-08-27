@@ -1,0 +1,112 @@
+name:  GCP CI Workflow
+
+on:
+  push:
+    branches: [ "git-prod" ]
+    
+jobs:
+
+  build:
+    permissions:
+      id-token: write
+      contents: read
+    runs-on: ubuntu-latest
+    environment: prod
+    steps:
+    - name:  Get Branch Name
+      shell: bash
+      run:  |
+            echo "BRANCH=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_ENV
+    - name: Check out the repo
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: Get Docker Image Tag
+      env:
+        MAJOR_VERSION: ${{ vars.MAJOR_VERSION }}
+        MINOR_VERSION: ${{ vars.MINOR_VERSION }}
+      run: |
+           BUILD_NUMBER=$(/usr/bin/git rev-list --count HEAD $BRANCH) && echo "RELEASE_VERSION=$MAJOR_VERSION.$MINOR_VERSION.$BUILD_NUMBER" >> $GITHUB_ENV
+           echo $RELEASE_VERSION
+      shell: bash
+
+
+    - name: Containerize Application
+      env:
+        PORT: ${{ vars.PORT }}
+        FLASK_APP: ${{ vars.FLASK_APP }}
+        FLASK_ENV: ${{ vars.FLASK_ENV }}
+        MONGODB_URL: ${{ secrets.MONGODB_URL }}
+        MONGODB_DB: ${{ secrets.MONGODB_DB }}
+        SESSION_TYPE: ${{ vars.SESSION_TYPE }}
+        REDIS_URL: ${{ secrets.REDIS_URL }}
+        REDIS_QUEUE_NAME: ${{ secrets.REDIS_QUEUE_NAME }}
+        settingsKey: ${{ secrets.SETTINGS_DECRYPT_KEY }}
+      run: |
+        for filename in ./settings/*; do
+          gpg --quiet --batch --yes --decrypt --passphrase="$settingsKey"  --output ${filename/.gpg/} "$filename"
+          rm -f $filename     
+        done
+        docker build --build-arg PORT="$PORT"  --build-arg  FLASK_APP="${FLASK_APP}" --build-arg  FLASK_ENV="$FLASK_ENV" --build-arg  MONGODB_URL="$MONGODB_URL" --build-arg MONGODB_DB="$MONGODB_DB" --build-arg MONGODB_AUTH_MECHANISM=DEFAULT --build-arg SESSION_TYPE="$SESSION_TYPE"  --build-arg REDIS_URL="$REDIS_URL" --build-arg  REDIS_QUEUE_NAME="$REDIS_QUEUE_NAME"  -t  "$FLASK_APP" .
+   
+    - name: Tag the image with release version
+      env:
+        FLASK_APP: ${{ vars.FLASK_APP }}
+        REPOSITORY: ${{ vars.REPOSITORY }}
+      run: docker tag $FLASK_APP "$FLASK_APP-$BRANCH:$RELEASE_VERSION" 
+
+    - name: Tag the image with REPOSITORY
+      env:
+        FLASK_APP: ${{ vars.FLASK_APP }}
+        REPOSITORY: ${{ vars.REPOSITORY }}
+      run: docker tag $FLASK_APP-$BRANCH:$RELEASE_VERSION $REPOSITORY/$FLASK_APP-$BRANCH:$RELEASE_VERSION
+    - name: Create a latest image
+      env:
+        FLASK_APP: ${{ vars.FLASK_APP }}
+        REPOSITORY: ${{ vars.REPOSITORY }}
+      run: docker tag $FLASK_APP-$BRANCH:$RELEASE_VERSION $REPOSITORY/$FLASK_APP-$BRANCH:latest
+    
+    - name: 'Authenticate to Google Cloud'
+      uses: 'google-github-actions/auth@v1'
+      with:
+        create_credentials_file: true
+        workload_identity_provider: ${{ secrets.GCP_WIP }}
+        service_account: ${{ secrets.SERVICE_ACCOUNT }}
+ 
+    - name: Configure docker authentication
+      env:
+        REGION: ${{ vars.REGION}}
+      run: |
+        gcloud auth configure-docker $REGION-docker.pkg.dev --quiet
+
+    - name: Push the Docker image with version number
+      env:
+        FLASK_APP: ${{ vars.FLASK_APP }}
+        REPOSITORY: ${{ vars.REPOSITORY }}
+        REGION: ${{ vars.REGION}}
+      run: |
+        docker push $REPOSITORY/$FLASK_APP-$BRANCH:$RELEASE_VERSION
+    
+    - name: Deploy to Cloud Run
+      env:
+        GCP_WIP: ${{ secrets.GCP_WIP }}
+        MONGODB_DB: ${{ secrets.MONGODB_DB }}
+        MONGODB_URL: ${{ secrets.MONGODB_URL }}
+        REDIS_QUEUE_NAME: ${{ secrets.REDIS_QUEUE_NAME }}
+        REDIS_URL: ${{ secrets.REDIS_URL }}
+        SERVICE_ACCOUNT: ${{ secrets.SERVICE_ACCOUNT }}
+        SETTINGS_DECRYPT_KEY: ${{ secrets.SETTINGS_DECRYPT_KEY }}
+        FLASK_APP: ${{ vars.FLASK_APP }}
+        BUCKET_MOUNT_PATH: ${{ vars.BUCKET_MOUNT_PATH }}
+        BUCKET_NAME: ${{ vars.BUCKET_NAME }}
+        APP_NAME: ${{ vars.APP_NAME }}
+        FLASK_ENV: ${{ vars.FLASK_ENV }}
+        INSTANCES: ${{ vars.INSTANCES }}
+        PORT: ${{ vars.PORT }}
+        REGION: ${{ vars.REGION }}
+        REPOSITORY: ${{ vars.REPOSITORY }}
+        SESSION_TYPE: ${{ vars.SESSION_TYPE }}
+      run: 
+        gcloud run deploy "$FLASK_APP"  --image "$REPOSITORY/$FLASK_APP-$BRANCH:$RELEASE_VERSION"  --max-instances=$INSTANCES --port $PORT --set-env-vars="FLASK_APP=$FLASK_APP,FLASK_ENV=$FLASK_ENV,MONGODB_URL=$MONGODB_URL,MONGODB_DB=$MONGODB_DB,REDIS_QUEUE_NAME=$REDIS_QUEUE_NAME,REDIS_URL=$REDIS_URL,SESSION_TYPE=$SESSION_TYPE"
+        --region=$REGION --allow-unauthenticated   --service-account $SERVICE_ACCOUNT --add-volume=name=cill-uploads,type=cloud-storage,bucket=$BUCKET_NAME --add-volume-mount=volume=cill-uploads,mount-path=$BUCKET_MOUNT_PATH

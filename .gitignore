@@ -12,7 +12,6 @@ heroku_deploy.ps1
 app/static/uploads/keystore/
 *docker_*
 .vscode 
-*.yaml
 docker_build_prod.ps1
 build_docker_image.cmd
 *__pycache__*
@@ -21,4 +20,4 @@ gha-creds-*.json
 *.acky
 encrypt_settings.cmd
 data/*
-!app/static/cpanel/dist/custom/js/data/
+!app/static/cpanel/dist/custom/js/data/*
