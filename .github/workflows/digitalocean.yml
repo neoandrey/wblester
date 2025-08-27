@@ -57,6 +57,7 @@ jobs:
         APP_NAME: "${{ vars. APP_NAME }}"
         APP_PORT: "${{ vars. APP_PORT }}"
         DOCKER_USERNAME: "${{ secrets.DOCKER_USERNAME }}"
+        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         #BRANCH: "${BRANCH}"
         #RELEASE_VERSION: "${RELEASE_VERSION}"
       with:
@@ -64,17 +65,21 @@ jobs:
         username: ${{ secrets.APP_SERVER_USERNAME }}
         password: ${{ secrets.APP_SERVER_PASSWORD }}
         port: ${{ secrets.APP_SERVER_PORT }}
-        envs: APP_NAME,REPOSITORY,APP_PORT,DOCKER_USERNAME,WORKER_COUNT,BRANCH,RELEASE_VERSION
+        envs: APP_NAME,REPOSITORY,APP_PORT,DOCKER_USERNAME,DOCKER_PASSWORD,WORKER_COUNT,BRANCH,RELEASE_VERSION
         script: |
-          docker pull  "$DOCKER_USERNAME/$APP_NAME-$BRANCH:$RELEASE_VERSION" 
-          docker rm -f ${APP_NAME}-${BRANCH}-${RELEASE_VERSION}-server &>/dev/null
+          docker login -u $DOCKER_USERNAME -p  DOCKER_PASSWORD
+          docker pull  "$DOCKER_USERNAME/$APP_NAME-$BRANCH:$RELEASE_VERSION"
+          docker rm -f $(docker ps | grep ${APP_PORT}|cut -d' ' -f 1)  &>/dev/null
           docker run -d  --name ${APP_NAME}-${BRANCH}-${RELEASE_VERSION}-server --restart=always --privileged -u 0 -v /var/lib/snapd/void/$APP_NAME/data:/opt/$APP_NAME/static/uploads -p ${APP_PORT}:${APP_PORT} -e PORT=$APP_PORT  -e FLASK_APP=$APP_NAME  -e  FLASK_ENV=production  -e SESSION_TYPE=redis  $DOCKER_USERNAME/$APP_NAME-$BRANCH:$RELEASE_VERSION web
+        #docker rm -f ${APP_NAME}-${BRANCH}-${RELEASE_VERSION}-server &>/dev/null          
+          
     - name: deploying worker to digital ocean
       uses: appleboy/ssh-action@master
       env:
         APP_NAME: "${{ vars. APP_NAME }}"
         REPOSITORY: "${{ vars.REPOSITORY }}"
         DOCKER_USERNAME: "${{ secrets.DOCKER_USERNAME }}"
+        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         WORKER_COUNT: "${{ vars.WORKER_COUNT}}"
         ##BRANCH: "${BRANCH}"
         #RELEASE_VERSION: "${RELEASE_VERSION}"
@@ -83,8 +88,9 @@ jobs:
         username: ${{ secrets.WORKER_SERVER_USERNAME }}
         password: ${{ secrets.WORKER_SERVER_PASSWORD }}
         port: ${{ secrets.WORKER_SERVER_PORT }}
-        envs: APP_NAME,REPOSITORY,DOCKER_USERNAME,WORKER_COUNT,BRANCH,RELEASE_VERSION
+        envs: APP_NAME,REPOSITORY,DOCKER_USERNAME,DOCKER_PASSWORD,WORKER_COUNT,BRANCH,RELEASE_VERSION
         script: |
+          docker login -u $DOCKER_USERNAME -p  DOCKER_PASSWORD
           docker pull "$DOCKER_USERNAME/$APP_NAME-$BRANCH:$RELEASE_VERSION" 
           docker rm -f  ${APP_NAME}-${BRANCH}-${RELEASE_VERSION}-worker-01 &>/dev/null
           docker run -d --name ${APP_NAME}-${BRANCH}-${RELEASE_VERSION}-worker-01  --restart=always --privileged -u 0 -v /var/lib/snapd/void/$APP_NAME/worker_data:/opt/$APP_NAME/static/uploads -p 5011:5000 -p 81:80 -p 441:443 -e FLASK_APP=$APP_NAME  -e  FLASK_ENV=production  -e SESSION_TYPE=redis $DOCKER_USERNAME/$APP_NAME-$BRANCH:$RELEASE_VERSION worker
