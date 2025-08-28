@@ -12,6 +12,42 @@ function compareNames(a, b) {
     }
     return comparison;
 }
+const width = window.innerWidth;
+const height = window.innerHeight;
+const dialogWidth = `${0.55 * width}px`;
+const dialogHeight = `${0.4 * height}px`;
+let backdropStyle = null;
+const resizeDialog = Object.freeze( () => { 
+
+    const width     = window.innerWidth;
+    const height    =  window.innerHeight;
+    const newWidth = `${0.8 * width}px`;
+    //const newHeight = `${0.35 * height}px`;
+
+    const outerHeight = $('.modal-content').outerHeight(true);
+    const outerWidth = $('.modal-content').outerWidth(true);
+    const elementHeight = $('.modal-header').height() +$('.modal-body').height()+$('.modal-footer').height()
+
+   //     if (newHeight < elementHeight) { 
+    const   newHeight = elementHeight
+    // }
+    
+    
+    
+
+    
+   $('#modal-content').css('width', newWidth);
+   $('#modal-content').css('height', newHeight);
+   let headerSize = $('.modal-header').height();
+   //$('.modal-footer').height(headerSize)
+    
+    $('#modal-content').resizable();
+    // document.querySelectorAll('.dash-image').forEach(element => {
+    //   let elementStyle = element.getAttribute("style");
+    //   elementStyle.height  =elementStyle.width *1.46
+    // 	})
+
+}) 
 
 
 $.fn.isAlphabetic = (field) => {
@@ -488,6 +524,7 @@ function showDialog(header) {
     $('#dialog-header-span').html(header);
     $('#dialog-header-span').css('text-align', 'center');
     $('#myModal').modal(modalOptions);
+    resizeDialog();
 }
 
 
@@ -898,6 +935,7 @@ $.fn.showDialogBeforeUpdate = function (header, message, callback) {
     $('#dialog-close-bttn').hide();
     $('#myModal').modal(modalOptions);
     $('#myModal').show();
+    resizeDialog();
 }
 
 $.fn.showLoadingDialog = function (header) {

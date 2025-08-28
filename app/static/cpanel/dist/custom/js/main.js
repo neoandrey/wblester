@@ -5249,7 +5249,7 @@ $.fn.editPage = (query = 'none') => {
 	  
       let isChildOptions = ['No','Yes'].map((opt, key) => {
                   let selected = "";
-                  if (opt=='No' || (record  && record.is_child?.toString().toLowerCase() ==  "true") ) {
+                  if (opt=='No' || (record  && record.is_child && record.is_child.toString() != "false") ) {
                     selected = `selected="selected"`
                   }
                   return `<option value="${key}" ${selected}>${opt}</option>`
