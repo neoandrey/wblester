@@ -5523,6 +5523,9 @@ $.fn.editPage = (query = 'none') => {
 
         }
         })
+        if ( record && record?.page_type && record.page_type  ==1 ){
+            	$('#template-div').show()
+        }
       
         // $('#banner-id').on('change', (e) => {
 

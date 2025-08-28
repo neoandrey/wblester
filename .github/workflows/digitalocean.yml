@@ -94,5 +94,5 @@ jobs:
           docker login -u $DOCKER_USERNAME -p  $DOCKER_PASSWORD
           docker images | awk '/${APP_NAME}/ {print $1":"$2}'|  grep -v "${RELEASE_VERSION}"| xargs -n 1  docker image rm -f
           docker pull "$DOCKER_USERNAME/$APP_NAME-$BRANCH:$RELEASE_VERSION" 
-          docker rm -f  ${APP_NAME}-${BRANCH}-${RELEASE_VERSION}-worker-01 &>/dev/null
+          docker ps | awk '/${APP_NAME}-${BRANCH}/ {print $1":"$2}'|  grep -v "${RELEASE_VERSION}"| cut -d':' -f 1| xargs -n 1  docker rm -f
           docker run -d --name ${APP_NAME}-${BRANCH}-${RELEASE_VERSION}-worker-01  --restart=always --privileged -u 0 -v /var/lib/snapd/void/$APP_NAME/worker_data:/opt/$APP_NAME/static/uploads -p 5011:5000 -p 81:80 -p 441:443 -e FLASK_APP=$APP_NAME  -e  FLASK_ENV=production  -e SESSION_TYPE=redis $DOCKER_USERNAME/$APP_NAME-$BRANCH:$RELEASE_VERSION worker
