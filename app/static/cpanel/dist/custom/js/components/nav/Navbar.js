@@ -5,12 +5,12 @@ import NavbarSearch from './NavbarSearch.js'
 import { getProperty,getActionString } from '../Common.js'
 
 
-export function NavDivider() {
+export const NavDivider =Object.freeze(()=> {
   return `<div class="dropdown-divider"></div>`
-}
+})
 
 
-export default function Navbar(props, mode =0) {
+function Navbar(props, mode =0) {
 
   if (Object.keys(props).length == 0) {
     return ``
@@ -25,6 +25,23 @@ export default function Navbar(props, mode =0) {
   const navDropdownItemList = getProperty(props, "NavDropdownItemList", [])
   const mediaDropdownItemList = getProperty(props, "MediaDropdownItemList", [])
 
+  const getNavSelectList = (navLinks) => {
+
+    const selectOptions= navLinks.map((navLink) => {
+        let actionString = navLink.actions? navLink.actions.functionName:'';
+        let accessMethod = navLink.access ? navLink.access.method : null;
+        let accessValue  = navLink.access ? navLink.access.value : null;
+        actionString = actionString.length > 0 ? actionString : '';
+        let accessLevel = eval(accessMethod)
+        return accessMethod == null || accessLevel==accessValue?`<option  value="${actionString}" >
+            <strong>${navLink.name}</strong>
+          </option>`:''
+      }).join(``)
+  return       `<select  name="nav_options" id="nav-options" class="form-control select2" onChange="Function(event.target.value)()" >
+                ${selectOptions}
+              </select>`
+
+  }
 
   const display = () => {
     return (
@@ -42,9 +59,10 @@ export default function Navbar(props, mode =0) {
             <a href="${navLink.href}" class="nav-link" ${actionString}>${navLink.name}</a>
           </li>`:''
       }).join(``)
-      }    
+      }
+      <li class="nav-item d-none" id="mobile-nav">${getNavSelectList(navLinks)}</li>
     </ul>
-    <ul class="navbar-nav ml-auto">   
+    <ul class="navbar-nav ml-auto">
       ${MediaDropdownItemList(mediaDropdownItemList)}
       ${NavDropdownItemList(navDropdownItemList)}
       <li class="nav-item">
@@ -77,9 +95,10 @@ export default function Navbar(props, mode =0) {
             <a href="${navLink.href}" class="nav-link" ${actionString}>${navLink.name}</a>
           </li>`
       }).join(``)
-      }    
+      }
+       <li class="nav-item d-none" id="mobile-nav">${getNavSelectList(navLinks)}</li>
     </ul>
-    <ul class="navbar-nav ml-auto">   
+    <ul class="navbar-nav ml-auto">
       ${MediaDropdownItemList(mediaDropdownItemList)}
       ${NavDropdownItemList(navDropdownItemList)}
       <li class="nav-item">
@@ -97,8 +116,8 @@ export default function Navbar(props, mode =0) {
     )
   }
 
-  
-  if (mode== 0){ 
+
+  if (mode== 0){
     return display()
 }else{
     return update()
@@ -107,3 +126,4 @@ export default function Navbar(props, mode =0) {
 
 
 }
+export default Object.freeze(Navbar)

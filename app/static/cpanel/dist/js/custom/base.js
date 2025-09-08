@@ -1,3 +1,66 @@
+const width = $('#index-root-navbar').width();
+const height = window.innerHeight;
+const dialogWidth = `${0.7 * width}px`;
+const dialogHeight = `${0.5 * height}px`;
+let backdropStyle = null;
+const resizeDialog = Object.freeze( () => {
+
+    const width     = $('#index-root-navbar').width();
+    const height    =  window.innerHeight;
+    const newWidth = `${0.8 * width}px`;
+    const newHeight = `${0.35 * height}px`;
+
+   $('#modal-content').css('width', newWidth);
+   $('#modal-content').css('height', newHeight);
+   let headerSize = $('.modal-header').height();
+   //$('.modal-footer').height(headerSize)
+
+    $('#modal-content').resizable();
+    // document.querySelectorAll('.dash-image').forEach(element => {
+    //   let elementStyle = element.getAttribute("style");
+    //   elementStyle.height  =elementStyle.width *1.46
+    // 	})
+    $('#dialog-message-div').show()
+    $('#dialog-close-bttn').hide();
+
+    $('#modal-content').resizable()
+    $('#modal-content').removeClass('d-flex align-self-baseline')
+    $('.modal-dialog').removeClass('modal-lg')
+
+        if (!$('#modal-content').hasClass('mx-auto')){
+            $('#modal-content').addClass('mx-auto')
+    }
+    if (width < 770) {
+
+        if (!$('#dialog-header-span').hasClass('mx-auto text-center')) {
+            $('#dialog-header-span').addClass('mx-auto text-center')
+        }
+    }else {
+  if ($('#dialog-header-span').hasClass('mx-auto text-center')) {
+            $('#dialog-header-span').removeClass('mx-auto text-center')
+        }
+
+    }
+
+        if (width < 776) {
+        if ($('#dialog-message-div').hasClass('h-50')) {
+             $('#dialog-message-div').removeClass('h-50')
+            }
+                    if (!$('#dialog-message-div').hasClass('h-25')) {
+             $('#dialog-message-div').addClass('h-25')
+        }
+    }else {
+ if ($('#dialog-message-div').hasClass('h-25')) {
+             $('#dialog-message-div').removeClass('h-25')
+            }
+                    if (!$('#dialog-message-div').hasClass('h-50')) {
+             $('#dialog-message-div').addClass('h-50')
+        }
+        }
+})
+
+
+
 $.fn.dialogWidth ="30em"
 function compareNames(a, b) {
     // Use toUpperCase() to ignore character casing
@@ -12,43 +75,6 @@ function compareNames(a, b) {
     }
     return comparison;
 }
-const width = window.innerWidth;
-const height = window.innerHeight;
-const dialogWidth = `${0.55 * width}px`;
-const dialogHeight = `${0.4 * height}px`;
-let backdropStyle = null;
-const resizeDialog = Object.freeze( () => { 
-
-    const width     = window.innerWidth;
-    const height    =  window.innerHeight;
-    const newWidth = `${0.8 * width}px`;
-    //const newHeight = `${0.35 * height}px`;
-
-    const outerHeight = $('.modal-content').outerHeight(true);
-    const outerWidth = $('.modal-content').outerWidth(true);
-    const elementHeight = $('.modal-header').height() +$('.modal-body').height()+$('.modal-footer').height()
-
-   //     if (newHeight < elementHeight) { 
-    const   newHeight = elementHeight
-    // }
-    
-    
-    
-
-    
-   $('#modal-content').css('width', newWidth);
-   $('#modal-content').css('height', newHeight);
-   let headerSize = $('.modal-header').height();
-   //$('.modal-footer').height(headerSize)
-    
-    $('#modal-content').resizable();
-    // document.querySelectorAll('.dash-image').forEach(element => {
-    //   let elementStyle = element.getAttribute("style");
-    //   elementStyle.height  =elementStyle.width *1.46
-    // 	})
-
-}) 
-
 
 $.fn.isAlphabetic = (field) => {
 
@@ -524,7 +550,7 @@ function showDialog(header) {
     $('#dialog-header-span').html(header);
     $('#dialog-header-span').css('text-align', 'center');
     $('#myModal').modal(modalOptions);
-    resizeDialog();
+    //resizeDialog();
 }
 
 
@@ -1136,3 +1162,35 @@ $('#modal-content').html(`            <div class="modal-header">
 </div>`)
 
 }
+
+
+
+window.addEventListener("resize", (e) => {
+     manageNav();
+    if ($('#myModal').is(":visible")) {
+        resizeDialog();
+    }
+    console.log("resizing 1235...")
+
+    if ($('.login-box').is(":visible")) {
+        loginBoxSize();
+    }else if ($('.register-box').is(":visible")) {
+        registerBoxSize();
+    }
+    if ($('.dash-image').is(":visible")) {
+         $('.dash-image').css('height', parseFloat($('.dash-image').css('width'))*1.46)
+    }
+
+
+ });
+
+window.addEventListener("load", (e) => {
+
+    manageNav();
+        if ($('.login-box').is(":visible")) {
+        loginBoxSize();
+    }else if ($('.register-box').is(":visible")) {
+        registerBoxSize();
+    }
+
+});

@@ -2236,8 +2236,9 @@ def add_record(data_type):
                     page.current_version = int(page.current_version) + 1
                     child_pages = Pages.get({"parent_page": page})
 
-                    if child_pages is not None:
-                        page.is_parent = False
+                    #if child_pages is None:
+                    #    page.is_parent = False
+
                     if page.is_child:
                         page.parent_page = parent_page
                     else:

@@ -5719,7 +5719,7 @@ $.fn.editPage = (query = 'none') => {
       let pageName            = $('#page-name').val();
       //let pageContents        = $('#page-contents').summernote('code');
       let pageContents        = $('#page-contents').val();
-      //let isParent            = $('#is-parent').val()
+      let isParent            = $('#is-parent').val()
       let isChild             = $('#is-child').val()
       let isNavpage			      = $('#is-nav-page').val()
       let comesAfter          = $('#comes-after').val()
